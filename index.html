@@ -244,11 +244,9 @@ body {
                     <li>귀하는 <strong>상담실 이미지</strong>와 상담자와 나의 <strong>대화 내용</strong>을 보게 됩니다.</li>
                     <li><strong>각 화면은 최소 3초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
                     <li>화면을 주의 깊게 본 후 이후 물음에 답해 주세요.</li>
+                    <li>준비가 되셨다면 아래 <strong>'다음'</strong> 버튼을 눌러 시작해 주세요.</li>
                 </ul>
             </div>
-            <p style="text-align:center; color:#666; font-size:14px;">
-                준비가 되셨다면 아래 <strong>'다음'</strong> 버튼을 눌러 시작해 주세요.
-            </p>
         </div>
 
         <div id="step-vignette" class="hidden">
@@ -263,28 +261,6 @@ body {
                     </p>
             </div>
             <p style="text-align:center; color:#999; font-size:13px; margin-top:10px;" id="page-counter">1 / 7</p>
-        </div>
-
-        <div id="step-check" class="hidden">
-            <h2>기억 회상</h2>
-            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>벽이나 가구 주변에서 <strong>특히 기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
-            
-            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
-                </label>
-            </div>
-
-            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
         </div>
 
         <div id="step-des" class="hidden">
@@ -307,6 +283,28 @@ body {
             <h2>설문 2/2</h2>
             <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
             <div id="csq-container"></div>
+        </div>
+        
+           <div id="step-check" class="hidden">
+            <h2>기억 회상</h2>
+            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
+            
+            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없었음
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
+                </label>
+            </div>
+
+            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
         </div>
 
         <div id="step-debrief" class="hidden">
@@ -336,7 +334,7 @@ body {
                 추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
                 </p>
                 <ul style="font-size:13px; margin-top:0; color:#555;">
-                <li>자살예방 상담전화: 109)</li>
+                <li>자살예방 상담전화: 109</li>
                 <li>생명의전화: 1588-9191</li>
                 <li>정신건강상담전화: 1577-0199</li>
                 </ul>
@@ -411,19 +409,19 @@ body {
         `<span class="dialogue"><span class="speaker">나:</span> 네, 안그래도 오늘 갑자기 추워져서 길에 사람도 많이 없더라고요.</span>`,
         `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> 네… 어디서부터 말해야 할지 잘 모르겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br>[사전에 작성한 질문지를 살핀다]<br>최근에 잠을 잘 못 주무셨다고요?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자서요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 아침마다 지각도 하고… 기운이 너무 없어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 아침에 지각을 했군요. 불편함도 피로감도 있었겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>이런 이야기도 해도 되는지 모르겠는데...</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br>`<span class="desc">[사전에 작성한 질문지를 살핀다]</span>`,<br>최근에 잠을 잘 못 주무셨다고요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
         `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`,
 
         
         // [Index 20] 성향 치환 구간
-        `<span class="dialogue"><span class="speaker">나:</span> (잠시 망설이며) …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었다가, 다시 연락 오면 받아주게 되고… 이게 반복되니까 너무 지쳐요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 소중한 관계가 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
-        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 ‘애인’이라는 단어를 꺼낼지 고민합니다.]</span>`
+        `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
+        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`
     ];
 
     const desQuestions = [
@@ -760,7 +758,7 @@ body {
         const phoneInput = document.getElementById('reward-phone').value.trim();
         
         btn.disabled = true;
-        btn.innerText = "데이터 저장 중...";
+        btn.innerText = "결과 보내는 중...";
 
         const finalData = {
             id: Date.now(),
@@ -782,7 +780,7 @@ body {
         })
         .then(() => {
             localStorage.setItem('participation_completed', 'true');
-            alert("데이터가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
             document.querySelector('.app-container').innerHTML = 
                 "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
         })
@@ -831,7 +829,7 @@ body {
         }
     }
     function handleExit() {
-        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 데이터가 저장되지 않습니다.")) {
+        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
             window.open('','_self').close(); 
             window.close();
             document.querySelector('.app-container').innerHTML = 
