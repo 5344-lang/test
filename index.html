@@ -476,12 +476,12 @@ body {
 
     /* --- [기능] 비네트 텍스트 치환 --- */
     const wordMap = { "homo": "동성", "bi": "양성" };
-    function getProcessedText(index) {
-        let text = vignettes[index];
-        const savedType = localStorage.getItem('userType'); 
-        const targetWord = wordMap[savedType] || "동성"; 
-        return text.replaceAll("[동성/양성]", targetWord);
-    }
+function getProcessedText(index) {
+    let text = vignettes[index];
+    const savedType = localStorage.getItem('userType'); 
+    const targetWord = wordMap[savedType] || "동성"; 
+    return text.replace(/\[동성\/양성\]/g, targetWord);  // ← 정규식 replace로 교체
+}
 
     /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
     function handleScreenFail() {
@@ -535,6 +535,7 @@ body {
     }
 
     function handleNext() {
+        alert('handleNext called');
         const btn = document.getElementById('main-btn');
 
         // 1. 연구 동의
