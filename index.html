@@ -535,7 +535,6 @@ function getProcessedText(index) {
     }
 
     function handleNext() {
-        alert('handleNext called');
         const btn = document.getElementById('main-btn');
 
         // 1. 연구 동의
@@ -755,7 +754,7 @@ function getProcessedText(index) {
         }
     }
 
-    /* 구글 전송 */
+/* 구글 전송 */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
@@ -806,21 +805,27 @@ function getProcessedText(index) {
             container.innerHTML += html;
         });
     }
+
     function validateScale(count, prefix) {
         for(let i=0; i<count; i++) {
             if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
                 alert(`${i+1}번 문항에 응답해 주세요.`);
+                // 해당 위치로 스크롤 이동
+                const qEl = document.getElementsByName(`${prefix}_q${i}`)[0];
+                qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }
         }
         return true;
     }
+
     function collectScaleData(prefix, count) {
         state.data[prefix] = [];
         for(let i=0; i<count; i++) {
             state.data[prefix].push(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
         }
     }
+
     function toggleEtc(isShow) {
         const etcInput = document.getElementById('check-etc-text');
         if (isShow) {
@@ -831,6 +836,7 @@ function getProcessedText(index) {
             etcInput.value = "";
         }
     }
+
     function handleExit() {
         if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
             window.open('','_self').close(); 
