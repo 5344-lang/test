@@ -16,16 +16,21 @@
             --text-main: #333333;
         }
 
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            //height: 100vh;
-            overflow: auto;
-            color: var(--text-main);
-        }
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    /* height: 100vh;  ← 이 줄 삭제 */
+    /* overflow: hidden;  ← 우선 주석 처리 또는 auto 로 변경 */
+    overflow: hidden; /* 또는 auto: 직접 테스트하면서 선택 */
+    color: var(--text-main);
+}
 
         .app-container {
             background-color: var(--card-bg);
