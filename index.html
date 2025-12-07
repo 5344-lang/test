@@ -16,33 +16,30 @@
             --text-main: #333333;
         }
 
-html, body {
-    height: 100%;
-    margin: 0;
-}
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
 
-body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background-color: var(--bg-color);
-    display: flex;
-    justify-content: center;
-    /* height: 100vh;  ← 이 줄 삭제 */
-    overflow: auto;  /* ← 우선 주석 처리 또는 auto 로 변경 */
-    overflow: hidden; /* 또는 auto: 직접 테스트하면서 선택 */
-    color: var(--text-main);
-}
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            overflow: hidden; 
+            color: var(--text-main);
+        }
 
         .app-container {
-    background-color: var(--card-bg);
-    width: 100%;
-    max-width: 500px;
-    height: 100%;
-    min-height: 100vh;      /* 추가: 필요시 */
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    position: relative;
-}
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
 
         /* 헤더 */
         header {
@@ -58,10 +55,11 @@ body {
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 */
+        /* 컨텐츠 영역 (수정된 부분: padding-bottom을 120px로 늘림) */
         .content {
             flex: 1;
-            padding: 0 24px 24px 24px;
+            /* 상단 0, 좌우 24px, 하단 120px (버튼에 가려지지 않도록 넉넉하게) */
+            padding: 0 24px 120px 24px; 
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             position: relative;
@@ -103,15 +101,15 @@ body {
         
         /* 하단 버튼 */
         .bottom-bar {
-    position: sticky;     /* sticky 대신 fixed 사용 권장 */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #eee;
-    display: flex;
-    z-index: 300;
-}
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            z-index: 300;
+        }
 
         .footer-btn {
             background-color: var(--primary-color);
@@ -412,14 +410,13 @@ body {
         `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><b>[사전에 작성한 질문지를 살핀다]</b><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><span class="desc">[사전에 작성한 질문지를 살핀다]</span><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
         `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`,
 
-        
         // [Index 20] 성향 치환 구간
         `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
@@ -476,12 +473,12 @@ body {
 
     /* --- [기능] 비네트 텍스트 치환 --- */
     const wordMap = { "homo": "동성", "bi": "양성" };
-function getProcessedText(index) {
-    let text = vignettes[index];
-    const savedType = localStorage.getItem('userType'); 
-    const targetWord = wordMap[savedType] || "동성"; 
-    return text.replace(/\[동성\/양성\]/g, targetWord);  // ← 정규식 replace로 교체
-}
+    function getProcessedText(index) {
+        let text = vignettes[index];
+        const savedType = localStorage.getItem('userType'); 
+        const targetWord = wordMap[savedType] || "동성"; 
+        return text.replace(/\[동성\/양성\]/g, targetWord); 
+    }
 
     /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
     function handleScreenFail() {
@@ -693,7 +690,7 @@ function getProcessedText(index) {
         }
     }
 
-    /* 비네트 렌더링 & 3초 카운트다운 타이머 (상단바 삭제됨) */
+    /* 비네트 렌더링 & 3초 카운트다운 타이머 */
     function renderVignette() {
         const idx = state.vignetteIndex;
         const btnNext = document.getElementById('main-btn');
@@ -705,10 +702,8 @@ function getProcessedText(index) {
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-        // [수정됨] 이미지 표시 로직
-        // Index 0~6: 대기실 이미지 (waiting.png)
-        // Index 7~: 조건별 이미지 (cross/buddha/none)
-        imgContainer.style.display = 'block'; // 항상 이미지 보임
+        // 이미지 표시 로직
+        imgContainer.style.display = 'block'; 
         if (idx < 7) {
             imgEl.src = imgFiles['waiting'];
         } else {
@@ -723,7 +718,7 @@ function getProcessedText(index) {
             btnPrev.disabled = false;
         }
 
-        // 타이머 및 카운트다운 로직 (버튼만 제어)
+        // 타이머 및 카운트다운 로직
         if (state.timer) clearInterval(state.timer);
 
         if (state.visitedVignettes.has(idx)) {
@@ -754,7 +749,7 @@ function getProcessedText(index) {
         }
     }
 
-/* 구글 전송 */
+    /* 구글 전송 */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
