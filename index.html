@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상담 장면 인지-정서 반응 실험</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
+<style>
         /* --- 디자인 시스템 (모바일 친화적 UI) --- */
         :root {
             --primary-color: #5bc2e7;
@@ -31,9 +24,9 @@
             background-color: var(--card-bg);
             width: 100%;
             max-width: 500px;
-            height: 100%; /* 부모 높이 상속 */
+            height: 100%;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 세로 정렬 필수 */
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
             position: relative;
         }
@@ -51,13 +44,12 @@
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 (수정됨: 이 영역만 스크롤 됨) */
+        /* 컨텐츠 영역 (핵심 수정: Flex 사용) */
         .content {
-            flex: 1; /* 남은 공간 모두 차지 */
+            flex: 1; /* 남은 공간을 꽉 채움 */
             padding: 24px;
-            overflow-y: auto; /* 내용 길면 스크롤 발생 */
-            padding-bottom: 90px; /* 하단 버튼 가려짐 방지 여유 공간 */
-            -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+            overflow-y: auto; /* 내용 길면 스크롤 */
+            -webkit-overflow-scrolling: touch;
         }
 
         h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 0; }
@@ -73,14 +65,12 @@
             font-size: 15px; box-sizing: border-box;
         }
         
-        /* 하단 고정 버튼 영역 (수정됨: 화면 최하단 고정) */
+        /* 하단 고정 버튼 영역 (핵심 수정) */
         .bottom-bar {
-            position: absolute;
-            bottom: 0;
             width: 100%;
             background: white;
             border-top: 1px solid #eee;
-            z-index: 10; /* 다른 요소 위에 표시 */
+            flex-shrink: 0; /* 크기 줄어들지 않음 */
         }
 
         .footer-btn {
@@ -134,7 +124,6 @@
             font-size: 13px; 
             font-weight: bold;
         }
-        /* -------------------------------- */
 
         #image-container {
             width: 100%;
@@ -400,18 +389,18 @@
 </div>
 
 <script>
-    // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL을 따옴표 안에 넣어주세요 ▼▼▼▼▼▼
+    // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec"; 
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    // ▼▼▼▼▼▼ [설정] 연구자 연락처를 여기에 적으세요 ▼▼▼▼▼▼
+    // ▼▼▼▼▼▼ [설정] 연구자 연락처 ▼▼▼▼▼▼
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     /* --- 1. 실험 변수 및 상태 관리 --- */
     const conditions = ['cross', 'buddha', 'none']; 
     let state = {
-        step: 'consent', // 시작 단계: 동의서
+        step: 'consent', 
         condition: '', 
         vignetteIndex: 0, 
         data: {}, 
@@ -424,44 +413,43 @@
         'none': 'none.png'
     };
 
-const vignettes = [
-    // 1. 대기실 (기대감)
-    "당신은 최근 동성 파트너와의 관계에서 반복되는 갈등으로 인해 한계에 다다랐음을 느낍니다. 사소한 말다툼부터 이별과 재결합이 끊임없이 반복되면서, 이제는 지치고 외롭다는 감정조차 버겁게 느껴집니다.<br><br>결국 전문가의 도움을 받기로 결심하고 상담센터를 찾았습니다. 대기실 벽에 걸린 상담자의 이력과 자격증을 보니 꽤 전문적인 사람인 것 같아 마음이 조금 놓입니다.<br>‘여기라면 내 이야기를 들어줄 수 있지 않을까?’<br>당신은 기대와 긴장이 뒤섞인 마음으로 상담실 입장을 기다립니다.",
-    
-    // 2. 상담실 입장 (환경 탐색 - 상징물 노출 시점)
-    "이름을 부르는 소리에 안내를 받아 상담실로 들어갑니다. 상담자와 마주 보고 앉자, 자연스럽게 상담실 내부의 풍경과 분위기가 눈에 들어옵니다.<br><br>낯선 공간이 주는 긴장감에 당신은 마른침을 삼킵니다.<br>\"상담은 처음이라... 어디서부터 말해야 할지 모르겠네요.\"<br><br>상담자는 온화한 미소로 당신을 맞이합니다.<br>\"처음 오시는 자리라 낯설고 긴장되는 게 당연합니다. 이곳은 안전한 공간이니, 준비되신 만큼만 천천히 이야기해 주셔도 괜찮습니다.\"",
-    
-    // 3. 내담자의 방어 (위장 선택)
-    "당신은 애인과 수없이 헤어지고 다시 만나는 과정을 반복하며 지쳐있습니다. 이 이야기를 솔직하게 털어놓으려던 찰나, 당신은 상담실의 분위기를 살피며 잠시 멈칫합니다.<br>혹시라도 나의 정체성을 알게 되었을 때 상담자가 편견을 가질까 봐 걱정이 앞섭니다.<br><br>결국 당신은 안전을 위해 ‘동성 애인’과의 관계를 ‘친구’로 바꿔서 이야기하기로 결심합니다.<br>\"그냥... 가장 친한 친구랑 문제가 좀 있어서요. 그 친구랑 절교했다가 다시 연락했다가... 이게 계속 반복되니까 너무 지쳐요.\"<br><br>당신은 ‘애인’이라는 단어를 삼키고 ‘친구’라고 말하며 조심스럽게 상담자의 반응을 살핍니다.",
-    
-    // 4. 상담자의 반응 (전문성/신뢰감)
-    "상담자는 당신의 눈을 편안하게 맞추며, 당신이 느꼈을 감정의 무게를 있는 그대로 받아줍니다.<br>\"정말 소중한 친구분인가 보네요. 가깝고 깊은 관계일수록, 갈등이 반복될 때 겪게 되는 마음의 소모는 이루 말할 수 없이 크죠.\"<br><br>상담자는 침착하고 신뢰감 있는 목소리로 말을 이어갑니다.<br>\"서로를 아끼는 마음과 힘든 상황이 충돌하면서 많이 혼란스러우셨을 것 같습니다. 오늘 이 시간만큼은, 그 관계에서 겪으셨던 마음들을 안전하게 털어놓으셔도 괜찮습니다.\"<br><br>상담자의 태도는 흠잡을 데 없이 훌륭하며, 당신의 고통을 진지하게 존중해주고 있습니다.",
-    
-    // 5. 내담자의 딜레마 (거리감/의심 - 실험 효과 측정)
-    "상담자의 따뜻하고 전문적인 반응에 당신은 상담자가 꽤 괜찮은 사람이라는 인상을 받습니다. 내 이야기를 진지하게 들어주려는 태도가 느껴집니다.<br><br>하지만 문득 마음 한구석에 물음표가 떠오릅니다.<br>‘선생님은 정말 좋으신 분 같지만... 내가 [동성/양성]애자라는 걸 아셔도 이렇게 받아주실까?’<br><br>당신은 상담자의 친절한 태도를 보며 복잡한 마음이 듭니다."
-];
-// 참가자 타입 (예: 데이터에서 가져온 값)
-const userType = "homo"; // or "bi"
+    const vignettes = [
+        // 1. 대기실
+        "당신은 최근 [동성/양성] 파트너와의 관계에서 반복되는 갈등으로 인해 한계에 다다랐음을 느낍니다. 사소한 말다툼부터 이별과 재결합이 끊임없이 반복되면서, 이제는 지치고 외롭다는 감정조차 버겁게 느껴집니다.<br><br>결국 전문가의 도움을 받기로 결심하고 상담센터를 찾았습니다. 대기실 벽에 걸린 상담자의 이력과 자격증을 보니 꽤 전문적인 사람인 것 같아 마음이 조금 놓입니다.<br>‘여기라면 내 이야기를 들어줄 수 있지 않을까?’<br>당신은 기대와 긴장이 뒤섞인 마음으로 상담실 입장을 기다립니다.",
+        
+        // 2. 상담실 입장
+        "이름을 부르는 소리에 안내를 받아 상담실로 들어갑니다. 상담자와 마주 보고 앉자, 자연스럽게 상담실 내부의 풍경과 분위기가 눈에 들어옵니다.<br><br>낯선 공간이 주는 긴장감에 당신은 마른침을 삼킵니다.<br>\"상담은 처음이라... 어디서부터 말해야 할지 모르겠네요.\"<br><br>상담자는 온화한 미소로 당신을 맞이합니다.<br>\"처음 오시는 자리라 낯설고 긴장되는 게 당연합니다. 이곳은 안전한 공간이니, 준비되신 만큼만 천천히 이야기해 주셔도 괜찮습니다.\"",
+        
+        // 3. 내담자의 방어
+        "당신은 애인과 수없이 헤어지고 다시 만나는 과정을 반복하며 지쳐있습니다. 이 이야기를 솔직하게 털어놓으려던 찰나, 당신은 상담실의 분위기를 살피며 잠시 멈칫합니다.<br>혹시라도 나의 정체성을 알게 되었을 때 상담자가 편견을 가질까 봐 걱정이 앞섭니다.<br><br>결국 당신은 안전을 위해 ‘동성 애인’과의 관계를 ‘친구’로 바꿔서 이야기하기로 결심합니다.<br>\"그냥... 가장 친한 친구랑 문제가 좀 있어서요. 그 친구랑 절교했다가 다시 연락했다가... 이게 계속 반복되니까 너무 지쳐요.\"<br><br>당신은 ‘애인’이라는 단어를 삼키고 ‘친구’라고 말하며 조심스럽게 상담자의 반응을 살핍니다.",
+        
+        // 4. 상담자의 반응
+        "상담자는 당신의 눈을 편안하게 맞추며, 당신이 느꼈을 감정의 무게를 있는 그대로 받아줍니다.<br>\"정말 소중한 친구분인가 보네요. 가깝고 깊은 관계일수록, 갈등이 반복될 때 겪게 되는 마음의 소모는 이루 말할 수 없이 크죠.\"<br><br>상담자는 침착하고 신뢰감 있는 목소리로 말을 이어갑니다.<br>\"서로를 아끼는 마음과 힘든 상황이 충돌하면서 많이 혼란스러우셨을 것 같습니다. 오늘 이 시간만큼은, 그 관계에서 겪으셨던 마음들을 안전하게 털어놓으셔도 괜찮습니다.\"<br><br>상담자의 태도는 흠잡을 데 없이 훌륭하며, 당신의 고통을 진지하게 존중해주고 있습니다.",
+        
+        // 5. 내담자의 딜레마
+        "상담자의 따뜻하고 전문적인 반응에 당신은 상담자가 꽤 괜찮은 사람이라는 인상을 받습니다. 내 이야기를 진지하게 들어주려는 태도가 느껴집니다.<br><br>하지만 문득 마음 한구석에 물음표가 떠오릅니다.<br>‘선생님은 정말 좋으신 분 같지만... 내가 [동성/양성]애자라는 걸 아셔도 이렇게 받아주실까?’<br><br>당신은 상담자의 친절한 태도를 보며 복잡한 마음이 듭니다."
+    ];
 
-// 타입에 따른 단어 사전
-const wordMap = {
-    "homo": "동성",
-    "bi": "양성"
-};
+    /* --- [핵심 수정] 텍스트 자동 변환 함수 --- */
+    const wordMap = {
+        "homo": "동성",
+        "bi": "양성"
+    };
 
-// 텍스트 변환 함수
-function getProcessedText(index) {
-    // 1. 현재 비네트 가져옴
-    let text = vignettes[index];
-    
-    // 2. [동성/양성] 부분을 찾아서, wordMap에 있는 단어로 바꿈
-    // userType이 'homo'면 '동성'으로, 'bi'면 '양성'으로 바뀜
-    return text.replaceAll("[동성/양성]", wordMap[userType]);
-}
+    function getProcessedText(index) {
+        // 1. 현재 보여줄 비네트 원본
+        let text = vignettes[index];
+        
+        // 2. 저장된 유저 타입 가져오기 (스크리너에서 저장함)
+        const savedType = localStorage.getItem('userType'); 
+        
+        // 3. 매핑될 단어 찾기 (없으면 기본값 '동성')
+        const targetWord = wordMap[savedType] || "동성";
 
-// 사용 예시
-console.log(getProcessedText(0)); 
-// 결과: "당신은 최근 동성 파트너와의..."
+        // 4. [동성/양성] 부분을 실제 단어로 교체해서 반환
+        return text.replaceAll("[동성/양성]", targetWord);
+    }
+
     const desQuestions = [
         "1. 당신의 개인적인 정보를 상담자에게 노출하는 것은 어려운 일일까요?",
         "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 상담자에게 말한다면 불안하게 느껴질까요?",
@@ -494,14 +482,12 @@ console.log(getProcessedText(0));
     function handleNext() {
         const btn = document.getElementById('main-btn');
 
-        // 1. 연구 동의 (가장 먼저 실행)
+        // 1. 연구 동의
         if (state.step === 'consent') {
             if (!document.getElementById('consent-chk').checked) {
                 alert('연구 참여에 동의하셔야 진행할 수 있습니다.');
                 return;
             }
-            
-            // 동의 완료 -> 스크리너로 이동
             state.step = 'screener';
             hideAllSteps();
             document.getElementById('step-screener').classList.remove('hidden');
@@ -509,58 +495,49 @@ console.log(getProcessedText(0));
             window.scrollTo(0,0);
         }
 
-// 2. 스크리너 단계 (수정된 버전)
+        // 2. 스크리너 단계
         else if (state.step === 'screener') {
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
             const orientation = document.getElementById('orientation').value;
             
-            // [수정 1] 성별 정체성 관련 값 가져오기 (출생성별, 현재성별, 판별결과)
             const birthSex = document.getElementById('birth_sex').value;
             const currentGender = document.getElementById('current_gender').value;
-            const calculatedIdentity = document.getElementById('final_identity_value').value; // 'cis' or 'trans'
+            const calculatedIdentity = document.getElementById('final_identity_value').value; 
 
-            // [수정 2] 유효성 검사: 하나라도 선택 안 했으면 알림
+            // 유효성 검사
             if (!age || !residence || !orientation || !birthSex || !currentGender) {
                 alert('모든 항목을 선택해 주세요.');
                 return;
             }
 
-            // [수정 3] 스크리닝 로직 (탈락 조건 설정)
-            // 기준: 18세 이상, 한국 거주, 동성애/양성애, 시스젠더
+            // 탈락 로직
             if (
-                age === 'under18' ||                           // 미성년자 탈락
-                residence === 'abroad' ||                      // 해외 거주 탈락
-                (orientation !== 'homo' && orientation !== 'bi') || // 이성애자, 기타, 모름 등 탈락 (동성/양성만 통과)
-                calculatedIdentity !== 'cis'                   // 트랜스젠더/젠더퀴어 탈락 (시스젠더만 통과)
+                age === 'under18' ||                           
+                residence === 'abroad' ||                      
+                (orientation !== 'homo' && orientation !== 'bi') || 
+                calculatedIdentity !== 'cis'                   
             ) {
                 document.getElementById('screen-fail-msg').style.display = 'block';
-                // 탈락 시 스크롤을 메시지 쪽으로 이동 (선택 사항)
                 document.getElementById('screen-fail-msg').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
 
-            // [수정 4] 데이터 저장 (상세 성별 정보 포함)
+            // 데이터 저장
             state.data.demographics = { 
-                age, 
-                residence, 
-                orientation, 
-                birthSex, 
-                currentGender,
-                identity: calculatedIdentity // 'cis'
+                age, residence, orientation, birthSex, currentGender,
+                identity: calculatedIdentity
             };
             
-            // Randomization (스크리너 통과 후 배정)
+            // Randomization
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
             state.data.vignetteTime = [];
             
-            // 유저 타입 저장 (비네트 텍스트 치환용 - 로컬 스토리지 사용 추천)
-            // orientation 값이 'homo' 또는 'bi'이므로 그대로 사용 가능
+            // [중요] 유저 타입 저장 (비네트 치환용)
             localStorage.setItem('userType', orientation); 
 
             console.log("Assigned Condition: " + state.condition);
-            console.log("User Type: " + orientation);
 
             // 비네트로 이동
             state.step = 'vignette';
@@ -569,7 +546,6 @@ console.log(getProcessedText(0));
             document.getElementById('step-vignette').classList.remove('hidden');
             document.getElementById('header-title').innerText = "상황 제시";
             
-            // 비네트 렌더링 (이전에 만든 함수 호출)
             renderVignette();
         }
 
@@ -622,7 +598,6 @@ console.log(getProcessedText(0));
         // 5. DES 제출
         else if (state.step === 'des') {
             if (!validateScale(desQuestions.length, 'des')) return;
-            
             collectScaleData('des', desQuestions.length);
             
             renderScales('csq', csqQuestions, 7, 'step-csq');
@@ -636,14 +611,12 @@ console.log(getProcessedText(0));
         // 6. CSQ 제출 -> 디브리핑
         else if (state.step === 'csq') {
             if (!validateScale(csqQuestions.length, 'csq')) return;
-
             collectScaleData('csq', csqQuestions.length);
 
             state.step = 'debrief';
             hideAllSteps();
             document.getElementById('step-debrief').classList.remove('hidden');
             
-            // 연구자 정보 입력 (자동)
             document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; 
 
             document.getElementById('header-title').innerText = "종료 및 안내";
@@ -651,7 +624,7 @@ console.log(getProcessedText(0));
             window.scrollTo(0,0);
         }
 
-        // 7. 종료 및 구글 시트 전송
+        // 7. 종료
         else if (state.step === 'debrief') {
             sendDataToGoogle();
         }
@@ -666,7 +639,9 @@ console.log(getProcessedText(0));
         const timerContainer = document.getElementById('timer-msg');
         const timerProgress = document.getElementById('timer-progress');
 
-        document.getElementById('vignette-text').innerHTML = vignettes[idx];
+        // [핵심 수정] 여기서 그냥 vignettes[idx]가 아니라 getProcessedText(idx)를 호출해야 함!
+        document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
+        
         document.getElementById('page-counter').innerText = `${idx + 1} / 5`;
 
         if (idx === 0) {
@@ -676,42 +651,32 @@ console.log(getProcessedText(0));
             imgEl.src = imgFiles[state.condition];
         }
 
-        // 버튼 비활성화
+        // 버튼 비활성화 (15초)
         btn.disabled = true;
         btn.innerText = "지문을 읽어주세요. (15초)";
         timerContainer.style.visibility = 'visible';
         
-        // --- 타이머 바 애니메이션 리셋 ---
-        timerProgress.style.transition = 'none'; // 애니메이션 끄고
-        timerProgress.style.width = '100%'; // 꽉 채우기
-        
-        // 브라우저가 스타일 변경을 인식하도록 강제 리플로우 (매우 중요)
-        void timerProgress.offsetWidth; 
-
-        // 애니메이션 시작 (15초 동안 0%로)
+        // 타이머 애니메이션 리셋
+        timerProgress.style.transition = 'none'; 
+        timerProgress.style.width = '100%'; 
+        void timerProgress.offsetWidth; // 강제 리플로우
         timerProgress.style.transition = 'width 15s linear';
         timerProgress.style.width = '0%';
-        // --------------------------------
 
         state.startTime = Date.now();
         
         setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "다음 >";
-            timerContainer.style.visibility = 'hidden'; // 타이머 숨김
-        }, 15000); // 15초
+            timerContainer.style.visibility = 'hidden'; 
+        }, 15000); 
     }
 
-    /* 구글 스프레드시트 데이터 전송 (백업 파일 삭제됨) */
+    /* 구글 전송 함수 */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
         
-        if(GOOGLE_SCRIPT_URL.length < 10) {
-            alert("오류: 구글 스크립트 URL이 설정되지 않았습니다.\n(백업 파일 저장 기능은 비활성화되어 있습니다)");
-            return;
-        }
-
         btn.disabled = true;
         btn.innerText = "데이터 저장 중...";
 
@@ -729,9 +694,7 @@ console.log(getProcessedText(0));
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(finalData)
         })
         .then(() => {
@@ -741,67 +704,13 @@ console.log(getProcessedText(0));
         })
         .catch(error => {
             console.error("Error:", error);
-            // 백업 저장 로직 삭제됨
             alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
-            document.querySelector('.app-container').innerHTML = 
-                "<div style='padding:40px; text-align:center;'><h2>오류 발생</h2><p>데이터 전송에 실패했습니다.<br>창을 닫으셔도 됩니다.</p></div>";
         });
     }
 
     /* 척도 렌더링 */
     function renderScales(prefix, questions, maxScale, containerId) {
-        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
-        container.innerHTML = "";
-
-        questions.forEach((q, index) => {
-            let html = `<div class="scale-group">
-                <span class="scale-question">${q}</span>
-                <div class="scale-options">`;
-            
-            for(let i=1; i<=maxScale; i++) {
-                html += `
-                    <label class="scale-option">
-                        <input type="radio" name="${prefix}_q${index}" value="${i}">
-                        ${i}
-                    </label>`;
-            }
-            html += `</div></div>`;
-            container.innerHTML += html;
-        });
-    }
-
-    /* 척도 유효성 검사 */
-    function validateScale(count, prefix) {
-        for(let i=0; i<count; i++) {
-            if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
-                alert(`${i+1}번 문항에 응답해 주세요.`);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /* 척도 데이터 수집 */
-    function collectScaleData(prefix, count) {
-        state.data[prefix] = [];
-        for(let i=0; i<count; i++) {
-            const val = document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value;
-            state.data[prefix].push(val);
-        }
-    }
-
-    /* 기타 입력창 토글 */
-    function toggleEtc(isShow) {
-        const etcInput = document.getElementById('check-etc-text');
-        if (isShow) {
-            etcInput.classList.remove('hidden');
-            etcInput.focus();
-        } else {
-            etcInput.classList.add('hidden');
-            etcInput.value = "";
-        }
-    }
-</script>
+        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq
 
 </body>
 </html>
