@@ -1,4 +1,11 @@
-<style>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상담 온라인 실험</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
         /* --- 디자인 시스템 (모바일 친화적 UI) --- */
         :root {
             --primary-color: #5bc2e7;
@@ -44,7 +51,7 @@
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 (핵심 수정: Flex 사용) */
+        /* 컨텐츠 영역 (Flex 사용으로 스크롤 영역 확보) */
         .content {
             flex: 1; /* 남은 공간을 꽉 채움 */
             padding: 24px;
@@ -65,12 +72,13 @@
             font-size: 15px; box-sizing: border-box;
         }
         
-        /* 하단 고정 버튼 영역 (핵심 수정) */
+        /* 하단 고정 버튼 영역 */
         .bottom-bar {
             width: 100%;
             background: white;
             border-top: 1px solid #eee;
             flex-shrink: 0; /* 크기 줄어들지 않음 */
+            padding: 0;
         }
 
         .footer-btn {
@@ -158,11 +166,10 @@
 <div class="app-container">
     <header>
         <span id="header-title">연구 참여 동의</span>
-        <span class="close-btn" onclick="alert('창을 닫으면 실험이 종료됩니다.')">나가기 X</span>
+        <span class="close-btn" onclick="handleExit()">나가기 X</span>
     </header>
 
     <div class="content">
-        
         <div id="step-consent"> 
             <h2>연구 참여 동의서</h2>
             <div style="height: 200px; overflow-y: scroll; background:#fafafa; padding:15px; font-size:13px; margin-bottom:20px; border:1px solid #eee;">
@@ -210,72 +217,35 @@
                 </select>
             </div>
 
-<div class="form-group">
-    <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
-    <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
-        <option value="">선택하세요</option>
-        <option value="male">남성 (Male)</option>
-        <option value="female">여성 (Female)</option>
-        </select>
-</div>
+            <div class="form-group">
+                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
+                <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
+                    <option value="">선택하세요</option>
+                    <option value="male">남성 (Male)</option>
+                    <option value="female">여성 (Female)</option>
+                </select>
+            </div>
 
-<div class="form-group">
-    <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
-    <select class="form-control" id="current_gender" onchange="checkGenderIdentity()">
-        <option value="">선택하세요</option>
-        <option value="male">남성 (Man)</option>
-        <option value="female">여성 (Woman)</option>
-        <option value="nonbinary">논바이너리 (Non-binary)</option>
-        <option value="other">기타 (그 외 다른 정체성)</option>
-    </select>
-</div>
+            <div class="form-group">
+                <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
+                <select class="form-control" id="current_gender" onchange="checkGenderIdentity()">
+                    <option value="">선택하세요</option>
+                    <option value="male">남성 (Man)</option>
+                    <option value="female">여성 (Woman)</option>
+                    <option value="nonbinary">논바이너리 (Non-binary)</option>
+                    <option value="other">기타 (그 외 다른 정체성)</option>
+                </select>
+            </div>
 
-<div class="form-group" id="identity_result_box" style="display:none; background:#f0f0f0; padding:10px; border-radius:5px; margin-top:10px;">
-    <p style="margin:0; font-weight:bold;">
-        판별 결과: 당신은 <span id="calculated_identity" style="color:blue;"></span>입니다.
-    </p>
-    <input type="hidden" id="final_identity_value" value=""> 
-</div>
+            <div class="form-group" id="identity_result_box" style="display:none; background:#f0f0f0; padding:10px; border-radius:5px; margin-top:10px;">
+                <p style="margin:0; font-weight:bold;">
+                    판별 결과: 당신은 <span id="calculated_identity" style="color:blue;"></span>입니다.
+                </p>
+                <input type="hidden" id="final_identity_value" value=""> 
+            </div>
 
-<script>
-    function checkGenderIdentity() {
-        const birth = document.getElementById("birth_sex").value;
-        const current = document.getElementById("current_gender").value;
-        const resultBox = document.getElementById("identity_result_box");
-        const resultText = document.getElementById("calculated_identity");
-        const hiddenInput = document.getElementById("final_identity_value");
-
-        // 둘 다 선택되지 않았으면 아무것도 안 함
-        if (birth === "" || current === "") {
-            resultBox.style.display = "none";
-            hiddenInput.value = "";
-            return;
-        }
-
-        // 로직 판별
-        let isCis = false;
-
-        // 1. 시스젠더 조건: (출생 남성 & 현재 남성) OR (출생 여성 & 현재 여성)
-        if ((birth === "male" && current === "male") || 
-            (birth === "female" && current === "female")) {
-            isCis = true;
-        } 
-        // 2. 그 외의 모든 조합(논바이너리 포함)은 넓은 의미의 트랜스젠더/젠더퀴어 범주로 분류
-        else {
-            isCis = false;
-        }
-
-        // 결과 표시
-        resultBox.style.display = "block";
-        if (isCis) {
-            resultText.innerText = "시스젠더(Cisgender)";
-            hiddenInput.value = "cis"; // 스크리닝용 값 저장
-        } else {
-            resultText.innerText = "트랜스젠더/젠더퀴어(Transgender/Queer)";
-            hiddenInput.value = "trans"; // 스크리닝용 값 저장
-        }
-    }
-</script>
+            <p class="error-msg" id="screen-fail-msg">죄송합니다. 본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.</p>
+        </div>
 
         <div id="step-vignette" class="hidden">
             <div class="timer-container" id="timer-msg">
@@ -318,68 +288,29 @@
 
         <div id="step-des" class="hidden">
             <h2>설문 1/2</h2>
-            <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 각 문항을 읽고, 그 상황에서 실제로 그렇게 느낄 것 같은 정도를 생각해 보신 뒤, 당신의 느낌에 가장 가까운 숫자에 표시해 주십시오.<br>(1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
-            <div id="des-container">
-            </div>
+            <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
+            <div id="des-container"></div>
         </div>
 
         <div id="step-csq" class="hidden">
             <h2>설문 2/2</h2>
-            <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. 지금까지 읽으신 글과 상담실 이미지를 떠올리면서, 그 상담을 실제로 받았다고 가정했을 때 당신의 느낌에 가장 가까운 숫자에 표시해 주십시오.<br>(1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
-            <div id="csq-container">
-            </div>
+            <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
+            <div id="csq-container"></div>
         </div>
 
         <div id="step-debrief" class="hidden">
             <h2>참여해 주셔서 감사합니다.</h2>
-            
             <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br>
-                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징(개신교 십자가, 불상, 종교 상징물 없음)이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
-                이를 위해 모든 참가자에게 기본적으로 동일한 상담 장면 비네트를 제시하되, 상담실 이미지에 나타나는 종교 상징만 조건에 따라 달리 제시하였습니다.
-                </p>
-
-                <p>
-                설문에 사용된 상담실 이미지는 실제 상담실 사진이 아니라, 연구 목적을 위해 <strong>생성형 인공지능(AI) 도구를 사용하여 제작한 이미지</strong>입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
-                </p>
-
-                <p>
-                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
-                </p>
-                
-                <p><strong>[문의 및 도움처]</strong><br>
-                본 연구와 관련하여 문의사항이 있거나 연구 참여로 인한 불편감이 있는 경우 아래의 연구자에게 연락해 주십시오.
-                </p>
+                <p><strong>[연구 목적 안내]</strong><br>본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.</p>
                 <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
-                
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-                
-                <p style="font-size: 13px; color: #666; margin-bottom:5px;">
-                추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
-                </p>
-                <ul style="font-size:13px; margin-top:0; color:#555;">
-                <li>청소년 성소수자 위기지원센터 띵동: 02-924-1224</li>
-                <li>한국생명의전화: 1588-9191</li>
-                <li>정신건강상담전화: 1577-0199</li>
-                </ul>
             </div>
 
             <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
                 <p style="margin-top:0; font-weight:bold; color:#856404;">☕ 참여 보상 (선택 사항)</p>
-                <p style="font-size:13px; color:#856404;">
-                실험에 참여해 주신 분들께 소정의 커피 쿠폰을 드립니다.<br>
-                원하시는 분은 핸드폰 번호를 입력해 주세요.<br>
-                <span style="font-size:12px; color:#997404;">
-                    * 수집된 번호는 보상 제공 용도로만 사용되며, 지급 후 즉시 파기됩니다.<br>
-                    * 번호를 입력하지 않으셔도 실험은 정상적으로 종료되며 어떠한 불이익도 없습니다.
-                </span>
-                </p>
+                <p style="font-size:13px; color:#856404;">원하시는 분은 핸드폰 번호를 입력해 주세요.</p>
                 <input type="tel" id="reward-phone" class="form-control" placeholder="01012345678 (숫자만 입력)">
             </div>
-
-            <p style="margin-top:20px; font-size:13px; color:#666; text-align: center;">
-                아래 버튼을 누르면 응답이 최종 제출되며 설문이 종료됩니다.
-            </p>
+            <p style="margin-top:20px; font-size:13px; color:#666; text-align: center;">아래 버튼을 누르면 응답이 최종 제출됩니다.</p>
         </div>
     </div>
 
@@ -393,9 +324,7 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec"; 
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    // ▼▼▼▼▼▼ [설정] 연구자 연락처 ▼▼▼▼▼▼
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     /* --- 1. 실험 변수 및 상태 관리 --- */
     const conditions = ['cross', 'buddha', 'none']; 
@@ -414,41 +343,12 @@
     };
 
     const vignettes = [
-        // 1. 대기실
         "당신은 최근 [동성/양성] 파트너와의 관계에서 반복되는 갈등으로 인해 한계에 다다랐음을 느낍니다. 사소한 말다툼부터 이별과 재결합이 끊임없이 반복되면서, 이제는 지치고 외롭다는 감정조차 버겁게 느껴집니다.<br><br>결국 전문가의 도움을 받기로 결심하고 상담센터를 찾았습니다. 대기실 벽에 걸린 상담자의 이력과 자격증을 보니 꽤 전문적인 사람인 것 같아 마음이 조금 놓입니다.<br>‘여기라면 내 이야기를 들어줄 수 있지 않을까?’<br>당신은 기대와 긴장이 뒤섞인 마음으로 상담실 입장을 기다립니다.",
-        
-        // 2. 상담실 입장
         "이름을 부르는 소리에 안내를 받아 상담실로 들어갑니다. 상담자와 마주 보고 앉자, 자연스럽게 상담실 내부의 풍경과 분위기가 눈에 들어옵니다.<br><br>낯선 공간이 주는 긴장감에 당신은 마른침을 삼킵니다.<br>\"상담은 처음이라... 어디서부터 말해야 할지 모르겠네요.\"<br><br>상담자는 온화한 미소로 당신을 맞이합니다.<br>\"처음 오시는 자리라 낯설고 긴장되는 게 당연합니다. 이곳은 안전한 공간이니, 준비되신 만큼만 천천히 이야기해 주셔도 괜찮습니다.\"",
-        
-        // 3. 내담자의 방어
         "당신은 애인과 수없이 헤어지고 다시 만나는 과정을 반복하며 지쳐있습니다. 이 이야기를 솔직하게 털어놓으려던 찰나, 당신은 상담실의 분위기를 살피며 잠시 멈칫합니다.<br>혹시라도 나의 정체성을 알게 되었을 때 상담자가 편견을 가질까 봐 걱정이 앞섭니다.<br><br>결국 당신은 안전을 위해 ‘동성 애인’과의 관계를 ‘친구’로 바꿔서 이야기하기로 결심합니다.<br>\"그냥... 가장 친한 친구랑 문제가 좀 있어서요. 그 친구랑 절교했다가 다시 연락했다가... 이게 계속 반복되니까 너무 지쳐요.\"<br><br>당신은 ‘애인’이라는 단어를 삼키고 ‘친구’라고 말하며 조심스럽게 상담자의 반응을 살핍니다.",
-        
-        // 4. 상담자의 반응
         "상담자는 당신의 눈을 편안하게 맞추며, 당신이 느꼈을 감정의 무게를 있는 그대로 받아줍니다.<br>\"정말 소중한 친구분인가 보네요. 가깝고 깊은 관계일수록, 갈등이 반복될 때 겪게 되는 마음의 소모는 이루 말할 수 없이 크죠.\"<br><br>상담자는 침착하고 신뢰감 있는 목소리로 말을 이어갑니다.<br>\"서로를 아끼는 마음과 힘든 상황이 충돌하면서 많이 혼란스러우셨을 것 같습니다. 오늘 이 시간만큼은, 그 관계에서 겪으셨던 마음들을 안전하게 털어놓으셔도 괜찮습니다.\"<br><br>상담자의 태도는 흠잡을 데 없이 훌륭하며, 당신의 고통을 진지하게 존중해주고 있습니다.",
-        
-        // 5. 내담자의 딜레마
         "상담자의 따뜻하고 전문적인 반응에 당신은 상담자가 꽤 괜찮은 사람이라는 인상을 받습니다. 내 이야기를 진지하게 들어주려는 태도가 느껴집니다.<br><br>하지만 문득 마음 한구석에 물음표가 떠오릅니다.<br>‘선생님은 정말 좋으신 분 같지만... 내가 [동성/양성]애자라는 걸 아셔도 이렇게 받아주실까?’<br><br>당신은 상담자의 친절한 태도를 보며 복잡한 마음이 듭니다."
     ];
-
-    /* --- [핵심 수정] 텍스트 자동 변환 함수 --- */
-    const wordMap = {
-        "homo": "동성",
-        "bi": "양성"
-    };
-
-    function getProcessedText(index) {
-        // 1. 현재 보여줄 비네트 원본
-        let text = vignettes[index];
-        
-        // 2. 저장된 유저 타입 가져오기 (스크리너에서 저장함)
-        const savedType = localStorage.getItem('userType'); 
-        
-        // 3. 매핑될 단어 찾기 (없으면 기본값 '동성')
-        const targetWord = wordMap[savedType] || "동성";
-
-        // 4. [동성/양성] 부분을 실제 단어로 교체해서 반환
-        return text.replaceAll("[동성/양성]", targetWord);
-    }
 
     const desQuestions = [
         "1. 당신의 개인적인 정보를 상담자에게 노출하는 것은 어려운 일일까요?",
@@ -472,9 +372,52 @@
         "8. 내가 상담을 받아야 할 필요가 있다면 이 상담자를 만나고 싶다."
     ];
 
+    /* --- [기능] 성별 정체성 판별 함수 (통합됨) --- */
+    function checkGenderIdentity() {
+        const birth = document.getElementById("birth_sex").value;
+        const current = document.getElementById("current_gender").value;
+        const resultBox = document.getElementById("identity_result_box");
+        const resultText = document.getElementById("calculated_identity");
+        const hiddenInput = document.getElementById("final_identity_value");
 
-    /* --- 2. 로직 함수 --- */
+        if (birth === "" || current === "") {
+            resultBox.style.display = "none";
+            hiddenInput.value = "";
+            return;
+        }
 
+        let isCis = false;
+        if ((birth === "male" && current === "male") || 
+            (birth === "female" && current === "female")) {
+            isCis = true;
+        } else {
+            isCis = false;
+        }
+
+        resultBox.style.display = "block";
+        if (isCis) {
+            resultText.innerText = "시스젠더(Cisgender)";
+            hiddenInput.value = "cis"; 
+        } else {
+            resultText.innerText = "트랜스젠더/젠더퀴어(Transgender/Queer)";
+            hiddenInput.value = "trans"; 
+        }
+    }
+
+    /* --- [기능] 비네트 텍스트 치환 함수 --- */
+    const wordMap = {
+        "homo": "동성",
+        "bi": "양성"
+    };
+
+    function getProcessedText(index) {
+        let text = vignettes[index];
+        const savedType = localStorage.getItem('userType'); 
+        const targetWord = wordMap[savedType] || "동성"; // 기본값 동성
+        return text.replaceAll("[동성/양성]", targetWord);
+    }
+
+    /* --- 2. 로직 제어 함수 --- */
     function hideAllSteps() {
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     }
@@ -500,18 +443,16 @@
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
             const orientation = document.getElementById('orientation').value;
-            
             const birthSex = document.getElementById('birth_sex').value;
             const currentGender = document.getElementById('current_gender').value;
             const calculatedIdentity = document.getElementById('final_identity_value').value; 
 
-            // 유효성 검사
             if (!age || !residence || !orientation || !birthSex || !currentGender) {
                 alert('모든 항목을 선택해 주세요.');
                 return;
             }
 
-            // 탈락 로직
+            // 탈락 로직 (미성년자, 해외거주, 이성애자, 트랜스젠더)
             if (
                 age === 'under18' ||                           
                 residence === 'abroad' ||                      
@@ -529,12 +470,10 @@
                 identity: calculatedIdentity
             };
             
-            // Randomization
+            // Randomization & 저장
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
             state.data.vignetteTime = [];
-            
-            // [중요] 유저 타입 저장 (비네트 치환용)
             localStorage.setItem('userType', orientation); 
 
             console.log("Assigned Condition: " + state.condition);
@@ -569,7 +508,6 @@
         // 4. 조작 점검 제출
         else if (state.step === 'check') {
             const selectedOption = document.querySelector('input[name="check_opt"]:checked');
-            
             if (!selectedOption) {
                 alert('보기 중 하나를 선택해 주세요.');
                 return;
@@ -584,7 +522,6 @@
                 }
                 finalAnswer = '기타: ' + etcText;
             }
-
             state.data.check_answer = finalAnswer;
 
             renderScales('des', desQuestions, 5, 'step-des');
@@ -595,7 +532,7 @@
             window.scrollTo(0,0);
         }
 
-        // 5. DES 제출
+        // 5. 설문 제출 (DES, CSQ)
         else if (state.step === 'des') {
             if (!validateScale(desQuestions.length, 'des')) return;
             collectScaleData('des', desQuestions.length);
@@ -607,8 +544,6 @@
             document.getElementById('header-title').innerText = "설문 조사 (2/2)";
             window.scrollTo(0,0);
         }
-
-        // 6. CSQ 제출 -> 디브리핑
         else if (state.step === 'csq') {
             if (!validateScale(csqQuestions.length, 'csq')) return;
             collectScaleData('csq', csqQuestions.length);
@@ -616,7 +551,6 @@
             state.step = 'debrief';
             hideAllSteps();
             document.getElementById('step-debrief').classList.remove('hidden');
-            
             document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; 
 
             document.getElementById('header-title').innerText = "종료 및 안내";
@@ -624,13 +558,13 @@
             window.scrollTo(0,0);
         }
 
-        // 7. 종료
+        // 7. 최종 종료
         else if (state.step === 'debrief') {
             sendDataToGoogle();
         }
     }
 
-    /* 비네트 렌더링 & 시각적 타이머 적용 */
+    /* 비네트 렌더링 & 시각적 타이머 */
     function renderVignette() {
         const idx = state.vignetteIndex;
         const btn = document.getElementById('main-btn');
@@ -639,9 +573,8 @@
         const timerContainer = document.getElementById('timer-msg');
         const timerProgress = document.getElementById('timer-progress');
 
-        // [핵심 수정] 여기서 그냥 vignettes[idx]가 아니라 getProcessedText(idx)를 호출해야 함!
+        // [중요] 치환된 텍스트 적용
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
-        
         document.getElementById('page-counter').innerText = `${idx + 1} / 5`;
 
         if (idx === 0) {
@@ -651,28 +584,25 @@
             imgEl.src = imgFiles[state.condition];
         }
 
-        // 버튼 비활성화 (15초)
         btn.disabled = true;
         btn.innerText = "지문을 읽어주세요. (15초)";
         timerContainer.style.visibility = 'visible';
         
-        // 타이머 애니메이션 리셋
         timerProgress.style.transition = 'none'; 
         timerProgress.style.width = '100%'; 
-        void timerProgress.offsetWidth; // 강제 리플로우
+        void timerProgress.offsetWidth; 
         timerProgress.style.transition = 'width 15s linear';
         timerProgress.style.width = '0%';
 
         state.startTime = Date.now();
-        
         setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "다음 >";
             timerContainer.style.visibility = 'hidden'; 
-        }, 15000); 
+        }, 5000); 
     }
 
-    /* 구글 전송 함수 */
+    /* 구글 전송 */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
@@ -708,9 +638,68 @@
         });
     }
 
-    /* 척도 렌더링 */
+    /* 유틸리티: 척도 렌더링, 유효성 검사, 데이터 수집 */
     function renderScales(prefix, questions, maxScale, containerId) {
-        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq
+        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
+        container.innerHTML = "";
+        questions.forEach((q, index) => {
+            let html = `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-options">`;
+            for(let i=1; i<=maxScale; i++) {
+                html += `<label class="scale-option"><input type="radio" name="${prefix}_q${index}" value="${i}">${i}</label>`;
+            }
+            html += `</div></div>`;
+            container.innerHTML += html;
+        });
+    }
+    function validateScale(count, prefix) {
+        for(let i=0; i<count; i++) {
+            if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
+                alert(`${i+1}번 문항에 응답해 주세요.`);
+                return false;
+            }
+        }
+        return true;
+    }
+    function collectScaleData(prefix, count) {
+        state.data[prefix] = [];
+        for(let i=0; i<count; i++) {
+            state.data[prefix].push(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
+        }
+    }
+    function toggleEtc(isShow) {
+        const etcInput = document.getElementById('check-etc-text');
+        if (isShow) {
+            etcInput.classList.remove('hidden');
+            etcInput.focus();
+        } else {
+            etcInput.classList.add('hidden');
+            etcInput.value = "";
+        }
+    }
+        
+        /* --- [기능] 나가기 버튼 처리 함수 --- */
+    function handleExit() {
+        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 데이터가 저장되지 않습니다.")) {
+            // 1. 브라우저 닫기 시도 (팝업으로 열렸을 경우 작동)
+            window.open('','_self').close(); 
+            window.close();
+
+            // 2. 보안상 안 닫힐 경우를 대비해 화면 내용을 '종료 화면'으로 교체
+            const app = document.querySelector('.app-container');
+            app.innerHTML = `
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
+                    <h2 style="color:#555;">실험이 종료되었습니다.</h2>
+                    <p style="color:#777; font-size:14px;">
+                        창을 닫거나 브라우저를 종료해 주세요.<br>
+                        참여해 주셔서 감사합니다.
+                    </p>
+                </div>
+            `;
+            // 배경색을 흰색이나 회색으로 변경하여 깔끔하게 처리
+            document.body.style.backgroundColor = "#eee";
+        }
+    }
+</script>
 
 </body>
 </html>
