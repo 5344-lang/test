@@ -48,18 +48,41 @@
             align-items: center;
             font-weight: 500;
             flex-shrink: 0; /* 헤더 크기 고정 */
+            z-index: 200;
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 (Flex 사용으로 스크롤 영역 확보) */
+        /* 컨텐츠 영역 */
         .content {
             flex: 1; /* 남은 공간을 꽉 채움 */
-            padding: 24px;
+            padding: 0 24px 24px 24px; /* 상단 패딩 제거 (sticky를 위해) */
             overflow-y: auto; /* 내용 길면 스크롤 */
             -webkit-overflow-scrolling: touch;
+            position: relative;
         }
 
-        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 0; }
+        /* [핵심] 상단 고정(플로팅) 이미지 박스 스타일 */
+        .sticky-top-box {
+            position: -webkit-sticky; /* 사파리 호환 */
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--card-bg); /* 배경색 필수 */
+            padding-top: 20px; 
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sticky-top-box img {
+            max-height: 25vh; /* 화면 높이의 25%까지만 차지 */
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
         p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
 
         .hidden { display: none !important; }
@@ -79,6 +102,7 @@
             border-top: 1px solid #eee;
             flex-shrink: 0; /* 크기 줄어들지 않음 */
             padding: 0;
+            z-index: 200;
         }
 
         .footer-btn {
@@ -106,7 +130,7 @@
             height: 36px;
             background-color: #f0f0f0;
             border-radius: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             overflow: hidden;
         }
         
@@ -132,17 +156,6 @@
             font-size: 13px; 
             font-weight: bold;
         }
-
-        #image-container {
-            width: 100%;
-            height: 250px;
-            background-color: #eee;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            display: none;
-        }
-        #image-container img { width: 100%; height: 100%; object-fit: cover; }
 
         .vignette-box {
             background: #fafafa; padding: 20px; border-radius: 8px; 
@@ -221,8 +234,8 @@
                 <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
                 <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
                     <option value="">선택하세요</option>
-                    <option value="male">남성 (Male, 男)</option>
-                    <option value="female">여성 (Female, 女)</option>
+                    <option value="male">남성 (Male)</option>
+                    <option value="female">여성 (Female)</option>
                 </select>
             </div>
 
@@ -230,31 +243,27 @@
                 <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
                 <select class="form-control" id="current_gender" onchange="checkGenderIdentity()">
                     <option value="">선택하세요</option>
-                    <option value="male">남성 (Male, 男)</option>
-                    <option value="female">여성 (Female, 女)</option>
+                    <option value="male">남성 (Man)</option>
+                    <option value="female">여성 (Woman)</option>
                     <option value="nonbinary">논바이너리 (Non-binary)</option>
                     <option value="other">기타 (그 외 다른 정체성)</option>
                 </select>
             </div>
 
-            <div class="form-group" id="identity_result_box" style="display:none; background:#f0f0f0; padding:10px; border-radius:5px; margin-top:10px;">
-                <p style="margin:0; font-weight:bold;">
-                    판별 결과: 당신은 <span id="calculated_identity" style="color:blue;"></span>입니다.
-                </p>
-                <input type="hidden" id="final_identity_value" value=""> 
-            </div>
+            <input type="hidden" id="final_identity_value" value="">
 
             <p class="error-msg" id="screen-fail-msg">죄송합니다. 본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.</p>
         </div>
 
         <div id="step-vignette" class="hidden">
-            <div class="timer-container" id="timer-msg">
-                <div class="timer-bar" id="timer-progress"></div>
-                <div class="timer-text">⏳ 15초 뒤에 다음 버튼이 활성화됩니다.</div>
-            </div>
-            
-            <div id="image-container">
-                <img id="stimulus-img" src="" alt="상담실 이미지">
+            <div class="sticky-top-box" id="vignette-sticky-header">
+                <div class="timer-container" id="timer-msg">
+                    <div class="timer-bar" id="timer-progress"></div>
+                    <div class="timer-text">⏳ 15초 뒤에 다음 버튼이 활성화됩니다.</div>
+                </div>
+                <div id="image-container-vig">
+                    <img id="stimulus-img" src="" alt="상담실 이미지">
+                </div>
             </div>
 
             <div class="vignette-box">
@@ -287,20 +296,22 @@
         </div>
 
         <div id="step-des" class="hidden">
-            <div style="text-align:center; margin-bottom:15px; background:#eee; padding:10px; border-radius:8px;">
-                <img id="des-ref-img" src="" alt="참고 이미지" style="height:150px; object-fit:contain; border-radius:4px;">
+            <div class="sticky-top-box">
+                <img id="des-ref-img" src="" alt="참고 이미지">
                 <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
+            
             <h2>설문 1/2</h2>
             <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
             <div id="des-container"></div>
         </div>
 
         <div id="step-csq" class="hidden">
-            <div style="text-align:center; margin-bottom:15px; background:#eee; padding:10px; border-radius:8px;">
-                <img id="csq-ref-img" src="" alt="참고 이미지" style="height:150px; object-fit:contain; border-radius:4px;">
+            <div class="sticky-top-box">
+                <img id="csq-ref-img" src="" alt="참고 이미지">
                 <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
+
             <h2>설문 2/2</h2>
             <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
             <div id="csq-container"></div>
@@ -377,7 +388,8 @@
         condition: '', 
         vignetteIndex: 0, 
         data: {}, 
-        startTime: 0
+        startTime: 0,
+        userIP: 'unknown' 
     };
 
     const imgFiles = {
@@ -416,17 +428,35 @@
         "8. 내가 상담을 받아야 할 필요가 있다면 이 상담자를 만나고 싶다."
     ];
 
-    /* --- [기능] 성별 정체성 판별 함수 (통합됨) --- */
+    /* --- [초기화] IP 가져오기 및 중복 참여 확인 --- */
+    window.onload = function() {
+        if (localStorage.getItem('participation_completed')) {
+            document.querySelector('.app-container').innerHTML = `
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
+                    <h2 style="color:#e74c3c;">참여 제한</h2>
+                    <p style="color:#555;">이미 본 연구에 참여하셨습니다.<br>중복 참여는 불가능합니다.</p>
+                </div>
+            `;
+            return; 
+        }
+
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                state.userIP = data.ip;
+                console.log("User IP:", state.userIP);
+            })
+            .catch(error => console.log("IP Fetch Error:", error));
+    };
+
+    /* --- [기능] 성별 정체성 판별 함수 (수정됨: 텍스트 출력 제거) --- */
     function checkGenderIdentity() {
         const birth = document.getElementById("birth_sex").value;
         const current = document.getElementById("current_gender").value;
-        const resultBox = document.getElementById("identity_result_box");
-        const resultText = document.getElementById("calculated_identity");
         const hiddenInput = document.getElementById("final_identity_value");
 
         if (birth === "" || current === "") {
-            resultBox.style.display = "none";
-            hiddenInput.value = "";
+            if(hiddenInput) hiddenInput.value = "";
             return;
         }
 
@@ -438,13 +468,9 @@
             isCis = false;
         }
 
-        resultBox.style.display = "block";
-        if (isCis) {
-            resultText.innerText = "시스젠더(Cisgender)";
-            hiddenInput.value = "cis"; 
-        } else {
-            resultText.innerText = "트랜스젠더/젠더퀴어(Transgender/Queer)";
-            hiddenInput.value = "trans"; 
+        // 화면 표시는 하지 않고, hidden input 값만 업데이트
+        if(hiddenInput) {
+            hiddenInput.value = isCis ? "cis" : "trans";
         }
     }
 
@@ -457,7 +483,7 @@
     function getProcessedText(index) {
         let text = vignettes[index];
         const savedType = localStorage.getItem('userType'); 
-        const targetWord = wordMap[savedType] || "동성"; // 기본값 동성
+        const targetWord = wordMap[savedType] || "동성"; 
         return text.replaceAll("[동성/양성]", targetWord);
     }
 
@@ -496,7 +522,6 @@
                 return;
             }
 
-            // 탈락 로직 (미성년자, 해외거주, 이성애자, 트랜스젠더)
             if (
                 age === 'under18' ||                           
                 residence === 'abroad' ||                      
@@ -508,13 +533,11 @@
                 return;
             }
 
-            // 데이터 저장
             state.data.demographics = { 
                 age, residence, orientation, birthSex, currentGender,
                 identity: calculatedIdentity
             };
             
-            // Randomization & 저장
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
             state.data.vignetteTime = [];
@@ -522,7 +545,6 @@
 
             console.log("Assigned Condition: " + state.condition);
 
-            // 비네트로 이동
             state.step = 'vignette';
             state.vignetteIndex = 0;
             hideAllSteps();
@@ -568,7 +590,7 @@
             }
             state.data.check_answer = finalAnswer;
 
-            // [추가됨] 설문 페이지(DES)에 이미지 셋팅
+            // [sticky] 이미지 설정
             document.getElementById('des-ref-img').src = imgFiles[state.condition];
 
             renderScales('des', desQuestions, 5, 'step-des');
@@ -584,7 +606,7 @@
             if (!validateScale(desQuestions.length, 'des')) return;
             collectScaleData('des', desQuestions.length);
             
-            // [추가됨] 설문 페이지(CSQ)에 이미지 셋팅
+            // [sticky] 이미지 설정
             document.getElementById('csq-ref-img').src = imgFiles[state.condition];
 
             renderScales('csq', csqQuestions, 7, 'step-csq');
@@ -618,15 +640,15 @@
     function renderVignette() {
         const idx = state.vignetteIndex;
         const btn = document.getElementById('main-btn');
-        const imgContainer = document.getElementById('image-container');
+        const imgContainer = document.getElementById('image-container-vig'); 
         const imgEl = document.getElementById('stimulus-img');
         const timerContainer = document.getElementById('timer-msg');
         const timerProgress = document.getElementById('timer-progress');
 
-        // [중요] 치환된 텍스트 적용
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
         document.getElementById('page-counter').innerText = `${idx + 1} / 5`;
 
+        // 1번 비네트는 이미지 없음, 2번부터 이미지 표시
         if (idx === 0) {
             imgContainer.style.display = 'none';
         } else {
@@ -635,13 +657,13 @@
         }
 
         btn.disabled = true;
-        btn.innerText = "지문을 읽어주세요. (15초)";
+        btn.innerText = "지문을 읽어주세요. (5초)"; // [요청] 5초로 텍스트 변경
         timerContainer.style.visibility = 'visible';
         
         timerProgress.style.transition = 'none'; 
         timerProgress.style.width = '100%'; 
         void timerProgress.offsetWidth; 
-        timerProgress.style.transition = 'width 15s linear';
+        timerProgress.style.transition = 'width 5s linear'; // [요청] 5초 애니메이션
         timerProgress.style.width = '0%';
 
         state.startTime = Date.now();
@@ -649,7 +671,7 @@
             btn.disabled = false;
             btn.innerText = "다음 >";
             timerContainer.style.visibility = 'hidden'; 
-        }, 5000); 
+        }, 5000); // [요청] 5000ms (5초) 대기
     }
 
     /* 구글 전송 */
@@ -668,7 +690,8 @@
             check_answer: state.data.check_answer,
             des: state.data.des,
             csq: state.data.csq,
-            phone: phoneInput 
+            phone: phoneInput,
+            ip: state.userIP 
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -678,6 +701,7 @@
             body: JSON.stringify(finalData)
         })
         .then(() => {
+            localStorage.setItem('participation_completed', 'true');
             alert("데이터가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
             document.querySelector('.app-container').innerHTML = 
                 "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
@@ -727,14 +751,12 @@
         }
     }
         
-        /* --- [기능] 나가기 버튼 처리 함수 --- */
+    /* --- [기능] 나가기 버튼 처리 함수 --- */
     function handleExit() {
         if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 데이터가 저장되지 않습니다.")) {
-            // 1. 브라우저 닫기 시도 (팝업으로 열렸을 경우 작동)
             window.open('','_self').close(); 
             window.close();
 
-            // 2. 보안상 안 닫힐 경우를 대비해 화면 내용을 '종료 화면'으로 교체
             const app = document.querySelector('.app-container');
             app.innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
@@ -745,7 +767,6 @@
                     </p>
                 </div>
             `;
-            // 배경색을 흰색이나 회색으로 변경하여 깔끔하게 처리
             document.body.style.backgroundColor = "#eee";
         }
     }
