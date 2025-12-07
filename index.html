@@ -6,7 +6,7 @@
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 디자인 시스템 (모바일 친화적 UI) --- */
+        /* --- 디자인 시스템 --- */
         :root {
             --primary-color: #5bc2e7;
             --primary-dark: #2db6e0;
@@ -22,8 +22,8 @@
             margin: 0;
             display: flex;
             justify-content: center;
-            height: 100vh; /* 화면 전체 높이 고정 */
-            overflow: hidden; /* 바깥 스크롤 방지 */
+            height: 100vh;
+            overflow: hidden;
             color: var(--text-main);
         }
 
@@ -33,7 +33,7 @@
             max-width: 500px;
             height: 100%;
             display: flex;
-            flex-direction: column; /* 세로 정렬 필수 */
+            flex-direction: column;
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
             position: relative;
         }
@@ -47,27 +47,27 @@
             justify-content: space-between;
             align-items: center;
             font-weight: 500;
-            flex-shrink: 0; /* 헤더 크기 고정 */
+            flex-shrink: 0;
             z-index: 200;
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
         /* 컨텐츠 영역 */
         .content {
-            flex: 1; /* 남은 공간을 꽉 채움 */
-            padding: 0 24px 24px 24px; /* 상단 패딩 제거 (sticky를 위해) */
-            overflow-y: auto; /* 내용 길면 스크롤 */
+            flex: 1;
+            padding: 0 24px 24px 24px;
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             position: relative;
         }
 
-        /* [핵심] 상단 고정(플로팅) 이미지 박스 스타일 */
+        /* 상단 고정 이미지 박스 */
         .sticky-top-box {
-            position: -webkit-sticky; /* 사파리 호환 */
+            position: -webkit-sticky;
             position: sticky;
             top: 0;
             z-index: 100;
-            background-color: var(--card-bg); /* 배경색 필수 */
+            background-color: var(--card-bg);
             padding-top: 20px; 
             padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
@@ -76,7 +76,7 @@
         }
         
         .sticky-top-box img {
-            max-height: 25vh; /* 화면 높이의 25%까지만 차지 */
+            max-height: 25vh;
             max-width: 100%;
             object-fit: contain;
             border-radius: 4px;
@@ -87,7 +87,7 @@
 
         .hidden { display: none !important; }
 
-        /* 입력 폼 스타일 */
+        /* 입력 폼 */
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
         .form-control {
@@ -95,15 +95,15 @@
             font-size: 15px; box-sizing: border-box;
         }
         
-        /* 하단 고정 버튼 영역 */
+        /* 하단 버튼 */
         .bottom-bar {
             width: 100%;
             background: white;
             border-top: 1px solid #eee;
-            flex-shrink: 0; /* 크기 줄어들지 않음 */
+            flex-shrink: 0;
             padding: 0;
             z-index: 200;
-            display: flex; /* 버튼 가로 정렬 */
+            display: flex;
         }
 
         .footer-btn {
@@ -117,17 +117,13 @@
             text-align: center;
             transition: background 0.3s;
         }
-        /* 버튼 비율 설정 */
         #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
         #main-btn { flex: 2; }
 
-        .footer-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
+        .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
         .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
 
-        /* --- 타이머 바 스타일 --- */
+        /* 타이머 바 */
         .timer-container {
             position: relative;
             width: 100%;
@@ -136,30 +132,19 @@
             border-radius: 20px;
             margin-bottom: 10px;
             overflow: hidden;
-            visibility: hidden; /* 기본 숨김 */
+            visibility: hidden;
         }
         
         .timer-bar {
             position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            background-color: #ffeef5;
-            border-right: 2px solid #ffb6d0;
+            top: 0; left: 0; height: 100%; width: 100%;
+            background-color: #ffeef5; border-right: 2px solid #ffb6d0;
         }
 
         .timer-text {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-            color: #d63384; 
-            font-size: 13px; 
-            font-weight: bold;
+            position: absolute; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; color: #d63384; font-size: 13px; font-weight: bold;
         }
 
         .vignette-box {
@@ -168,21 +153,28 @@
             min-height: 120px;
         }
 
-        /* 대사 스타일 추가 */
         .speaker { font-weight: bold; margin-right: 5px; color: #000; }
         .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
         .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
         .dialogue { margin-bottom: 15px; display: block; }
 
-        /* 척도 질문 스타일 */
+        /* 척도 질문 */
         .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
         .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
         .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
         .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
         
-        /* 스크리너 경고 */
-        .error-msg { color: red; font-size: 13px; margin-top: 5px; display: none; }
+        /* 안내 박스 스타일 */
+        .info-box {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #0d47a1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -197,7 +189,7 @@
         <div id="step-consent"> 
             <h2>연구 참여 동의서</h2>
             <div style="background:#fafafa; padding:15px; margin-bottom:20px; border:1px solid #eee;">
-                             본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
+                본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
                 이 설문에는 동성 파트너와의 관계, 정서 경험, 상담에 대한 생각 등 민감할 수 있는 내용이 포함될 수 있습니다. 응답은 각 문항에 순서대로 답하는 방식으로 진행되며, 개별 문항을 건너뛰는 기능은 제공되지 않습니다. 다만 설문 참여 중단을 원하실 경우에는 언제든지 설문 창을 닫거나 “나가기” 버튼을 눌러 참여를 중단하실 수 있으며, 이로 인한 어떠한 불이익도 발생하지 않습니다.<br><br>
                 수집된 모든 응답은 연구 목적을 위한 통계 분석에만 사용되며, IP 주소 등 개인을 식별할 수 있는 정보는 저장되지 않습니다. 연구 결과는 논문 및 학술 발표 등으로 보고되지만 개별 참가자를 식별할 수 있는 형태로 공개되지는 않습니다. 분석이 완료된 후에는 연구계획서에 명시된 기간 동안 암호화된 형태로 보관되었다가 안전한 방식으로 폐기됩니다.
             </div>
@@ -260,10 +252,22 @@
                     <option value="other">기타 (그 외 다른 정체성)</option>
                 </select>
             </div>
-
             <input type="hidden" id="final_identity_value" value="">
+        </div>
 
-            <p class="error-msg" id="screen-fail-msg">죄송합니다. 본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.</p>
+        <div id="step-instruction" class="hidden">
+            <h2>실험 진행 안내</h2>
+            <div class="info-box">
+                <p style="margin-top:0; font-weight:bold;">[잠시 후 실험 장면이 제시됩니다]</p>
+                <ul style="padding-left: 20px; margin-bottom:0;">
+                    <li>귀하는 <strong>상담실 이미지</strong>와 상담 장면에서 발생하는 <strong>대화 내용</strong>을 보게 됩니다.</li>
+                    <li>내용을 충분히 숙지할 수 있도록, <strong>각 화면은 최소 3초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
+                    <li>상담실의 분위기, 상담자의 태도, 대화 내용을 주의 깊게 읽고 이후 물음에 답해 주세요.</li>
+                </ul>
+            </div>
+            <p style="text-align:center; color:#666; font-size:14px;">
+                준비가 되셨다면 아래 <strong>'다음'</strong> 버튼을 눌러 시작해 주세요.
+            </p>
         </div>
 
         <div id="step-vignette" class="hidden">
@@ -355,6 +359,7 @@
                 추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
                 </p>
                 <ul style="font-size:13px; margin-top:0; color:#555;">
+                <li>청소년 성소수자 위기지원센터 띵동: 02-924-1224</li>
                 <li>자살예방 상담전화: 1393 (24시간)</li>
                 <li>한국생명의전화: 1588-9191</li>
                 <li>정신건강상담전화: 1577-0199</li>
@@ -402,18 +407,17 @@
         data: {}, 
         startTime: 0,
         userIP: 'unknown',
-        visitedVignettes: new Set(), // [NEW] 이미 방문한 비네트 페이지 기록
+        visitedVignettes: new Set(),
         timer: null
     };
 
-    // 이미지 파일 매핑 (실제 파일명과 경로가 일치해야 함)
     const imgFiles = {
         'cross': 'cross.png',
         'buddha': 'buddha.png',
         'none': 'none.png'
     };
 
-    // [NEW] 비네트 데이터 (총 22단계)
+    // [비네트 데이터]
     const vignettes = [
         // --- 비네트 1 (Index 0 ~ 6): 이미지 없음 ---
         `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
@@ -425,9 +429,7 @@
         `<span class="dialogue"><span class="speaker">상담자:</span> 들어 오세요. 질문지는 저 주세요. 편한 자리에 앉으시겠어요?</span>`,
 
         // --- 비네트 2 (Index 7 ~ 21): 이미지 등장 ---
-        // [Index 7] ★ 여기서부터 이미지가 나옵니다.
         `<span class="desc">[당신은 상담실을 한 번 둘러봅니다. 쿠션이 잘 되어 있는 의자와 따뜻한 조명이 눈에 들어옵니다.]</span>`,
-        
         `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요? 지난주엔 따뜻했는데 갑자기 추워지네요.</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네, 안그래도 오늘 갑자기 추워져서 길에 사람도 많이 없더라고요.</span>`,
         `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
@@ -446,6 +448,7 @@
         `<span class="dialogue"><span class="speaker">상담자:</span> 소중한 관계가 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요. 그 관계에서 어떤 부분이 가장 힘드신가요?</span>`,
         `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 여전히 ‘애인’이라는 단어를 꺼낼지 고민합니다.]</span>`
     ];
+
     const desQuestions = [
         "1. 당신의 개인적인 정보를 이 상담자에게 노출하는 것은 어려운 일일까요?",
         "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
@@ -494,7 +497,7 @@
         if(hiddenInput) hiddenInput.value = isCis ? "cis" : "trans";
     }
 
-    /* --- [기능] 비네트 텍스트 치환 함수 --- */
+    /* --- [기능] 비네트 텍스트 치환 --- */
     const wordMap = { "homo": "동성", "bi": "양성" };
     function getProcessedText(index) {
         let text = vignettes[index];
@@ -503,13 +506,53 @@
         return text.replaceAll("[동성/양성]", targetWord);
     }
 
-    /* --- 2. 로직 제어 함수 --- */
+    /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
+    function handleScreenFail() {
+        // 1. 알림창 표시
+        alert("죄송합니다.\n본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.\n(확인 버튼을 누르면 종료됩니다.)");
+
+        // 2. 탈락자 정보 전송 (IP 수집)
+        const failData = {
+            id: Date.now(),
+            condition: "SCREEN_OUT", 
+            demographics: state.data.demographics, 
+            vignetteTime: [],
+            check_answer: "N/A",
+            des: [],
+            csq: [],
+            phone: "",
+            ip: state.userIP 
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(failData)
+        }).catch(error => console.log("Fail Log Error:", error));
+
+        // 3. 실험 화면 강제 종료
+        const app = document.querySelector('.app-container');
+        app.innerHTML = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
+                <h2 style="color:#e74c3c;">참여 불가 안내</h2>
+                <p style="color:#555; font-size:14px; line-height:1.6;">
+                    죄송합니다.<br>
+                    귀하는 본 연구의 참여 기준에 부합하지 않아<br>
+                    더 이상 설문을 진행하실 수 없습니다.<br><br>
+                    참여해 주셔서 감사합니다.
+                </p>
+            </div>
+        `;
+        document.body.style.backgroundColor = "#eee";
+    }
+
+    /* --- 로직 제어 함수 --- */
     function hideAllSteps() {
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     }
 
     function handlePrev() {
-        // 비네트 단계에서만 이전 버튼 작동
         if (state.step === 'vignette' && state.vignetteIndex > 0) {
             state.vignetteIndex--;
             renderVignette();
@@ -533,7 +576,7 @@
             window.scrollTo(0,0);
         }
 
-        // 2. 스크리너 단계
+        // 2. 스크리너 단계 (탈락 시 자동 종료 로직 적용)
         else if (state.step === 'screener') {
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
@@ -547,22 +590,24 @@
                 return;
             }
 
+            // 입력 정보 임시 저장 (로그용)
+            state.data.demographics = { 
+                age, residence, orientation, birthSex, currentGender,
+                identity: calculatedIdentity
+            };
+
+            // 탈락 조건 체크
             if (
                 age === 'under18' ||                            
                 residence === 'abroad' ||                       
                 (orientation !== 'homo' && orientation !== 'bi') || 
                 calculatedIdentity !== 'cis'                    
             ) {
-                document.getElementById('screen-fail-msg').style.display = 'block';
-                document.getElementById('screen-fail-msg').scrollIntoView({ behavior: 'smooth' });
+                handleScreenFail(); // 탈락 함수 호출
                 return;
             }
 
-            state.data.demographics = { 
-                age, residence, orientation, birthSex, currentGender,
-                identity: calculatedIdentity
-            };
-            
+            // 통과 시: 정보 저장 및 조건 할당
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
             state.data.vignetteTime = [];
@@ -570,9 +615,19 @@
 
             console.log("Assigned Condition: " + state.condition);
 
+            // [변경] 바로 비네트가 아니라 'Instruction' 단계로 이동
+            state.step = 'instruction';
+            hideAllSteps();
+            document.getElementById('step-instruction').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "실험 안내";
+            window.scrollTo(0,0);
+        }
+
+        // 3. [NEW] 실험 안내 (Instruction) -> 비네트
+        else if (state.step === 'instruction') {
             state.step = 'vignette';
             state.vignetteIndex = 0;
-            state.visitedVignettes.clear(); // 방문 기록 초기화
+            state.visitedVignettes.clear();
             hideAllSteps();
             document.getElementById('step-vignette').classList.remove('hidden');
             document.getElementById('header-title').innerText = "상황 제시";
@@ -580,12 +635,11 @@
             renderVignette();
         }
 
-        // 3. 비네트 진행
+        // 4. 비네트 진행
         else if (state.step === 'vignette') {
             const spentTime = Date.now() - state.startTime;
             state.data.vignetteTime.push(spentTime);
             
-            // 현재 페이지를 방문한 것으로 처리 (다음으로 넘어갈 때)
             state.visitedVignettes.add(state.vignetteIndex);
 
             state.vignetteIndex++;
@@ -596,14 +650,13 @@
                 hideAllSteps();
                 document.getElementById('step-check').classList.remove('hidden');
                 document.getElementById('header-title').innerText = "확인 문항";
-                // 버튼 상태 복구
                 document.getElementById('prev-btn').style.display = 'none';
                 document.getElementById('main-btn').style.flex = '2';
             }
             window.scrollTo(0,0);
         }
 
-        // 4. 조작 점검 제출
+        // 5. 조작 점검
         else if (state.step === 'check') {
             const selectedOption = document.querySelector('input[name="check_opt"]:checked');
             if (!selectedOption) {
@@ -631,7 +684,7 @@
             window.scrollTo(0,0);
         }
 
-        // 5. 설문 제출 (DES, CSQ)
+        // 6. 설문 (DES)
         else if (state.step === 'des') {
             if (!validateScale(desQuestions.length, 'des')) return;
             collectScaleData('des', desQuestions.length);
@@ -644,6 +697,8 @@
             document.getElementById('header-title').innerText = "설문 조사 (2/2)";
             window.scrollTo(0,0);
         }
+        
+        // 7. 설문 (CSQ) -> 디브리핑
         else if (state.step === 'csq') {
             if (!validateScale(csqQuestions.length, 'csq')) return;
             collectScaleData('csq', csqQuestions.length);
@@ -658,13 +713,13 @@
             window.scrollTo(0,0);
         }
 
-        // 7. 최종 종료
+        // 8. 최종 종료
         else if (state.step === 'debrief') {
             sendDataToGoogle();
         }
     }
 
-/* 비네트 렌더링 & 3초 카운트다운 타이머 */
+    /* 비네트 렌더링 & 3초 카운트다운 타이머 */
     function renderVignette() {
         const idx = state.vignetteIndex;
         const btnNext = document.getElementById('main-btn');
@@ -674,11 +729,11 @@
         const timerContainer = document.getElementById('timer-msg');
         const timerProgress = document.getElementById('timer-progress');
 
-        // 1. 텍스트 렌더링
+        // 텍스트 렌더링
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-        // 2. 이미지 표시 (Index 7부터 표시)
+        // 이미지 표시 (Index 7부터)
         if (idx < 7) {
             imgContainer.style.display = 'none';
         } else {
@@ -686,7 +741,7 @@
             imgEl.src = imgFiles[state.condition];
         }
 
-        // 3. 이전 버튼 관리
+        // 이전 버튼 관리
         if (idx === 0) {
             btnPrev.style.display = 'none';
         } else {
@@ -694,25 +749,23 @@
             btnPrev.disabled = false;
         }
 
-        // 4. 타이머 및 카운트다운 로직 (수정됨)
-        // 기존 타이머/인터벌 초기화
+        // 타이머 및 카운트다운 로직
         if (state.timer) clearInterval(state.timer);
 
         if (state.visitedVignettes.has(idx)) {
-            // 이미 방문한 페이지: 즉시 활성화
+            // 이미 방문: 즉시 활성화
             timerContainer.style.visibility = 'hidden';
             btnNext.disabled = false;
             btnNext.innerText = "다음 >";
             state.startTime = Date.now(); 
         } else {
-            // 처음 방문: 3초 카운트다운 시작
-            let timeLeft = 3; // 3초 설정
+            // 처음 방문: 3초 카운트다운
+            let timeLeft = 3; 
             
             btnNext.disabled = true;
             btnNext.innerText = `다음 (${timeLeft})`; 
             timerContainer.style.visibility = 'visible';
             
-            // 상단 바 애니메이션 (3초)
             timerProgress.style.transition = 'none'; 
             timerProgress.style.width = '100%'; 
             void timerProgress.offsetWidth; 
@@ -721,25 +774,20 @@
 
             state.startTime = Date.now();
 
-            // 1초마다 숫자가 줄어드는 로직
             state.timer = setInterval(() => {
-                timeLeft--; // 시간 감소
-
+                timeLeft--; 
                 if (timeLeft > 0) {
-                    // 시간이 남았을 때: 버튼 텍스트 갱신
                     btnNext.innerText = `다음 (${timeLeft})`;
                 } else {
-                    // 시간이 다 됐을 때: 활성화
-                    clearInterval(state.timer); // 타이머 멈춤
+                    clearInterval(state.timer); 
                     btnNext.disabled = false;
                     btnNext.innerText = "다음 >";
                     timerContainer.style.visibility = 'hidden'; 
                     state.visitedVignettes.add(idx); 
                 }
-            }, 1000); // 1000ms = 1초마다 실행
+            }, 1000); 
         }
     }
-
 
     /* 구글 전송 */
     function sendDataToGoogle() {
@@ -779,7 +827,7 @@
         });
     }
 
-    /* 유틸리티: 척도 렌더링, 유효성 검사, 데이터 수집 */
+    /* 유틸리티 함수 */
     function renderScales(prefix, questions, maxScale, containerId) {
         const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
         container.innerHTML = "";
@@ -817,24 +865,12 @@
             etcInput.value = "";
         }
     }
-        
-    /* --- [기능] 나가기 버튼 처리 함수 --- */
     function handleExit() {
         if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 데이터가 저장되지 않습니다.")) {
             window.open('','_self').close(); 
             window.close();
-
-            const app = document.querySelector('.app-container');
-            app.innerHTML = `
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
-                    <h2 style="color:#555;">실험이 종료되었습니다.</h2>
-                    <p style="color:#777; font-size:14px;">
-                        창을 닫거나 브라우저를 종료해 주세요.<br>
-                        참여해 주셔서 감사합니다.
-                    </p>
-                </div>
-            `;
-            document.body.style.backgroundColor = "#eee";
+            document.querySelector('.app-container').innerHTML = 
+                "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
         }
     }
 </script>
