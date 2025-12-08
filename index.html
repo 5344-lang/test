@@ -9,36 +9,40 @@
         /* --- 디자인 시스템 --- */
         :root {
             --primary-color: #5bc2e7;
+            --primary-dark: #2db6e0;
             --header-bg: #343a40;
             --bg-color: #f5f5f5;
             --card-bg: #ffffff;
             --text-main: #333333;
         }
 
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+html, body {
+    height: 100%;
+    margin: 0;
+}
 
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            overflow: hidden; 
-            color: var(--text-main);
-        }
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    /* height: 100vh;  ← 이 줄 삭제 */
+    overflow: auto;  /* ← 우선 주석 처리 또는 auto 로 변경 */
+    overflow: hidden; /* 또는 auto: 직접 테스트하면서 선택 */
+    color: var(--text-main);
+}
 
         .app-container {
-            background-color: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            position: relative;
-        }
+    background-color: var(--card-bg);
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    min-height: 100vh;      /* 추가: 필요시 */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    position: relative;
+}
 
         /* 헤더 */
         header {
@@ -57,14 +61,15 @@
         /* 컨텐츠 영역 */
         .content {
             flex: 1;
-            padding: 0 24px 120px 24px; 
+            padding: 0 24px 24px 24px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             position: relative;
         }
 
-        /* 상단 고정 박스 */
+        /* 상단 고정 이미지 박스 */
         .sticky-top-box {
+            position: -webkit-sticky;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -85,6 +90,7 @@
 
         h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
         p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
+
         .hidden { display: none !important; }
 
         /* 입력 폼 */
@@ -97,15 +103,15 @@
         
         /* 하단 버튼 */
         .bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            z-index: 300;
-        }
+    position: sticky;     /* sticky 대신 fixed 사용 권장 */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    z-index: 300;
+}
 
         .footer-btn {
             background-color: var(--primary-color);
@@ -122,6 +128,7 @@
         #main-btn { flex: 2; }
 
         .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
 
         .vignette-box {
             background: #fafafa; padding: 20px; border-radius: 8px; 
@@ -133,11 +140,15 @@
         .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
         .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
         .dialogue { margin-bottom: 15px; display: block; }
+
+        /* 척도 질문 */
         .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
         .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
         .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
         .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
+        
+        /* 안내 박스 스타일 */
         .info-box {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
@@ -162,17 +173,17 @@
             <h2>연구 참여 동의서</h2>
             <div style="background:#fafafa;  max-height: 220px; overflow-y: auto;  padding:15px; margin-bottom:20px; border:1px solid #eee;">
                 본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
-                이 설문은 전체 응답 기준으로 약 5~10분 정도 소요될 것으로 예상됩니다.<br><br>
                 이 설문에는 동성 파트너와의 관계, 정서 경험, 상담에 대한 생각 등 민감할 수 있는 내용이 포함될 수 있습니다. 응답은 각 문항에 순서대로 답하는 방식으로 진행되며, 개별 문항을 건너뛰는 기능은 제공되지 않습니다. 다만 설문 참여 중단을 원하실 경우에는 언제든지 설문 창을 닫거나 “나가기” 버튼을 눌러 참여를 중단하실 수 있으며, 이로 인한 어떠한 불이익도 발생하지 않습니다.<br><br>
-                수집된 모든 응답은 연구 목적을 위한 통계 분석에만 사용되며, IP 주소 등 개인을 식별할 수 있는 정보는 저장되지 않습니다. 연구 결과는 논문 및 학술 발표 등으로 보고되지만 개별 참가자를 식별할 수 있는 형태로 공개되지는 않습니다. 분석이 완료된 후에는 연구계획서에 명시된 기간 동안 암호화된 형태로 보관되었다가 안전한 방식으로 폐기됩니다.<br><br>
-                설문 참여 과정에서 불편감이나 심리적 어려움을 느끼실 경우, 자살예방 상담전화(109), 생명의전화(1588-9191), 정신건강상담전화(1577-0199) 등의 공공 상담·지원 기관을 이용하실 수 있습니다.
+                수집된 모든 응답은 연구 목적을 위한 통계 분석에만 사용되며, IP 주소 등 개인을 식별할 수 있는 정보는 저장되지 않습니다. 연구 결과는 논문 및 학술 발표 등으로 보고되지만 개별 참가자를 식별할 수 있는 형태로 공개되지는 않습니다. 분석이 완료된 후에는 연구계획서에 명시된 기간 동안 암호화된 형태로 보관되었다가 안전한 방식으로 폐기됩니다.
             </div>
             <label>
                 <input type="checkbox" id="consent-chk"> 본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.
             </label>
         </div>
-<div id="step-screener" class="hidden"> 
-      </div>
+
+        <div id="step-screener" class="hidden"> 
+            <p>연구 참여 기준 확인을 위해 정보를 입력해 주세요.</p>
+            
             <div class="form-group">
                 <label class="form-label">1. 귀하의 연령은?</label>
                 <select class="form-control" id="age">
@@ -206,7 +217,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입습니까?</label>
+                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
                 <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
                     <option value="">선택하세요</option>
                     <option value="male">남성 (Male)</option>
@@ -288,7 +299,7 @@
                     <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
                 </label>
                 <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음
+                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없었음
                 </label>
                 <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
                     <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
@@ -325,9 +336,9 @@
                 추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
                 </p>
                 <ul style="font-size:13px; margin-top:0; color:#555;">
-                    <li>자살예방 상담전화: 109</li>
-                    <li>생명의전화: 1588-9191</li>
-                    <li>정신건강상담전화: 1577-0199</li>
+                <li>자살예방 상담전화: 109</li>
+                <li>생명의전화: 1588-9191</li>
+                <li>정신건강상담전화: 1577-0199</li>
                 </ul>
             </div>
 
@@ -358,81 +369,94 @@
 
 <script>
     // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec"; 
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
 
     /* --- 1. 실험 변수 및 상태 관리 --- */
-    const conditions = ['cross', 'buddha', 'none'];
+    const conditions = ['cross', 'buddha', 'none']; 
     let state = {
-        step: 'consent',
-        condition: '',
-        vignetteIndex: 0,
-        data: {}, // 데이터를 모으는 객체
+        step: 'consent', 
+        condition: '', 
+        vignetteIndex: 0, 
+        data: {}, 
         startTime: 0,
-        userIP: null, 
-        uniqueID: null, // ★★★ 고유 ID 추적용 변수
+        userIP: 'unknown',
         visitedVignettes: new Set(),
         timer: null
     };
 
-    // (imgFiles, vignettes, desQuestions, csqQuestions 등 상수 배열은 기존 내용 유지)
+    const imgFiles = {
+        'cross': 'cross.png',
+        'buddha': 'buddha.png',
+        'none': 'none.png',
+        'waiting': 'waiting.png'
+    };
 
-    // [비네트 데이터] - (25개 문항 - 0~24 인덱스)
+    // [비네트 데이터]
     const vignettes = [
         // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 ---
-        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`, // 0
-        // ... (나머지 비네트 내용 유지)
-        `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`, // 6
-        // --- 비네트 2 (Index 7 ~ 24): 상담실 입장 (조건 이미지) ---
-        `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`, // 7
-        // ... (나머지 비네트 내용 유지)
-        `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`, // 24
+        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
+        `<span class="desc">사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`,
+        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`,
+        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다.<br>대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다.<br>당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span>`,
+        `<span class="inner-thought">(여기라면 내 이야기를 편견 없이 들어주지 않을까?)</span>`,
+        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`,
+        `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`,
+
+        // --- 비네트 2 (Index 7 ~ 21): 상담실 입장 (조건 이미지) ---
+        `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요? 지난주엔 따뜻했는데 갑자기 추워지네요.</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네, 안그래도 오늘 갑자기 추워져서 길에 사람도 많이 없더라고요.</span>`,
+        `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><b>[사전에 작성한 질문지를 살핀다]</b><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
+        `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`,
+
+        
+        // [Index 20] 성향 치환 구간
+        `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
+        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`
     ];
 
-
     const desQuestions = [
-        "1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?",
-        // ... (나머지 DES 질문 유지)
-        "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"
+        "1. 당신의 개인적인 정보를 이 상담자에게 노출하는 것은 어려운 일일까요?",
+        "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
+        "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?",
+        "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?",
+        "5. 이 상담자에게 부정적인 감정을 드러낼 때, 상담자가 무슨 생각을 할지 걱정되나요?",
+        "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?",
+        "7. 만약 당신이 슬픔이나 불안 같은 감정을 이 상담자에게 노출한다면 기분이 나아질까요?",
+        "8. 만약 당신이 고민 중인 정서적 문제를 이 상담자에게 드러낸다면 유용한 반응을 얻을 수 있을까요?"
     ];
 
     const csqQuestions = [
-        "1. 귀하가 받은 상담의 질은 어떠했습니까?",
-        // ... (나머지 CSQ 질문 유지)
-        "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
+        "1. 이 상담은 훌륭한 상담일 것이다.",
+        "2. 나는 이번 상담을 통해 내가 원하는 도움을 받을 수 있을 것이다.",
+        "3. 이번 상담을 통해 나의 기대는 충족될 것이다.",
+        "4. 내 친구가 나와 비슷한 고민을 한다면 이 상담을 추천할 것 같다.",
+        "5. 나는 상담을 만족스럽게 끝낼 것이다.",
+        "6. 이번 상담은 내가 고민을 해결하고 극복하는 데 도움을 줄 것이다.",
+        "7. 이번 상담은 전반적으로 나에게 만족스러울 것이다.",
+        "8. 내가 상담을 받아야 할 필요가 있다면 이 상담자를 만나고 싶다."
     ];
 
-    /* --- [기능] 고유 ID 생성 (UUID 대체) --- */
-    function generateUUID() {
-        return 'ID_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-    }
-
-    /* --- [기능] ID 생성 및 로컬 스토리지 확인 --- */
+    /* --- [초기화] IP 가져오기 --- */
     window.onload = function() {
-        // 1. 고유 ID 확인 및 생성
-        let storedID = localStorage.getItem('unique_participant_id');
-        if (!storedID) {
-            storedID = generateUUID(); // ID가 없으면 새로 생성
-            localStorage.setItem('unique_participant_id', storedID);
-        }
-        state.uniqueID = storedID; // 상태에 저장
-
-        // 2. 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
-        if (localStorage.getItem('participation_completed') === 'true') {
-            const app = document.querySelector('.app-container');
-            app.innerHTML = `
-                <div style="padding:40px; text-align:center;">
-                    <h2 style="color:#e74c3c;">참여 완료</h2>
-                    <p>이미 본 실험에 참여하셨습니다.<br>더 이상 설문을 진행할 수 없습니다.<br><br>창을 닫아주세요.</p>
-                </div>
-            `;
-            document.body.backgroundColor = "#eee";
-            return;
-        }
-        
-        // 3. (IP 수집 로직은 완전히 제거)
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                state.userIP = data.ip;
+                console.log("User IP:", state.userIP);
+            })
+            .catch(error => console.log("IP Fetch Error:", error));
     };
 
     /* --- [기능] 성별 정체성 판별 --- */
@@ -440,22 +464,24 @@
         const birth = document.getElementById("birth_sex").value;
         const current = document.getElementById("current_gender").value;
         const hiddenInput = document.getElementById("final_identity_value");
+
         if (birth === "" || current === "") {
             if(hiddenInput) hiddenInput.value = "";
             return;
         }
+
         let isCis = ((birth === "male" && current === "male") || (birth === "female" && current === "female"));
         if(hiddenInput) hiddenInput.value = isCis ? "cis" : "trans";
     }
 
     /* --- [기능] 비네트 텍스트 치환 --- */
     const wordMap = { "homo": "동성", "bi": "양성" };
-    function getProcessedText(index) {
-        let text = vignettes[index];
-        const savedType = localStorage.getItem('userType');
-        const targetWord = wordMap[savedType] || "동성";
-        return text.replace(/\[동성\/양성\]/g, targetWord);
-    }
+function getProcessedText(index) {
+    let text = vignettes[index];
+    const savedType = localStorage.getItem('userType'); 
+    const targetWord = wordMap[savedType] || "동성"; 
+    return text.replace(/\[동성\/양성\]/g, targetWord);  // ← 정규식 replace로 교체
+}
 
     /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
     function handleScreenFail() {
@@ -463,13 +489,14 @@
 
         const failData = {
             id: Date.now(),
-            condition: "SCREEN_OUT",
-            demographics: state.data.demographics,
+            condition: "SCREEN_OUT", 
+            demographics: state.data.demographics, 
+            vignetteTime: [],
             check_answer: "N/A",
             des: [],
             csq: [],
             phone: "",
-            uniqueCode: state.uniqueID // ★★★ 자동 생성 ID 포함
+            ip: state.userIP 
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -499,47 +526,13 @@
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     }
 
-    // (handlePrev 함수는 기존 로직을 유지합니다.)
     function handlePrev() {
-        const btnPrev = document.getElementById('prev-btn');
-        const btnNext = document.getElementById('main-btn');
-        btnNext.innerText = "다음 >";
-        btnNext.disabled = false;
-
         if (state.step === 'vignette' && state.vignetteIndex > 0) {
             state.vignetteIndex--;
             renderVignette();
-        } else if (state.step === 'des') {
-            state.step = 'vignette'; 
-            state.vignetteIndex = vignettes.length - 1; 
-            renderVignette();
-            document.getElementById('header-title').innerText = "상황 제시";
-        } else if (state.step === 'csq') {
-            state.step = 'des';
-            hideAllSteps();
-            document.getElementById('step-des').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
-            btnPrev.style.display = 'block';
+            window.scrollTo(0,0);
         }
-        else if (state.step === 'check') { 
-            state.step = 'csq';
-            hideAllSteps();
-            document.getElementById('step-csq').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
-            btnPrev.style.display = 'block';
-        }
-        else if (state.step === 'debrief') { 
-            state.step = 'check';
-            hideAllSteps();
-            document.getElementById('step-check').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "확인 문항";
-            btnPrev.style.display = 'block';
-            btnNext.innerText = "다음 >";
-        }
-        
-        window.scrollTo(0,0);
     }
-
 
     function handleNext() {
         const btn = document.getElementById('main-btn');
@@ -557,68 +550,42 @@
             window.scrollTo(0,0);
         }
 
-        // 2. 스크리너 단계 
+        // 2. 스크리너 단계
         else if (state.step === 'screener') {
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
             const orientation = document.getElementById('orientation').value;
             const birthSex = document.getElementById('birth_sex').value;
             const currentGender = document.getElementById('current_gender').value;
-            const calculatedIdentity = document.getElementById('final_identity_value').value;
-            
-            // ❌ 고유 코드 입력 확인 로직 제거
-    /*
-    const uniqueCodeInput = document.getElementById('unique-code').value.trim();
-    if (!uniqueCodeInput) {
-        alert('고유 코드를 입력해 주세요.');
-        return;
-    }
-    // state.data.uniqueCode = uniqueCodeInput; // ❌ 상태 저장 로직 제거
-    */
+            const calculatedIdentity = document.getElementById('final_identity_value').value; 
 
-    if (!age || !residence || !orientation || !birthSex || !currentGender) {
-        alert('모든 항목을 선택해 주세요.');
-        return;
-    }
+            if (!age || !residence || !orientation || !birthSex || !currentGender) {
+                alert('모든 항목을 선택해 주세요.');
+                return;
+            }
 
-    // 입력 정보 임시 저장
-    state.data.demographics = {
-        age, residence, orientation, birthSex, currentGender,
-        identity: calculatedIdentity
-    };
-    
-    // (나머지 탈락 조건 및 통과 로직은 유지)
-    // ...
-    
-    // Instruction 단계로 이동
-    state.step = 'instruction';
-    hideAllSteps();
-    document.getElementById('step-instruction').classList.remove('hidden');
-    document.getElementById('header-title').innerText = "실험 안내";
-    window.scrollTo(0,0);
-}
-            
             // 입력 정보 임시 저장
-            state.data.demographics = {
+            state.data.demographics = { 
                 age, residence, orientation, birthSex, currentGender,
                 identity: calculatedIdentity
             };
-            
+
             // 탈락 조건 체크
             if (
-                age === 'under18' ||
-                residence === 'abroad' ||
-                (orientation !== 'homo' && orientation !== 'bi') ||
-                calculatedIdentity !== 'cis'
+                age === 'under18' ||                            
+                residence === 'abroad' ||                       
+                (orientation !== 'homo' && orientation !== 'bi') || 
+                calculatedIdentity !== 'cis'                    
             ) {
-                handleScreenFail();
+                handleScreenFail(); 
                 return;
             }
 
             // 통과 시
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
-            localStorage.setItem('userType', orientation);
+            state.data.vignetteTime = [];
+            localStorage.setItem('userType', orientation); 
 
             console.log("Assigned Condition: " + state.condition);
 
@@ -645,53 +612,25 @@
         // 4. 비네트 진행
         else if (state.step === 'vignette') {
             const spentTime = Date.now() - state.startTime;
+            state.data.vignetteTime.push(spentTime);
             
             state.visitedVignettes.add(state.vignetteIndex);
 
             state.vignetteIndex++;
-            if (state.vignetteIndex < vignettes.length) { 
+            if (state.vignetteIndex < vignettes.length) {
                 renderVignette();
             } else {
-                // 비네트 끝 -> 설문 1 (DES)
-                document.getElementById('des-ref-img').src = imgFiles[state.condition];
-                renderScales('des', desQuestions, 5, 'step-des');
-                state.step = 'des';
+                state.step = 'check';
                 hideAllSteps();
-                document.getElementById('step-des').classList.remove('hidden');
-                document.getElementById('header-title').innerText = "설문 조사 (1/2)";
-                document.getElementById('prev-btn').style.display = 'block';
+                document.getElementById('step-check').classList.remove('hidden');
+                document.getElementById('header-title').innerText = "확인 문항";
+                document.getElementById('prev-btn').style.display = 'none';
+                document.getElementById('main-btn').style.flex = '2';
             }
             window.scrollTo(0,0);
         }
 
-        // 5. 설문 (DES)
-        else if (state.step === 'des') {
-            if (!validateScale(desQuestions.length, 'des')) return;
-            collectScaleData('des', desQuestions.length);
-            
-            // 설문 1 끝 -> 설문 2 (CSQ)
-            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
-            renderScales('csq', csqQuestions, 7, 'step-csq');
-            state.step = 'csq';
-            hideAllSteps();
-            document.getElementById('step-csq').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
-            window.scrollTo(0,0);
-        }
-        
-        // 6. 설문 (CSQ) -> 조작 점검 (CHECK) 단계로 이동
-        else if (state.step === 'csq') {
-            if (!validateScale(csqQuestions.length, 'csq')) return;
-            collectScaleData('csq', csqQuestions.length);
-
-            state.step = 'check'; 
-            hideAllSteps();
-            document.getElementById('step-check').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "확인 문항";
-            window.scrollTo(0,0);
-        }
-        
-        // 7. 조작 점검 (CHECK) -> 디브리핑 (DEBRIEF) 단계로 이동
+        // 5. 조작 점검
         else if (state.step === 'check') {
             const selectedOption = document.querySelector('input[name="check_opt"]:checked');
             if (!selectedOption) {
@@ -710,37 +649,66 @@
             }
             state.data.check_answer = finalAnswer;
 
-            state.step = 'debrief'; 
+            document.getElementById('des-ref-img').src = imgFiles[state.condition];
+            renderScales('des', desQuestions, 5, 'step-des');
+            state.step = 'des';
+            hideAllSteps();
+            document.getElementById('step-des').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
+            window.scrollTo(0,0);
+        }
+
+        // 6. 설문 (DES)
+        else if (state.step === 'des') {
+            if (!validateScale(desQuestions.length, 'des')) return;
+            collectScaleData('des', desQuestions.length);
+            
+            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
+            renderScales('csq', csqQuestions, 7, 'step-csq');
+            state.step = 'csq';
+            hideAllSteps();
+            document.getElementById('step-csq').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
+            window.scrollTo(0,0);
+        }
+        
+        // 7. 설문 (CSQ) -> 디브리핑
+        else if (state.step === 'csq') {
+            if (!validateScale(csqQuestions.length, 'csq')) return;
+            collectScaleData('csq', csqQuestions.length);
+
+            state.step = 'debrief';
             hideAllSteps();
             document.getElementById('step-debrief').classList.remove('hidden');
-            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
+            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; 
 
             document.getElementById('header-title').innerText = "종료 및 안내";
             btn.innerText = "제출 및 종료";
             window.scrollTo(0,0);
         }
-        
+
         // 8. 최종 종료
         else if (state.step === 'debrief') {
             sendDataToGoogle();
         }
     }
 
-    /* 비네트 렌더링 & 3초 카운트다운 타이머 */
+    /* 비네트 렌더링 & 3초 카운트다운 타이머 (상단바 삭제됨) */
     function renderVignette() {
         const idx = state.vignetteIndex;
         const btnNext = document.getElementById('main-btn');
         const btnPrev = document.getElementById('prev-btn');
-        const imgContainer = document.getElementById('image-container-vig');
+        const imgContainer = document.getElementById('image-container-vig'); 
         const imgEl = document.getElementById('stimulus-img');
-        const totalVignettes = vignettes.length;
 
         // 텍스트 렌더링
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${totalVignettes}`;
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-        // 이미지 표시 로직
-        imgContainer.style.display = 'block';
+        // [수정됨] 이미지 표시 로직
+        // Index 0~6: 대기실 이미지 (waiting.png)
+        // Index 7~: 조건별 이미지 (cross/buddha/none)
+        imgContainer.style.display = 'block'; // 항상 이미지 보임
         if (idx < 7) {
             imgEl.src = imgFiles['waiting'];
         } else {
@@ -755,38 +723,38 @@
             btnPrev.disabled = false;
         }
 
-        // 타이머 및 카운트다운 로직
+        // 타이머 및 카운트다운 로직 (버튼만 제어)
         if (state.timer) clearInterval(state.timer);
 
         if (state.visitedVignettes.has(idx)) {
             // 이미 방문: 즉시 활성화
             btnNext.disabled = false;
             btnNext.innerText = "다음 >";
-            state.startTime = Date.now();
+            state.startTime = Date.now(); 
         } else {
             // 처음 방문: 3초 카운트다운
-            let timeLeft = 3;
+            let timeLeft = 3; 
             
             btnNext.disabled = true;
-            btnNext.innerText = `다음 (${timeLeft})`;
+            btnNext.innerText = `다음 (${timeLeft})`; 
             
             state.startTime = Date.now();
 
             state.timer = setInterval(() => {
-                timeLeft--;
+                timeLeft--; 
                 if (timeLeft > 0) {
                     btnNext.innerText = `다음 (${timeLeft})`;
                 } else {
-                    clearInterval(state.timer);
+                    clearInterval(state.timer); 
                     btnNext.disabled = false;
                     btnNext.innerText = "다음 >";
-                    state.visitedVignettes.add(idx);
+                    state.visitedVignettes.add(idx); 
                 }
-            }, 1000);
+            }, 1000); 
         }
     }
 
-    /* 구글 전송 및 중복 확인 */
+/* 구글 전송 */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
@@ -798,44 +766,30 @@
             id: Date.now(),
             condition: state.data.condition,
             demographics: state.data.demographics,
+            vignetteTime: state.data.vignetteTime,
             check_answer: state.data.check_answer,
             des: state.data.des,
             csq: state.data.csq,
             phone: phoneInput,
-            uniqueCode: state.uniqueID // ★★★ 자동 생성된 Unique ID 전송
+            ip: state.userIP 
         };
-        
-        // Fetch API를 사용하여 POST 요청 (no-cors 모드 유지)
+
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors", 
+            mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(finalData)
         })
         .then(() => {
-            // GAS에서 중복 코드 감지 시 기록이 거부되었더라도, 클라이언트 측은 성공으로 간주.
-            // (이후 GAS 로그 및 Sheet 확인 필요)
-            handleSubmissionSuccess(); 
+            localStorage.setItem('participation_completed', 'true');
+            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+            document.querySelector('.app-container').innerHTML = 
+                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
         })
         .catch(error => {
-            console.error("Error during submission:", error);
-            alert("⚠️ 데이터 전송 중 오류가 발생했습니다.\n네트워크 상태를 확인하거나 연구자에게 문의해 주세요.");
-            btn.disabled = false;
-            btn.innerText = "제출 및 종료";
+            console.error("Error:", error);
+            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
         });
-        
-        // 데이터 전송 성공 처리 함수
-        function handleSubmissionSuccess() {
-            // 로컬 스토리지에 참여 완료 플래그 설정 (동일 기기 중복 방지)
-            localStorage.setItem('participation_completed', 'true');
-            
-            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
-            
-            // 최종 종료 화면 표시
-            document.querySelector('.app-container').innerHTML =
-                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
-        }
-
     }
 
     /* 유틸리티 함수 */
@@ -885,12 +839,13 @@
 
     function handleExit() {
         if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
-            window.open('','_self').close();
+            window.open('','_self').close(); 
             window.close();
-            document.querySelector('.app-container').innerHTML =
+            document.querySelector('.app-container').innerHTML = 
                 "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
         }
     }
 </script>
+
 </body>
 </html>
