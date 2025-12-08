@@ -394,7 +394,7 @@
         'waiting': 'waiting.png'
     };
 
-    // [비네트 데이터] - 총 24개 문항 (인덱스 0 ~ 23)
+    // [비네트 데이터] - (25개 문항 - 0~24 인덱스)
     const vignettes = [
         // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 ---
         `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`, // 0
@@ -405,7 +405,7 @@
         `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`, // 5
         `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`, // 6
 
-        // --- 비네트 2 (Index 7 ~ 23): 상담실 입장 (조건 이미지) ---
+        // --- 비네트 2 (Index 7 ~ 24): 상담실 입장 (조건 이미지) ---
         `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`, // 7
         `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요?</span>`, // 8
         `<span class="dialogue"><span class="speaker">나:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`, // 9
@@ -418,21 +418,13 @@
         `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`, // 16
         `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`, // 17
         `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`, // 18
-
-        // [Index 19~23] 수정 및 추가된 최종 구간
         `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`, // 19
         `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`, // 20
         `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`, // 21
-        `<span class="dialogue"><span class="speaker">나:</span> ..네.</span>`, // 22 (추가된 문장)
-        `<span class="inner-thought">[당신은 망설이다가 결국 말을 멈추었습니다.<br>상담자는 당신의 말을 기다려주다가 입을 엽니다.]</span>`, // 23 (추가된 문장)
-        // **24번 문항은 제거하고, 마지막 문장 25번을 24번으로 변경하여 끝내겠습니다.**
-        // 기존 25번 문항이 비네트의 마지막을 명확히 정의하므로 이를 마지막 문항으로 둡니다.
-
-        `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`, // 24 (추가된 문장)
-    ]; // 총 길이 25개 (Index 0 ~ 24)
-
-    // 총 길이는 25입니다. vignettes.length 는 25입니다.
-    // 24번째 인덱스 (25번째 문항)까지 보여준 후 종료해야 합니다.
+        `<span class="dialogue"><span class="speaker">나:</span> ..네.</span>`, // 22 
+        `<span class="inner-thought">[당신은 망설이다가 결국 말을 멈추었습니다.<br>상담자는 당신의 말을 기다려주다가 입을 엽니다.]</span>`, // 23
+        `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`, // 24
+    ];
 
 
     const desQuestions = [
@@ -457,8 +449,9 @@
         "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
     ];
 
-    /* --- [초기화] IP 가져오기 --- */
+    /* --- [기능] IP 가져오기 및 중복 참여 확인 --- */
     window.onload = function() {
+        // 1. IP 주소 가져오기
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
@@ -466,7 +459,21 @@
                 console.log("User IP:", state.userIP);
             })
             .catch(error => console.log("IP Fetch Error:", error));
+            
+        // 2. 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
+        if (localStorage.getItem('participation_completed') === 'true') {
+            const app = document.querySelector('.app-container');
+            app.innerHTML = `
+                <div style="padding:40px; text-align:center;">
+                    <h2 style="color:#e74c3c;">참여 완료</h2>
+                    <p>이미 본 실험에 참여하셨습니다.<br>더 이상 설문을 진행할 수 없습니다.<br><br>창을 닫아주세요.</p>
+                </div>
+            `;
+            document.body.style.backgroundColor = "#eee";
+            return;
+        }
     };
+
 
     /* --- [기능] 성별 정체성 판별 --- */
     function checkGenderIdentity() {
@@ -535,6 +542,7 @@
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     }
 
+    // (handlePrev 함수는 기존 로직을 유지합니다.)
     function handlePrev() {
         const btnPrev = document.getElementById('prev-btn');
         const btnNext = document.getElementById('main-btn');
@@ -545,8 +553,8 @@
             state.vignetteIndex--;
             renderVignette();
         } else if (state.step === 'des') {
-            state.step = 'vignette'; // DES -> Vignette 마지막 화면으로 돌아가게 함
-            state.vignetteIndex = vignettes.length - 1; // 마지막 인덱스로 설정
+            state.step = 'vignette'; 
+            state.vignetteIndex = vignettes.length - 1; 
             renderVignette();
             document.getElementById('header-title').innerText = "상황 제시";
         } else if (state.step === 'csq') {
@@ -659,7 +667,6 @@
             state.visitedVignettes.add(state.vignetteIndex);
 
             state.vignetteIndex++;
-            // 여기서 vignettes.length는 25이므로, index가 25보다 작을 때까지 진행합니다.
             if (state.vignetteIndex < vignettes.length) { 
                 renderVignette();
             } else {
@@ -744,7 +751,7 @@
         const btnPrev = document.getElementById('prev-btn');
         const imgContainer = document.getElementById('image-container-vig');
         const imgEl = document.getElementById('stimulus-img');
-        const totalVignettes = vignettes.length; // 총 25
+        const totalVignettes = vignettes.length;
 
         // 텍스트 렌더링
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
@@ -797,7 +804,7 @@
         }
     }
 
-    /* 구글 전송 */
+    /* 구글 전송 및 중복 확인 (수정된 부분) */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
@@ -816,23 +823,48 @@
             phone: phoneInput,
             ip: state.userIP
         };
-
+        
+        // Fetch API를 사용하여 POST 요청
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors",
+            mode: "no-cors", // 이 모드에서는 응답 본문을 직접 읽기 어려움
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(finalData)
         })
         .then(() => {
-            localStorage.setItem('participation_completed', 'true');
-            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
-            document.querySelector('.app-container').innerHTML =
-                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
+            // no-cors 모드에서는 응답 객체를 직접 읽어 오류를 판단하기 어려움.
+            // 성공적인 네트워크 요청으로 간주하고, 최종 성공 처리 로직으로 이동
+            // (실제 데이터 중복 처리는 GAS 서버에서 진행됨)
+            
+            // NOTE: GAS 측에서 중복을 거절했더라도 클라이언트에서는 성공으로 간주하여 LocalStorage에 기록합니다.
+            // 더 정확한 처리를 위해선 CORS 문제를 해결해야 하지만, 현재 구조에서는 최종 성공을 가정합니다.
+            handleSubmissionSuccess(); 
         })
         .catch(error => {
-            console.error("Error:", error);
-            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
+            console.error("Error during submission:", error);
+            // IP를 가져오지 못했거나 네트워크 오류가 발생했을 경우
+            alert("⚠️ 데이터 전송 중 오류가 발생했습니다.\n네트워크 상태를 확인하거나 연구자에게 문의해 주세요.");
+            btn.disabled = false;
+            btn.innerText = "제출 및 종료";
         });
+        
+        // 데이터 전송 성공 처리 함수
+        function handleSubmissionSuccess() {
+            // 로컬 스토리지에 참여 완료 플래그 설정 (동일 기기 중복 방지)
+            localStorage.setItem('participation_completed', 'true');
+            
+            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+            
+            // 최종 종료 화면 표시
+            document.querySelector('.app-container').innerHTML =
+                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
+        }
+
+        // WARN: 만약 GAS에서 중복을 거절했을 때 사용자에게 알림을 주고 싶다면, 
+        // 1. GAS 배포 설정을 '누구나(익명 사용자 포함)'에게 '웹 앱'으로 하고, 
+        // 2. HTML fetch 요청 시 'mode: "cors"'로 변경 후, 
+        // 3. 응답 텍스트를 읽어 "DUPLICATE_ENTRY"를 검사해야 합니다.
+        // 현재는 CORS 문제로 인해 서버 측 응답을 클라이언트에서 직접 읽지 못하고 무조건 성공으로 처리됨을 유념하세요.
     }
 
     /* 유틸리티 함수 */
