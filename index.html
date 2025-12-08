@@ -6,10 +6,9 @@
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* (스타일 시트 내용 생략: 기존 내용 그대로 사용) */
+        /* --- 디자인 시스템 --- */
         :root {
             --primary-color: #5bc2e7;
-            --primary-dark: #2db6e0;
             --header-bg: #343a40;
             --bg-color: #f5f5f5;
             --card-bg: #ffffff;
@@ -55,19 +54,17 @@
         }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 (수정된 부분: padding-bottom을 120px로 늘림) */
+        /* 컨텐츠 영역 */
         .content {
             flex: 1;
-            /* 상단 0, 좌우 24px, 하단 120px (버튼에 가려지지 않도록 넉넉하게) */
             padding: 0 24px 120px 24px; 
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             position: relative;
         }
 
-        /* 상단 고정 이미지 박스 */
+        /* 상단 고정 박스 */
         .sticky-top-box {
-            position: -webkit-sticky;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -88,7 +85,6 @@
 
         h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
         p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
-
         .hidden { display: none !important; }
 
         /* 입력 폼 */
@@ -126,7 +122,6 @@
         #main-btn { flex: 2; }
 
         .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
 
         .vignette-box {
             background: #fafafa; padding: 20px; border-radius: 8px; 
@@ -138,15 +133,11 @@
         .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
         .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
         .dialogue { margin-bottom: 15px; display: block; }
-
-        /* 척도 질문 */
         .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
         .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
         .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
         .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
-        
-        /* 안내 박스 스타일 */
         .info-box {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
@@ -185,6 +176,11 @@
             <p>연구 참여 기준 확인을 위해 정보를 입력해 주세요.</p>
             
             <div class="form-group">
+                <label class="form-label">0. 귀하에게 발급된 고유 코드를 입력해 주세요.</label>
+                <input type="text" class="form-control" id="unique-code" placeholder="예: YSMD_001">
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">1. 귀하의 연령은?</label>
                 <select class="form-control" id="age">
                     <option value="">선택하세요</option>
@@ -217,7 +213,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
+                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입습니까?</label>
                 <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
                     <option value="">선택하세요</option>
                     <option value="male">남성 (Male)</option>
@@ -380,9 +376,12 @@
         step: 'consent',
         condition: '',
         vignetteIndex: 0,
-        data: {},
+        data: {
+            uniqueCode: '', // 고유 코드 저장을 위한 초기화
+        },
         startTime: 0,
-        userIP: 'unknown',
+        // IP 수집 로직 제거 (IP_Address 필드 사용 안 함)
+        userIP: null, // IP 수집 로직 제거에 따라 null로 설정
         visitedVignettes: new Set(),
         timer: null
     };
@@ -449,31 +448,12 @@
         "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
     ];
 
-    /* --- [기능] IP 가져오기 및 중복 참여 확인 --- */
+    /* --- [기능] 로컬 스토리지 확인 (IP 수집 로직 제거) --- */
     window.onload = function() {
-        let fetchTimeout = setTimeout(() => {
-            if (state.userIP === 'unknown') {
-                console.log("IP Fetch Timeout: Setting IP to FETCH_FAILED_TIMEOUT");
-                state.userIP = "FETCH_FAILED_TIMEOUT";
-            }
-        }, 5000); // 5초 타임아웃 설정
+        // IP 수집 로직 제거
+        state.userIP = null; 
         
-        // 1. IP 주소 가져오기
-        fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
-            .then(data => {
-                clearTimeout(fetchTimeout); // 성공 시 타임아웃 해제
-                state.userIP = data.ip;
-                console.log("User IP:", state.userIP);
-            })
-            .catch(error => {
-                clearTimeout(fetchTimeout); // 실패 시 타임아웃 해제
-                console.log("IP Fetch Error: " + error);
-                // IP 수집 실패 시에도 추적 가능한 값으로 설정
-                state.userIP = "FETCH_FAILED_" + Date.now(); 
-            });
-            
-        // 2. 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
+        // 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
         if (localStorage.getItem('participation_completed') === 'true') {
             const app = document.querySelector('.app-container');
             app.innerHTML = `
@@ -524,10 +504,9 @@
             des: [],
             csq: [],
             phone: "",
-            ip: state.userIP
+            uniqueCode: state.data.uniqueCode // 고유 코드 포함
         };
 
-        // NOTE: GAS에서도 IP 유효성 검사를 하므로, 'unknown' IP를 가진 탈락자는 기록되지 않을 수 있습니다.
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
@@ -613,7 +592,7 @@
             window.scrollTo(0,0);
         }
 
-        // 2. 스크리너 단계
+        // 2. 스크리너 단계 (고유 코드 검사 포함)
         else if (state.step === 'screener') {
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
@@ -621,18 +600,21 @@
             const birthSex = document.getElementById('birth_sex').value;
             const currentGender = document.getElementById('current_gender').value;
             const calculatedIdentity = document.getElementById('final_identity_value').value;
+            
+            // 고유 코드 입력 확인
+            const uniqueCodeInput = document.getElementById('unique-code').value.trim();
+            if (!uniqueCodeInput) {
+                alert('고유 코드를 입력해 주세요.');
+                return;
+            }
 
             if (!age || !residence || !orientation || !birthSex || !currentGender) {
                 alert('모든 항목을 선택해 주세요.');
                 return;
             }
 
-            // *** IP 수집 완료 확인 로직 (타임아웃 적용으로 무한 루프 방지) ***
-            if (state.userIP === 'unknown') {
-                alert('IP 주소를 가져오는 중입니다. 잠시 후 다시 시도해 주세요.');
-                setTimeout(() => handleNext(), 1000); 
-                return;
-            }
+            // 고유 코드 상태 저장
+            state.data.uniqueCode = uniqueCodeInput;
 
             // 입력 정보 임시 저장
             state.data.demographics = {
@@ -681,7 +663,6 @@
         // 4. 비네트 진행
         else if (state.step === 'vignette') {
             const spentTime = Date.now() - state.startTime;
-            // state.data.vignetteTime.push(spentTime); // GAS에서 제거했으므로 주석 처리 유지
             
             state.visitedVignettes.add(state.vignetteIndex);
 
@@ -839,7 +820,8 @@
             des: state.data.des,
             csq: state.data.csq,
             phone: phoneInput,
-            ip: state.userIP
+            // IP 주소 대신 고유 코드 전송
+            uniqueCode: state.data.uniqueCode 
         };
         
         // Fetch API를 사용하여 POST 요청 (no-cors 모드 유지)
@@ -850,7 +832,7 @@
             body: JSON.stringify(finalData)
         })
         .then(() => {
-            // GAS가 중복을 거절했더라도 클라이언트에서는 응답을 읽을 수 없어 성공으로 간주됨.
+            // GAS에서 중복 코드 감지 시 기록이 거부되었더라도, 클라이언트 측은 성공으로 간주.
             handleSubmissionSuccess(); 
         })
         .catch(error => {
