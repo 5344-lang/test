@@ -363,6 +363,8 @@
     </div>
 </div>
 
+// HTML 파일의 <script> 부분에 덮어쓰세요.
+
 <script>
     // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec";
@@ -376,84 +378,57 @@
         step: 'consent',
         condition: '',
         vignetteIndex: 0,
-        data: {
-            uniqueCode: '', // 고유 코드 저장을 위한 초기화
-        },
+        data: {}, // 데이터를 모으는 객체
         startTime: 0,
-        // IP 수집 로직 제거 (IP_Address 필드 사용 안 함)
-        userIP: null, // IP 수집 로직 제거에 따라 null로 설정
+        userIP: null, 
+        uniqueID: null, // ★★★ 고유 ID 추적용 변수
         visitedVignettes: new Set(),
         timer: null
     };
 
-    const imgFiles = {
-        'cross': 'cross.png',
-        'buddha': 'buddha.png',
-        'none': 'none.png',
-        'waiting': 'waiting.png'
-    };
+    // (imgFiles, vignettes, desQuestions, csqQuestions 등 상수 배열은 기존 내용 유지)
 
     // [비네트 데이터] - (25개 문항 - 0~24 인덱스)
     const vignettes = [
         // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 ---
         `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`, // 0
-        `<span class="desc">사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`, // 1
-        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`, // 2
-        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다.<br>대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다.<br>당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span>`, // 3
-        `<span class="inner-thought">(여기라면 내 이야기를 편견 없이 들어주지 않을까?)</span>`, // 4
-        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`, // 5
+        // ... (나머지 비네트 내용 유지)
         `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`, // 6
-
         // --- 비네트 2 (Index 7 ~ 24): 상담실 입장 (조건 이미지) ---
         `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`, // 7
-        `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요?</span>`, // 8
-        `<span class="dialogue"><span class="speaker">나:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`, // 9
-        `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`, // 10
-        `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`, // 11
-        `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`, // 12
-        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><span class="desc">[사전에 작성한 질문지를 살핀다]</span><br>최근에 잠을 잘 못 주무셨다고요?</span>`, // 13
-        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`, // 14
-        `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`, // 15
-        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`, // 16
-        `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`, // 17
-        `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`, // 18
-        `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`, // 19
-        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`, // 20
-        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`, // 21
-        `<span class="dialogue"><span class="speaker">나:</span> ..네.</span>`, // 22 
-        `<span class="inner-thought">[당신은 망설이다가 결국 말을 멈추었습니다.<br>상담자는 당신의 말을 기다려주다가 입을 엽니다.]</span>`, // 23
+        // ... (나머지 비네트 내용 유지)
         `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`, // 24
     ];
 
 
     const desQuestions = [
         "1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?",
-        "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
-        "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?",
-        "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?",
-        "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?",
-        "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?",
-        "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?",
+        // ... (나머지 DES 질문 유지)
         "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"
     ];
 
     const csqQuestions = [
         "1. 귀하가 받은 상담의 질은 어떠했습니까?",
-        "2. 원했던 종류의 상담을 받았습니까?",
-        "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?",
-        "4. 친구가 비슷한 도움이 필요하다면, 이 상담을 추천하시겠습니까?",
-        "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?",
-        "6. 이 상담이 문제를 더 효과적으로 다루는 데 도움이 되었습니까?",
-        "7. 전반적으로, 귀하가 받은 상담에 대해 얼마나 만족하십니까?",
+        // ... (나머지 CSQ 질문 유지)
         "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
     ];
 
-    /* --- [기능] 로컬 스토리지 확인 (IP 수집 로직 제거) --- */
+    /* --- [기능] 고유 ID 생성 (UUID 대체) --- */
+    function generateUUID() {
+        return 'ID_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    /* --- [기능] ID 생성 및 로컬 스토리지 확인 --- */
     window.onload = function() {
-        // IP 수집 로직 제거
-        state.userIP = null; 
-        
-        // 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
+        // 1. 고유 ID 확인 및 생성
+        let storedID = localStorage.getItem('unique_participant_id');
+        if (!storedID) {
+            storedID = generateUUID(); // ID가 없으면 새로 생성
+            localStorage.setItem('unique_participant_id', storedID);
+        }
+        state.uniqueID = storedID; // 상태에 저장
+
+        // 2. 로컬 스토리지 확인 (동일 기기/브라우저 중복 참여 방지)
         if (localStorage.getItem('participation_completed') === 'true') {
             const app = document.querySelector('.app-container');
             app.innerHTML = `
@@ -465,20 +440,19 @@
             document.body.backgroundColor = "#eee";
             return;
         }
+        
+        // 3. (IP 수집 로직은 완전히 제거)
     };
-
 
     /* --- [기능] 성별 정체성 판별 --- */
     function checkGenderIdentity() {
         const birth = document.getElementById("birth_sex").value;
         const current = document.getElementById("current_gender").value;
         const hiddenInput = document.getElementById("final_identity_value");
-
         if (birth === "" || current === "") {
             if(hiddenInput) hiddenInput.value = "";
             return;
         }
-
         let isCis = ((birth === "male" && current === "male") || (birth === "female" && current === "female"));
         if(hiddenInput) hiddenInput.value = isCis ? "cis" : "trans";
     }
@@ -504,7 +478,7 @@
             des: [],
             csq: [],
             phone: "",
-            uniqueCode: state.data.uniqueCode // 고유 코드 포함
+            uniqueCode: state.uniqueID // ★★★ 자동 생성 ID 포함
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -592,7 +566,7 @@
             window.scrollTo(0,0);
         }
 
-        // 2. 스크리너 단계 (고유 코드 검사 포함)
+        // 2. 스크리너 단계 
         else if (state.step === 'screener') {
             const age = document.getElementById('age').value;
             const residence = document.getElementById('residence').value;
@@ -601,21 +575,13 @@
             const currentGender = document.getElementById('current_gender').value;
             const calculatedIdentity = document.getElementById('final_identity_value').value;
             
-            // 고유 코드 입력 확인
-            const uniqueCodeInput = document.getElementById('unique-code').value.trim();
-            if (!uniqueCodeInput) {
-                alert('고유 코드를 입력해 주세요.');
-                return;
-            }
+            // 고유 코드 입력 필드 제거 (자동 생성 방식이므로)
 
             if (!age || !residence || !orientation || !birthSex || !currentGender) {
                 alert('모든 항목을 선택해 주세요.');
                 return;
             }
-
-            // 고유 코드 상태 저장
-            state.data.uniqueCode = uniqueCodeInput;
-
+            
             // 입력 정보 임시 저장
             state.data.demographics = {
                 age, residence, orientation, birthSex, currentGender,
@@ -820,8 +786,7 @@
             des: state.data.des,
             csq: state.data.csq,
             phone: phoneInput,
-            // IP 주소 대신 고유 코드 전송
-            uniqueCode: state.data.uniqueCode 
+            uniqueCode: state.uniqueID // ★★★ 자동 생성된 Unique ID 전송
         };
         
         // Fetch API를 사용하여 POST 요청 (no-cors 모드 유지)
@@ -833,6 +798,7 @@
         })
         .then(() => {
             // GAS에서 중복 코드 감지 시 기록이 거부되었더라도, 클라이언트 측은 성공으로 간주.
+            // (이후 GAS 로그 및 Sheet 확인 필요)
             handleSubmissionSuccess(); 
         })
         .catch(error => {
