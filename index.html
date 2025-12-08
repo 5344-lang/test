@@ -1,868 +1,889 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상담 온라인 실험</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- 디자인 시스템 --- */
-        :root {
-            --primary-color: #5bc2e7;
-            --primary-dark: #2db6e0;
-            --header-bg: #343a40;
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상담 온라인 실험</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 디자인 시스템 --- */
+        :root {
+            --primary-color: #5bc2e7;
+            --primary-dark: #2db6e0;
+            --header-bg: #343a40;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+        }
 
-html, body {
-    height: 100%;
-    margin: 0;
-}
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
 
-body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background-color: var(--bg-color);
-    display: flex;
-    justify-content: center;
-    /* height: 100vh;  ← 이 줄 삭제 */
-    overflow: auto;  /* ← 우선 주석 처리 또는 auto 로 변경 */
-    overflow: hidden; /* 또는 auto: 직접 테스트하면서 선택 */
-    color: var(--text-main);
-}
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            overflow: hidden; 
+            color: var(--text-main);
+        }
 
-        .app-container {
-    background-color: var(--card-bg);
-    width: 100%;
-    max-width: 500px;
-    height: 100%;
-    min-height: 100vh;      /* 추가: 필요시 */
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    position: relative;
-}
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
 
-        /* 헤더 */
-        header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            flex-shrink: 0;
-            z-index: 200;
-        }
-        .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
+        /* 헤더 */
+        header {
+            background-color: var(--header-bg);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            flex-shrink: 0;
+            z-index: 200;
+        }
+        .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-        /* 컨텐츠 영역 */
-        .content {
-            flex: 1;
-            padding: 0 24px 24px 24px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            position: relative;
-        }
+        /* 컨텐츠 영역 (수정된 부분: padding-bottom을 120px로 늘림) */
+        .content {
+            flex: 1;
+            /* 상단 0, 좌우 24px, 하단 120px (버튼에 가려지지 않도록 넉넉하게) */
+            padding: 0 24px 120px 24px; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
 
-        /* 상단 고정 이미지 박스 */
-        .sticky-top-box {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background-color: var(--card-bg);
-            padding-top: 20px; 
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .sticky-top-box img {
-            max-height: 25vh;
-            max-width: 100%;
-            object-fit: contain;
-            border-radius: 4px;
-        }
+        /* 상단 고정 이미지 박스 */
+        .sticky-top-box {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--card-bg);
+            padding-top: 20px; 
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sticky-top-box img {
+            max-height: 25vh;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
 
-        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
-        p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
+        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
+        p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
 
-        .hidden { display: none !important; }
+        .hidden { display: none !important; }
 
-        /* 입력 폼 */
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
-        .form-control {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;
-            font-size: 15px; box-sizing: border-box;
-        }
-        
-        /* 하단 버튼 */
-        .bottom-bar {
-    position: sticky;     /* sticky 대신 fixed 사용 권장 */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #eee;
-    display: flex;
-    z-index: 300;
-}
+        /* 입력 폼 */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+        .form-control {
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 15px; box-sizing: border-box;
+        }
+        
+        /* 하단 버튼 */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            z-index: 300;
+        }
 
-        .footer-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.3s;
-        }
-        #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
-        #main-btn { flex: 2; }
+        .footer-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
+        #main-btn { flex: 2; }
 
-        .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
+        .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
 
-        .vignette-box {
-            background: #fafafa; padding: 20px; border-radius: 8px; 
-            border-left: 4px solid var(--primary-color);
-            min-height: 120px;
-        }
+        .vignette-box {
+            background: #fafafa; padding: 20px; border-radius: 8px; 
+            border-left: 4px solid var(--primary-color);
+            min-height: 120px;
+        }
 
-        .speaker { font-weight: bold; margin-right: 5px; color: #000; }
-        .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
-        .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
-        .dialogue { margin-bottom: 15px; display: block; }
+        .speaker { font-weight: bold; margin-right: 5px; color: #000; }
+        .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
+        .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
+        .dialogue { margin-bottom: 15px; display: block; }
 
-        /* 척도 질문 */
-        .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
-        .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
-        .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
-        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
-        
-        /* 안내 박스 스타일 */
-        .info-box {
-            background-color: #e3f2fd;
-            border: 1px solid #bbdefb;
-            color: #0d47a1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-    </style>
+        /* 척도 질문 */
+        .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
+        .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
+        .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
+        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
+        
+        /* 안내 박스 스타일 */
+        .info-box {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #0d47a1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header>
-        <span id="header-title">연구 참여 동의</span>
-        <span class="close-btn" onclick="handleExit()">나가기 X</span>
-    </header>
+    <header>
+        <span id="header-title">연구 참여 동의</span>
+        <span class="close-btn" onclick="handleExit()">나가기 X</span>
+    </header>
 
-    <div class="content">
-        <div id="step-consent"> 
-            <h2>연구 참여 동의서</h2>
-            <div style="background:#fafafa;  max-height: 220px; overflow-y: auto;  padding:15px; margin-bottom:20px; border:1px solid #eee;">
-                본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
-                이 설문에는 동성 파트너와의 관계, 정서 경험, 상담에 대한 생각 등 민감할 수 있는 내용이 포함될 수 있습니다. 응답은 각 문항에 순서대로 답하는 방식으로 진행되며, 개별 문항을 건너뛰는 기능은 제공되지 않습니다. 다만 설문 참여 중단을 원하실 경우에는 언제든지 설문 창을 닫거나 “나가기” 버튼을 눌러 참여를 중단하실 수 있으며, 이로 인한 어떠한 불이익도 발생하지 않습니다.<br><br>
-                수집된 모든 응답은 연구 목적을 위한 통계 분석에만 사용되며, IP 주소 등 개인을 식별할 수 있는 정보는 저장되지 않습니다. 연구 결과는 논문 및 학술 발표 등으로 보고되지만 개별 참가자를 식별할 수 있는 형태로 공개되지는 않습니다. 분석이 완료된 후에는 연구계획서에 명시된 기간 동안 암호화된 형태로 보관되었다가 안전한 방식으로 폐기됩니다.
-            </div>
-            <label>
-                <input type="checkbox" id="consent-chk"> 본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.
-            </label>
-        </div>
+    <div class="content">
+        <div id="step-consent"> 
+            <h2>연구 참여 동의서</h2>
+            <div style="background:#fafafa;  max-height: 220px; overflow-y: auto;  padding:15px; margin-bottom:20px; border:1px solid #eee;">
+               본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
+                이 설문은 전체 응답 기준으로 약 5~10분 정도 소요될 것으로 예상됩니다.<br><br>
+                이 설문에는 동성 파트너와의 관계, 정서 경험, 상담에 대한 생각 등 민감할 수 있는 내용이 포함될 수 있습니다. 응답은 각 문항에 순서대로 답하는 방식으로 진행되며, 개별 문항을 건너뛰는 기능은 제공되지 않습니다. 다만 설문 참여 중단을 원하실 경우에는 언제든지 설문 창을 닫거나 “나가기” 버튼을 눌러 참여를 중단하실 수 있으며, 이로 인한 어떠한 불이익도 발생하지 않습니다.<br><br>
+                수집된 모든 응답은 연구 목적을 위한 통계 분석에만 사용되며, IP 주소 등 개인을 식별할 수 있는 정보는 저장되지 않습니다. 연구 결과는 논문 및 학술 발표 등으로 보고되지만 개별 참가자를 식별할 수 있는 형태로 공개되지는 않습니다. 분석이 완료된 후에는 연구계획서에 명시된 기간 동안 암호화된 형태로 보관되었다가 안전한 방식으로 폐기됩니다.<br><br>
+                설문 참여 과정에서 불편감이나 심리적 어려움을 느끼실 경우, 자살예방 상담전화(109), 생명의전화(1588-9191), 정신건강상담전화(1577-0199) 등의 공공 상담·지원 기관을 이용하실 수 있습니다.
+            </div>
+            <label>
+                <input type="checkbox" id="consent-chk"> 본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.
+            </label>
+        </div>
 
-        <div id="step-screener" class="hidden"> 
-            <p>연구 참여 기준 확인을 위해 정보를 입력해 주세요.</p>
-            
-            <div class="form-group">
-                <label class="form-label">1. 귀하의 연령은?</label>
-                <select class="form-control" id="age">
-                    <option value="">선택하세요</option>
-                    <option value="under18">만 18세 미만</option>
-                    <option value="18-29">만 18세~29세</option>
-                    <option value="30-39">만 30세~39세</option>
-                    <option value="over40">만 40세 이상</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
-                <select class="form-control" id="residence">
-                    <option value="">선택하세요</option>
-                    <option value="korea">대한민국</option>
-                    <option value="abroad">대한민국 외 지역</option>
-                </select>
-            </div>
+        <div id="step-screener" class="hidden"> 
+            <p>연구 참여 기준 확인을 위해 정보를 입력해 주세요.</p>
+            
+            <div class="form-group">
+                <label class="form-label">1. 귀하의 연령은?</label>
+                <select class="form-control" id="age">
+                    <option value="">선택하세요</option>
+                    <option value="under18">만 18세 미만</option>
+                    <option value="18-29">만 18세~29세</option>
+                    <option value="30-39">만 30세~39세</option>
+                    <option value="over40">만 40세 이상</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
+                <select class="form-control" id="residence">
+                    <option value="">선택하세요</option>
+                    <option value="korea">대한민국</option>
+                    <option value="abroad">대한민국 외 지역</option>
+                </select>
+            </div>
 
-            <div class="form-group">
-                <label class="form-label">3. 당신의 성적지향은 무엇입니까?</label>
-                <select class="form-control" id="orientation">
-                    <option value="">선택하세요</option>
-                    <option value="homo">동성애자(레즈비언, 게이)</option>
-                    <option value="bi">양성애자(바이섹슈얼)</option>
-                    <option value="hetero">이성애자</option>
-                    <option value="other">그 외</option>
-                    <option value="none">모름</option>
-                </select>
-            </div>
+            <div class="form-group">
+                <label class="form-label">3. 당신의 성적지향은 무엇입니까?</label>
+                <select class="form-control" id="orientation">
+                    <option value="">선택하세요</option>
+                    <option value="homo">동성애자(레즈비언, 게이)</option>
+                    <option value="bi">양성애자(바이섹슈얼)</option>
+                    <option value="hetero">이성애자</option>
+                    <option value="other">그 외</option>
+                    <option value="none">모름</option>
+                </select>
+            </div>
 
-            <div class="form-group">
-                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입s니까?</label>
-                <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
-                    <option value="">선택하세요</option>
-                    <option value="male">남성 (Male)</option>
-                    <option value="female">여성 (Female)</option>
-                </select>
-            </div>
+            <div class="form-group">
+                <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
+                <select class="form-control" id="birth_sex" onchange="checkGenderIdentity()">
+                    <option value="">선택하세요</option>
+                    <option value="male">남성 (Male)</option>
+                    <option value="female">여성 (Female)</option>
+                </select>
+            </div>
 
-            <div class="form-group">
-                <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
-                <select class="form-control" id="current_gender" onchange="checkGenderIdentity()">
-                    <option value="">선택하세요</option>
-                    <option value="male">남성 (Male)</option>
-                    <option value="female">여성 (Female)</option>
-                    <option value="nonbinary">논바이너리 (Non-binary)</option>
-                    <option value="other">기타 (그 외 다른 정체성)</option>
-                </select>
-            </div>
-            <input type="hidden" id="final_identity_value" value="">
-        </div>
+            <div class="form-group">
+                <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
+                <select class="form-control" id="current_gender" onchange="checkGenderIdentity()">
+                    <option value="">선택하세요</option>
+                    <option value="male">남성 (Male)</option>
+                    <option value="female">여성 (Female)</option>
+                    <option value="nonbinary">논바이너리 (Non-binary)</option>
+                    <option value="other">기타 (그 외 다른 정체성)</option>
+                </select>
+            </div>
+            <input type="hidden" id="final_identity_value" value="">
+        </div>
 
-        <div id="step-instruction" class="hidden">
-            <h2>실험 진행 안내</h2>
-            <div class="info-box">
-                <p style="margin-top:0; font-weight:bold;">[잠시 후 실험 장면이 제시됩니다]</p>
-                <ul style="padding-left: 20px; margin-bottom:0;">
-                    <li>귀하는 <strong>상담실 이미지</strong>와 상담자와 나의 <strong>대화 내용</strong>을 보게 됩니다.</li>
-                    <li><strong>각 화면은 최소 3초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
-                    <li>화면을 주의 깊게 본 후 이후 물음에 답해 주세요.</li>
-                    <li>준비가 되셨다면 아래 <strong>'다음'</strong> 버튼을 눌러 시작해 주세요.</li>
-                </ul>
-            </div>
-        </div>
+        <div id="step-instruction" class="hidden">
+            <h2>실험 진행 안내</h2>
+            <div class="info-box">
+                <p style="margin-top:0; font-weight:bold;">[잠시 후 실험 장면이 제시됩니다]</p>
+                <ul style="padding-left: 20px; margin-bottom:0;">
+                    <li>귀하는 <strong>상담실 이미지</strong>와 상담자와 나의 <strong>대화 내용</strong>을 보게 됩니다.</li>
+                    <li><strong>각 화면은 최소 3초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
+                    <li>화면을 주의 깊게 본 후 이후 물음에 답해 주세요.</li>
+                    <li>준비가 되셨다면 아래 <strong>'다음'</strong> 버튼을 눌러 시작해 주세요.</li>
+                </ul>
+            </div>
+        </div>
 
-        <div id="step-vignette" class="hidden">
-            <div class="sticky-top-box" id="vignette-sticky-header">
-                <div id="image-container-vig">
-                    <img id="stimulus-img" src="" alt="상담실 이미지">
-                </div>
-            </div>
+        <div id="step-vignette" class="hidden">
+            <div class="sticky-top-box" id="vignette-sticky-header">
+                <div id="image-container-vig">
+                    <img id="stimulus-img" src="" alt="상담실 이미지">
+                </div>
+            </div>
 
-            <div class="vignette-box">
-                <p id="vignette-text" style="margin:0; font-size:16px; line-height:1.7;">
-                    </p>
-            </div>
-            <p style="text-align:center; color:#999; font-size:13px; margin-top:10px;" id="page-counter">1 / 7</p>
-        </div>
+            <div class="vignette-box">
+                <p id="vignette-text" style="margin:0; font-size:16px; line-height:1.7;">
+                    </p>
+            </div>
+            <p style="text-align:center; color:#999; font-size:13px; margin-top:10px;" id="page-counter">1 / 7</p>
+        </div>
 
-        <div id="step-check" class="hidden">
-            <h2>기억 회상</h2>
-            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
-            
-            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없었음
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
-                </label>
-            </div>
+        <div id="step-des" class="hidden">
+            <div class="sticky-top-box">
+                <img id="des-ref-img" src="" alt="참고 이미지">
+                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
+            </div>
+            
+            <h2>설문 1/2</h2>
+            <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
+            <div id="des-container"></div>
+        </div>
 
-            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
-        </div>
+        <div id="step-csq" class="hidden">
+            <div class="sticky-top-box">
+                <img id="csq-ref-img" src="" alt="참고 이미지">
+                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
+            </div>
 
-        <div id="step-des" class="hidden">
-            <div class="sticky-top-box">
-                <img id="des-ref-img" src="" alt="참고 이미지">
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
-            </div>
-            
-            <h2>설문 1/2</h2>
-            <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
-            <div id="des-container"></div>
-        </div>
+            <h2>설문 2/2</h2>
+            <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
+            <div id="csq-container"></div>
+        </div>
+        
+         <div id="step-check" class="hidden">
+            <h2>기억 회상</h2>
+            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
+            
+            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음
+                </label>
+                <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
+                    <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
+                </label>
+            </div>
 
-        <div id="step-csq" class="hidden">
-            <div class="sticky-top-box">
-                <img id="csq-ref-img" src="" alt="참고 이미지">
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
-            </div>
+            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
+        </div>
 
-            <h2>설문 2/2</h2>
-            <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
-            <div id="csq-container"></div>
-        </div>
-        
-           <div id="step-debrief" class="hidden">
-            <h2>참여해 주셔서 감사합니다.</h2>
-            
-            <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br>
-                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
-                </p>
+        <div id="step-debrief" class="hidden">
+            <h2>참여해 주셔서 감사합니다.</h2>
+            
+            <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br>
+                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
+                </p>
 
-                <p>
-                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
-                </p>
+                <p>
+                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
+                </p>
 
-                <p>
-                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
-                </p>
-                
-                <p><strong>[문의 및 도움처]</strong><br>
-                본 연구와 관련하여 문의사항이 있거나 연구 참여로 인한 불편감이 있는 경우 아래의 연구자에게 연락해 주십시오.
-                </p>
-                <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
-                
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-                
-                <p style="font-size: 13px; color: #666; margin-bottom:5px;">
-                추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
-                </p>
-                <ul style="font-size:13px; margin-top:0; color:#555;">
-                <li>자살예방 상담전화: 109</li>
-                <li>생명의전화: 1588-9191</li>
-                <li>정신건강상담전화: 1577-0199</li>
-                </ul>
-            </div>
+                <p>
+                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
+                </p>
+                
+                <p><strong>[문의 및 도움처]</strong><br>
+                본 연구와 관련하여 문의사항이 있거나 연구 참여로 인한 불편감이 있는 경우 아래의 연구자에게 연락해 주십시오.
+                </p>
+                <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
+                
+                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+                
+                <p style="font-size: 13px; color: #666; margin-bottom:5px;">
+                추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
+                </p>
+                <ul style="font-size:13px; margin-top:0; color:#555;">
+                <li>자살예방 상담전화: 109</li>
+                <li>생명의전화: 1588-9191</li>
+                <li>정신건강상담전화: 1577-0199</li>
+                </ul>
+            </div>
 
-            <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
-                <p style="margin-top:0; font-weight:bold; color:#856404;">☕ 참여 보상 (선택 사항)</p>
-                <p style="font-size:13px; color:#856404;">
-                실험에 참여해 주신 분들께 소정의 커피 쿠폰을 드립니다.<br>
-                원하시는 분은 핸드폰 번호를 입력해 주세요.<br>
-                <span style="font-size:12px; color:#997404;">
-                    * 수집된 번호는 보상 제공 용도로만 사용되며, 지급 후 즉시 파기됩니다.<br>
-                    * 번호를 입력하지 않으셔도 실험은 정상적으로 종료되며 어떠한 불이익도 없습니다.
-                </span>
-                </p>
-                <input type="tel" id="reward-phone" class="form-control" placeholder="01012345678 (숫자만 입력)">
-            </div>
+            <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
+                <p style="margin-top:0; font-weight:bold; color:#856404;">☕ 참여 보상 (선택 사항)</p>
+                <p style="font-size:13px; color:#856404;">
+                실험에 참여해 주신 분들께 소정의 커피 쿠폰을 드립니다.<br>
+                원하시는 분은 핸드폰 번호를 입력해 주세요.<br>
+                <span style="font-size:12px; color:#997404;">
+                    * 수집된 번호는 보상 제공 용도로만 사용되며, 지급 후 즉시 파기됩니다.<br>
+                    * 번호를 입력하지 않으셔도 실험은 정상적으로 종료되며 어떠한 불이익도 없습니다.
+                </span>
+                </p>
+                <input type="tel" id="reward-phone" class="form-control" placeholder="01012345678 (숫자만 입력)">
+            </div>
 
-            <p style="margin-top:20px; font-size:13px; color:#666; text-align: center;">
-                아래 버튼을 누르면 응답이 최종 제출되며 설문이 종료됩니다.
-            </p>
-        </div>
-    </div>
+            <p style="margin-top:20px; font-size:13px; color:#666; text-align: center;">
+                아래 버튼을 누르면 응답이 최종 제출되며 설문이 종료됩니다.
+            </p>
+        </div>
+    </div>
 
-    <div class="bottom-bar">
-        <button id="prev-btn" class="footer-btn" onclick="handlePrev()">이전</button>
-        <button id="main-btn" class="footer-btn" onclick="handleNext()">다음 ></button>
-    </div>
+    <div class="bottom-bar">
+        <button id="prev-btn" class="footer-btn" onclick="handlePrev()">이전</button>
+        <button id="main-btn" class="footer-btn" onclick="handleNext()">다음 ></button>
+    </div>
 </div>
 
 <script>
-    // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec"; 
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec";
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
+    const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
 
-    /* --- 1. 실험 변수 및 상태 관리 --- */
-    const conditions = ['cross', 'buddha', 'none']; 
-    let state = {
-        step: 'consent', 
-        condition: '', 
-        vignetteIndex: 0, 
-        data: {}, 
-        startTime: 0,
-        userIP: 'unknown',
-        visitedVignettes: new Set(),
-        timer: null
-    };
+    /* --- 1. 실험 변수 및 상태 관리 --- */
+    const conditions = ['cross', 'buddha', 'none'];
+    let state = {
+        step: 'consent',
+        condition: '',
+        vignetteIndex: 0,
+        data: {},
+        startTime: 0,
+        userIP: 'unknown',
+        visitedVignettes: new Set(),
+        timer: null
+    };
 
-    const imgFiles = {
-        'cross': 'cross.png',
-        'buddha': 'buddha.png',
-        'none': 'none.png',
-        'waiting': 'waiting.png'
-    };
+    const imgFiles = {
+        'cross': 'cross.png',
+        'buddha': 'buddha.png',
+        'none': 'none.png',
+        'waiting': 'waiting.png'
+    };
 
-    // [비네트 데이터] - 요청에 따라 수정됨
-    const vignettes = [
-        // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 (waiting.png) ---
-        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
-        `<span class="desc">사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`,
-        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`,
-        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다.<br>대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다.<br>당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span>`,
-        `<span class="inner-thought">(여기라면 내 이야기를 편견 없이 들어주지 않을까?)</span>`,
-        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`,
-        `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`,
+    // [비네트 데이터]
+    const vignettes = [
+        // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 ---
+        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
+        `<span class="desc">사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`,
+        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`,
+        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다.<br>대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다.<br>당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span>`,
+        `<span class="inner-thought">(여기라면 내 이야기를 편견 없이 들어주지 않을까?)</span>`,
+        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`,
+        `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`,
 
-        // --- 비네트 2 (Index 7 ~ 16): 상담실 입장 (조건 이미지) ---
-        `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`, // Index 7 - 조건 이미지 노출 시작
-        `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`,
-        `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><b>[사전에 작성한 질문지를 살핀다]</b><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
-        `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
-        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">나:</span> ...네.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> ...오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.</span>`
-    ];
+        // --- 비네트 2 (Index 7 ~ 21): 상담실 입장 (조건 이미지) ---
+        `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`,
+        `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><span class="desc">[사전에 작성한 질문지를 살핀다]</span><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
+        `<span class="inner-thought">(애인 때문이라고 말할까? 내가 <b>[동성/양성]애자</b>인 걸 알면 이 사람이 어떻게 반응할지 모르겠어… 친구라고 말해야 하나?)</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 떠오르는 게 있다면 편한 것부터 말씀해 주셔도 돼요.</span>`,
 
-    // [설문 1: DES] - 요청 이미지(image_6325d6.png) 기반으로 수정됨
-    const desQuestions = [
-        "1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?",
-        "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
-        "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?",
-        "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?",
-        "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?",
-        "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?",
-        "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?",
-        "8. 만약 당신이 고민 중인 문제를 이 상담자에게 털어놓는다면 실질적인 도움을 받을 것 같나요?"
-    ];
+        // [Index 20] 성향 치환 구간
+        `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
+        `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`
+        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> ..네.</span>`,
+        `<span class="inner-thought">[당신은 망설이다가 결국 말을 멈추었습니다.<br>상담자는 당신의 말을 기다려주다가 입을 엽니다.]</span>`
+        `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`,
+    ];
 
-    // [설문 2: CSQ] - 요청 이미지(image_63259a.png) 기반으로 수정됨
-    const csqQuestions = [
-        "1. 귀하가 받은 상담의 질은 어떠했습니까?",
-        "2. 원했던 종류의 상담을 받았습니까?",
-        "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?",
-        "4. 친구가 비슷한 도움이 필요하다면, 이 상담을 추천하시겠습니까?",
-        "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?",
-        "6. 이 상담이 귀하의 문제를 더 효과적으로 다루는 데 도움이 되었습니까?",
-        "7. 전반적으로, 귀하가 받은 상담에 대해 얼마나 만족하십니까?",
-        "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
-    ];
+    const desQuestions = [
+        "1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?",
+        "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
+        "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?",
+        "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?",
+        "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?",
+        "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?",
+        "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?",
+        "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"
+    ];
 
-    /* --- [초기화] IP 가져오기 --- */
-    window.onload = function() {
-        fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
-            .then(data => {
-                state.userIP = data.ip;
-                console.log("User IP:", state.userIP);
-            })
-            .catch(error => console.log("IP Fetch Error:", error));
-            
-            // 첫 단계에서 이전 버튼 숨기기
-            document.getElementById('prev-btn').style.display = 'none';
-            document.getElementById('main-btn').style.flex = '2';
-    };
+    const csqQuestions = [
+        "1. 귀하가 받은 상담의 질은 어떠했습니까?",
+        "2. 원했던 종류의 상담을 받았습니까?,
+        "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?",
+        "4. 친구가 비슷한 도움이 필요하다면, 이 상담을 추천하시겠습니까?",
+        "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?",
+        "6. 이 상담이 문제를 더 효과적으로 다루는 데 도움이 되었습니까?",
+        "7. 전반적으로, 귀하가 받은 상담에 대해 얼마나 만족하십니까?",
+        "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
+    ];
 
-    /* --- [기능] 성별 정체성 판별 --- */
-    function checkGenderIdentity() {
-        const birth = document.getElementById("birth_sex").value;
-        const current = document.getElementById("current_gender").value;
-        const hiddenInput = document.getElementById("final_identity_value");
+    /* --- [초기화] IP 가져오기 --- */
+    window.onload = function() {
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                state.userIP = data.ip;
+                console.log("User IP:", state.userIP);
+            })
+            .catch(error => console.log("IP Fetch Error:", error));
+    };
 
-        if (birth === "" || current === "") {
-            if(hiddenInput) hiddenInput.value = "";
-            return;
-        }
+    /* --- [기능] 성별 정체성 판별 --- */
+    function checkGenderIdentity() {
+        const birth = document.getElementById("birth_sex").value;
+        const current = document.getElementById("current_gender").value;
+        const hiddenInput = document.getElementById("final_identity_value");
 
-        let isCis = ((birth === "male" && current === "male") || (birth === "female" && current === "female"));
-        if(hiddenInput) hiddenInput.value = isCis ? "cis" : "trans";
-    }
+        if (birth === "" || current === "") {
+            if(hiddenInput) hiddenInput.value = "";
+            return;
+        }
 
-    /* --- [기능] 비네트 텍스트 치환 --- */
-    const wordMap = { "homo": "동성", "bi": "양성" };
-function getProcessedText(index) {
-    let text = vignettes[index];
-    const savedType = localStorage.getItem('userType'); 
-    const targetWord = wordMap[savedType] || "동성"; 
-    return text.replace(/\[동성\/양성\]/g, targetWord);  // ← 정규식 replace로 교체
-}
+        let isCis = ((birth === "male" && current === "male") || (birth === "female" && current === "female"));
+        if(hiddenInput) hiddenInput.value = isCis ? "cis" : "trans";
+    }
 
-    /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
-    function handleScreenFail() {
-        alert("죄송합니다.\n본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.\n(확인 버튼을 누르면 종료됩니다.)");
+    /* --- [기능] 비네트 텍스트 치환 --- */
+    const wordMap = { "homo": "동성", "bi": "양성" };
+    function getProcessedText(index) {
+        let text = vignettes[index];
+        const savedType = localStorage.getItem('userType');
+        const targetWord = wordMap[savedType] || "동성";
+        return text.replace(/\[동성\/양성\]/g, targetWord);
+    }
 
-        const failData = {
-            id: Date.now(),
-            condition: "SCREEN_OUT", 
-            demographics: state.data.demographics, 
-            vignetteTime: [],
-            check_answer: "N/A",
-            des: [],
-            csq: [],
-            phone: "",
-            ip: state.userIP 
-        };
+    /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
+    function handleScreenFail() {
+        alert("죄송합니다.\n본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.\n(확인 버튼을 누르면 종료됩니다.)");
 
-        fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(failData)
-        }).catch(error => console.log("Fail Log Error:", error));
+        const failData = {
+            id: Date.now(),
+            condition: "SCREEN_OUT",
+            demographics: state.data.demographics,
+            vignetteTime: [],
+            check_answer: "N/A",
+            des: [],
+            csq: [],
+            phone: "",
+            ip: state.userIP
+        };
 
-        const app = document.querySelector('.app-container');
-        app.innerHTML = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
-                <h2 style="color:#e74c3c;">참여 불가 안내</h2>
-                <p style="color:#555; font-size:14px; line-height:1.6;">
-                    죄송합니다.<br>
-                    귀하는 본 연구의 참여 기준에 부합하지 않아<br>
-                    더 이상 설문을 진행하실 수 없습니다.<br><br>
-                    참여해 주셔서 감사합니다.
-                </p>
-            </div>
-        `;
-        document.body.style.backgroundColor = "#eee";
-    }
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(failData)
+        }).catch(error => console.log("Fail Log Error:", error));
 
-    /* --- 로직 제어 함수 --- */
-    function hideAllSteps() {
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-    }
+        const app = document.querySelector('.app-container');
+        app.innerHTML = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
+                <h2 style="color:#e74c3c;">참여 불가 안내</h2>
+                <p style="color:#555; font-size:14px; line-height:1.6;">
+                    죄송합니다.<br>
+                    귀하는 본 연구의 참여 기준에 부합하지 않아<br>
+                    더 이상 설문을 진행하실 수 없습니다.<br><br>
+                    참여해 주셔서 감사합니다.
+                </p>
+            </div>
+        `;
+        document.body.style.backgroundColor = "#eee";
+    }
 
-    function handlePrev() {
-        if (state.step === 'vignette' && state.vignetteIndex > 0) {
-            state.vignetteIndex--;
-            renderVignette();
-            window.scrollTo(0,0);
-        }
-    }
+    /* --- 로직 제어 함수 --- */
+    function hideAllSteps() {
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+    }
 
-    function handleNext() {
-        const btn = document.getElementById('main-btn');
+    function handlePrev() {
+        const btnPrev = document.getElementById('prev-btn');
+        const btnNext = document.getElementById('main-btn');
+        btnNext.innerText = "다음 >";
+        btnNext.disabled = false;
 
-        // 1. 연구 동의
-        if (state.step === 'consent') {
-            if (!document.getElementById('consent-chk').checked) {
-                alert('연구 참여에 동의하셔야 진행할 수 있습니다.');
-                return;
-            }
-            state.step = 'screener';
-            hideAllSteps();
-            document.getElementById('step-screener').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "기본 정보 입력";
-            document.getElementById('prev-btn').style.display = 'none';
-            window.scrollTo(0,0);
-        }
+        if (state.step === 'vignette' && state.vignetteIndex > 0) {
+            state.vignetteIndex--;
+            renderVignette();
+        } else if (state.step === 'des') {
+            state.step = 'check';
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            btnPrev.style.display = 'none'; // 'check' 단계에서는 'prev' 버튼 숨김 (디자인에 따라)
+        } else if (state.step === 'csq') {
+            state.step = 'des';
+            hideAllSteps();
+            document.getElementById('step-des').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
+            btnPrev.style.display = 'block';
+        } 
+        // ***** 이 부분 수정: check 단계가 csq 다음으로 이동 *****
+        else if (state.step === 'check') { 
+            state.step = 'csq';
+            hideAllSteps();
+            document.getElementById('step-csq').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
+            btnPrev.style.display = 'block';
+        }
+        // ***** 이 부분 수정: debrief 단계에서 check로 돌아가도록 *****
+        else if (state.step === 'debrief') { 
+            state.step = 'check';
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            btnPrev.style.display = 'block';
+            btnPrev.style.flex = '1';
+            btnNext.style.flex = '2';
+        }
+        // **********************************************
+        
+        window.scrollTo(0,0);
+    }
 
-        // 2. 스크리너 단계
-        else if (state.step === 'screener') {
-            const age = document.getElementById('age').value;
-            const residence = document.getElementById('residence').value;
-            const orientation = document.getElementById('orientation').value;
-            const birthSex = document.getElementById('birth_sex').value;
-            const currentGender = document.getElementById('current_gender').value;
-            const calculatedIdentity = document.getElementById('final_identity_value').value; 
+    function handleNext() {
+        const btn = document.getElementById('main-btn');
 
-            if (!age || !residence || !orientation || !birthSex || !currentGender) {
-                alert('모든 항목을 선택해 주세요.');
-                return;
-            }
+        // 1. 연구 동의
+        if (state.step === 'consent') {
+            if (!document.getElementById('consent-chk').checked) {
+                alert('연구 참여에 동의하셔야 진행할 수 있습니다.');
+                return;
+            }
+            state.step = 'screener';
+            hideAllSteps();
+            document.getElementById('step-screener').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "기본 정보 입력";
+            window.scrollTo(0,0);
+        }
 
-            // 입력 정보 임시 저장
-            state.data.demographics = { 
-                age, residence, orientation, birthSex, currentGender,
-                identity: calculatedIdentity
-            };
+        // 2. 스크리너 단계
+        else if (state.step === 'screener') {
+            const age = document.getElementById('age').value;
+            const residence = document.getElementById('residence').value;
+            const orientation = document.getElementById('orientation').value;
+            const birthSex = document.getElementById('birth_sex').value;
+            const currentGender = document.getElementById('current_gender').value;
+            const calculatedIdentity = document.getElementById('final_identity_value').value;
 
-            // 탈락 조건 체크
-            if (
-                age === 'under18' ||                            
-                residence === 'abroad' ||                       
-                (orientation !== 'homo' && orientation !== 'bi') || 
-                calculatedIdentity !== 'cis'                    
-            ) {
-                handleScreenFail(); 
-                return;
-            }
+            if (!age || !residence || !orientation || !birthSex || !currentGender) {
+                alert('모든 항목을 선택해 주세요.');
+                return;
+            }
 
-            // 통과 시
-            state.condition = conditions[Math.floor(Math.random() * conditions.length)];
-            state.data.condition = state.condition;
-            state.data.vignetteTime = [];
-            localStorage.setItem('userType', orientation); 
+            // 입력 정보 임시 저장
+            state.data.demographics = {
+                age, residence, orientation, birthSex, currentGender,
+                identity: calculatedIdentity
+            };
 
-            console.log("Assigned Condition: " + state.condition);
+            // 탈락 조건 체크
+            if (
+                age === 'under18' ||
+                residence === 'abroad' ||
+                (orientation !== 'homo' && orientation !== 'bi') ||
+                calculatedIdentity !== 'cis'
+            ) {
+                handleScreenFail();
+                return;
+            }
 
-            // Instruction 단계로 이동
-            state.step = 'instruction';
-            hideAllSteps();
-            document.getElementById('step-instruction').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "실험 안내";
-            window.scrollTo(0,0);
-        }
+            // 통과 시
+            state.condition = conditions[Math.floor(Math.random() * conditions.length)];
+            state.data.condition = state.condition;
+            state.data.vignetteTime = [];
+            localStorage.setItem('userType', orientation);
 
-        // 3. 실험 안내 -> 비네트
-        else if (state.step === 'instruction') {
-            state.step = 'vignette';
-            state.vignetteIndex = 0;
-            state.visitedVignettes.clear();
-            hideAllSteps();
-            document.getElementById('step-vignette').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "상황 제시";
-            
-            renderVignette();
-        }
+            console.log("Assigned Condition: " + state.condition);
 
-        // 4. 비네트 진행
-        else if (state.step === 'vignette') {
-            const spentTime = Date.now() - state.startTime;
-            state.data.vignetteTime.push(spentTime);
-            
-            state.visitedVignettes.add(state.vignetteIndex);
+            // Instruction 단계로 이동
+            state.step = 'instruction';
+            hideAllSteps();
+            document.getElementById('step-instruction').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "실험 안내";
+            window.scrollTo(0,0);
+        }
 
-            state.vignetteIndex++;
-            if (state.vignetteIndex < vignettes.length) {
-                renderVignette();
-            } else {
-                state.step = 'check';
-                hideAllSteps();
-                document.getElementById('step-check').classList.remove('hidden');
-                document.getElementById('header-title').innerText = "확인 문항";
-                document.getElementById('prev-btn').style.display = 'none';
-                document.getElementById('main-btn').style.flex = '2';
-            }
-            window.scrollTo(0,0);
-        }
+        // 3. 실험 안내 -> 비네트
+        else if (state.step === 'instruction') {
+            state.step = 'vignette';
+            state.vignetteIndex = 0;
+            state.visitedVignettes.clear();
+            hideAllSteps();
+            document.getElementById('step-vignette').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "상황 제시";
+            
+            renderVignette();
+        }
 
-        // 5. 조작 점검
-        else if (state.step === 'check') {
-            const selectedOption = document.querySelector('input[name="check_opt"]:checked');
-            if (!selectedOption) {
-                alert('보기 중 하나를 선택해 주세요.');
-                return;
-            }
+        // 4. 비네트 진행
+        else if (state.step === 'vignette') {
+            const spentTime = Date.now() - state.startTime;
+            state.data.vignetteTime.push(spentTime);
+            
+            state.visitedVignettes.add(state.vignetteIndex);
 
-            let finalAnswer = selectedOption.value;
-            if (finalAnswer === 'etc') {
-                const etcText = document.getElementById('check-etc-text').value.trim();
-                if (etcText.length < 1) {
-                    alert('기타 내용을 입력해 주세요.');
-                    return;
-                }
-                finalAnswer = '기타: ' + etcText;
-            }
-            state.data.check_answer = finalAnswer;
+            state.vignetteIndex++;
+            if (state.vignetteIndex < vignettes.length) {
+                renderVignette();
+            } else {
+                // 비네트 끝 -> 설문 1 (DES)
+                document.getElementById('des-ref-img').src = imgFiles[state.condition];
+                renderScales('des', desQuestions, 5, 'step-des');
+                state.step = 'des';
+                hideAllSteps();
+                document.getElementById('step-des').classList.remove('hidden');
+                document.getElementById('header-title').innerText = "설문 조사 (1/2)";
+                document.getElementById('prev-btn').style.display = 'block';
+            }
+            window.scrollTo(0,0);
+        }
 
-            document.getElementById('des-ref-img').src = imgFiles[state.condition];
-            renderScales('des', desQuestions, 5, 'step-des');
-            state.step = 'des';
-            hideAllSteps();
-            document.getElementById('step-des').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
-            window.scrollTo(0,0);
-        }
+        // 5. 설문 (DES)
+        else if (state.step === 'des') {
+            if (!validateScale(desQuestions.length, 'des')) return;
+            collectScaleData('des', desQuestions.length);
+            
+            // 설문 1 끝 -> 설문 2 (CSQ)
+            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
+            renderScales('csq', csqQuestions, 7, 'step-csq');
+            state.step = 'csq';
+            hideAllSteps();
+            document.getElementById('step-csq').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
+            window.scrollTo(0,0);
+        }
+        
+        // ***** 6. 설문 (CSQ) -> 조작 점검 (CHECK) 단계로 이동 *****
+        else if (state.step === 'csq') {
+            if (!validateScale(csqQuestions.length, 'csq')) return;
+            collectScaleData('csq', csqQuestions.length);
 
-        // 6. 설문 (DES)
-        else if (state.step === 'des') {
-            if (!validateScale(desQuestions.length, 'des')) return;
-            collectScaleData('des', desQuestions.length);
-            
-            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
-            renderScales('csq', csqQuestions, 7, 'step-csq');
-            state.step = 'csq';
-            hideAllSteps();
-            document.getElementById('step-csq').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
-            window.scrollTo(0,0);
-        }
-        
-        // 7. 설문 (CSQ) -> 디브리핑
-        else if (state.step === 'csq') {
-            if (!validateScale(csqQuestions.length, 'csq')) return;
-            collectScaleData('csq', csqQuestions.length);
+            state.step = 'check'; // 순서 변경
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            window.scrollTo(0,0);
+        }
+        
+        // ***** 7. 조작 점검 (CHECK) -> 디브리핑 (DEBRIEF) 단계로 이동 *****
+        else if (state.step === 'check') {
+            const selectedOption = document.querySelector('input[name="check_opt"]:checked');
+            if (!selectedOption) {
+                alert('보기 중 하나를 선택해 주세요.');
+                return;
+            }
 
-            state.step = 'debrief';
-            hideAllSteps();
-            document.getElementById('step-debrief').classList.remove('hidden');
-            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; 
+            let finalAnswer = selectedOption.value;
+            if (finalAnswer === 'etc') {
+                const etcText = document.getElementById('check-etc-text').value.trim();
+                if (etcText.length < 1) {
+                    alert('기타 내용을 입력해 주세요.');
+                    return;
+                }
+                finalAnswer = '기타: ' + etcText;
+            }
+            state.data.check_answer = finalAnswer;
 
-            document.getElementById('header-title').innerText = "종료 및 안내";
-            btn.innerText = "제출 및 종료";
-            window.scrollTo(0,0);
-        }
+            state.step = 'debrief'; // 순서 변경
+            hideAllSteps();
+            document.getElementById('step-debrief').classList.remove('hidden');
+            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
 
-        // 8. 최종 종료
-        else if (state.step === 'debrief') {
-            sendDataToGoogle();
-        }
-    }
+            document.getElementById('header-title').innerText = "종료 및 안내";
+            btn.innerText = "제출 및 종료";
+            window.scrollTo(0,0);
+        }
+        
+        // 8. 최종 종료
+        else if (state.step === 'debrief') {
+            sendDataToGoogle();
+        }
+    }
 
-    /* 비네트 렌더링 & 3초 카운트다운 타이머 (상단바 삭제됨) */
-    function renderVignette() {
-        const idx = state.vignetteIndex;
-        const btnNext = document.getElementById('main-btn');
-        const btnPrev = document.getElementById('prev-btn');
-        const imgContainer = document.getElementById('image-container-vig'); 
-        const imgEl = document.getElementById('stimulus-img');
+    /* 비네트 렌더링 & 3초 카운트다운 타이머 */
+    function renderVignette() {
+        const idx = state.vignetteIndex;
+        const btnNext = document.getElementById('main-btn');
+        const btnPrev = document.getElementById('prev-btn');
+        const imgContainer = document.getElementById('image-container-vig');
+        const imgEl = document.getElementById('stimulus-img');
 
-        // 텍스트 렌더링
-        document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+        // 텍스트 렌더링
+        document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-        // [수정됨] 이미지 표시 로직
-        // Index 0~6: 대기실 이미지 (waiting.png)
-        // Index 7~: 조건별 이미지 (cross/buddha/none)
-        imgContainer.style.display = 'block'; // 항상 이미지 보임
-        if (idx < 7) {
-            imgEl.src = imgFiles['waiting'];
-        } else {
-            imgEl.src = imgFiles[state.condition];
-        }
+        // 이미지 표시 로직
+        imgContainer.style.display = 'block';
+        if (idx < 7) {
+            imgEl.src = imgFiles['waiting'];
+        } else {
+            imgEl.src = imgFiles[state.condition];
+        }
 
-        // 이전 버튼 관리
-        if (idx === 0) {
-            btnPrev.style.display = 'none';
-            btnNext.style.flex = '2';
-        } else {
-            btnPrev.style.display = 'block';
-            btnPrev.disabled = false;
-            btnNext.style.flex = '2';
-        }
+        // 이전 버튼 관리
+        if (idx === 0) {
+            btnPrev.style.display = 'none';
+        } else {
+            btnPrev.style.display = 'block';
+            btnPrev.disabled = false;
+        }
 
-        // 타이머 및 카운트다운 로직 (버튼만 제어)
-        if (state.timer) clearInterval(state.timer);
+        // 타이머 및 카운트다운 로직
+        if (state.timer) clearInterval(state.timer);
 
-        if (state.visitedVignettes.has(idx)) {
-            // 이미 방문: 즉시 활성화
-            btnNext.disabled = false;
-            btnNext.innerText = "다음 >";
-            state.startTime = Date.now(); 
-        } else {
-            // 처음 방문: 3초 카운트다운
-            let timeLeft = 3; 
-            
-            btnNext.disabled = true;
-            btnNext.innerText = `다음 (${timeLeft})`; 
-            
-            state.startTime = Date.now();
+        if (state.visitedVignettes.has(idx)) {
+            // 이미 방문: 즉시 활성화
+            btnNext.disabled = false;
+            btnNext.innerText = "다음 >";
+            state.startTime = Date.now();
+        } else {
+            // 처음 방문: 3초 카운트다운
+            let timeLeft = 3;
+            
+            btnNext.disabled = true;
+            btnNext.innerText = `다음 (${timeLeft})`;
+            
+            state.startTime = Date.now();
 
-            state.timer = setInterval(() => {
-                timeLeft--; 
-                if (timeLeft > 0) {
-                    btnNext.innerText = `다음 (${timeLeft})`;
-                } else {
-                    clearInterval(state.timer); 
-                    btnNext.disabled = false;
-                    btnNext.innerText = "다음 >";
-                    state.visitedVignettes.add(idx); 
-                }
-            }, 1000); 
-        }
-    }
+            state.timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    btnNext.innerText = `다음 (${timeLeft})`;
+                } else {
+                    clearInterval(state.timer);
+                    btnNext.disabled = false;
+                    btnNext.innerText = "다음 >";
+                    state.visitedVignettes.add(idx);
+                }
+            }, 1000);
+        }
+    }
 
-/* 구글 전송 */
-    function sendDataToGoogle() {
-        const btn = document.getElementById('main-btn');
-        const phoneInput = document.getElementById('reward-phone').value.trim();
-        
-        btn.disabled = true;
-        btn.innerText = "결과 보내는 중...";
+    /* 구글 전송 */
+    function sendDataToGoogle() {
+        const btn = document.getElementById('main-btn');
+        const phoneInput = document.getElementById('reward-phone').value.trim();
+        
+        btn.disabled = true;
+        btn.innerText = "결과 보내는 중...";
 
-        const finalData = {
-            id: Date.now(),
-            condition: state.data.condition,
-            demographics: state.data.demographics,
-            vignetteTime: state.data.vignetteTime,
-            check_answer: state.data.check_answer,
-            des: state.data.des,
-            csq: state.data.csq,
-            phone: phoneInput,
-            ip: state.userIP 
-        };
+        const finalData = {
+            id: Date.now(),
+            condition: state.data.condition,
+            demographics: state.data.demographics,
+            vignetteTime: state.data.vignetteTime,
+            check_answer: state.data.check_answer,
+            des: state.data.des,
+            csq: state.data.csq,
+            phone: phoneInput,
+            ip: state.userIP
+        };
 
-        fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(finalData)
-        })
-        .then(() => {
-            localStorage.setItem('participation_completed', 'true');
-            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
-            document.querySelector('.app-container').innerHTML = 
-                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
-        });
-    }
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData)
+        })
+        .then(() => {
+            localStorage.setItem('participation_completed', 'true');
+            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+            document.querySelector('.app-container').innerHTML =
+                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
+        });
+    }
 
-    /* 유틸리티 함수 */
-    function renderScales(prefix, questions, maxScale, containerId) {
-        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
-        container.innerHTML = "";
-        questions.forEach((q, index) => {
-            let html = `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-options">`;
-            for(let i=1; i<=maxScale; i++) {
-                html += `<label class="scale-option"><input type="radio" name="${prefix}_q${index}" value="${i}">${i}</label>`;
-            }
-            html += `</div></div>`;
-            container.innerHTML += html;
-        });
-    }
+    /* 유틸리티 함수 */
+    function renderScales(prefix, questions, maxScale, containerId) {
+        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
+        container.innerHTML = "";
+        questions.forEach((q, index) => {
+            let html = `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-options">`;
+            for(let i=1; i<=maxScale; i++) {
+                html += `<label class="scale-option"><input type="radio" name="${prefix}_q${index}" value="${i}">${i}</label>`;
+            }
+            html += `</div></div>`;
+            container.innerHTML += html;
+        });
+    }
 
-    function validateScale(count, prefix) {
-        for(let i=0; i<count; i++) {
-            if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
-                alert(`${i+1}번 문항에 응답해 주세요.`);
-                // 해당 위치로 스크롤 이동
-                const qEl = document.getElementsByName(`${prefix}_q${i}`)[0];
-                qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return false;
-            }
-            // CSQ는 7점 척도로 응답이 잘 들어갔는지 추가 확인
-            if (prefix === 'csq') {
-                const val = parseInt(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
-                if (val < 1 || val > 7) {
-                    console.error("CSQ scale error:", val);
-                    alert("응답 값에 오류가 있습니다. 다시 확인해 주세요.");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    function validateScale(count, prefix) {
+        for(let i=0; i<count; i++) {
+            if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
+                alert(`${i+1}번 문항에 응답해 주세요.`);
+                // 해당 위치로 스크롤 이동
+                const qEl = document.getElementsByName(`${prefix}_q${i}`)[0];
+                qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+        }
+        return true;
+    }
 
-    function collectScaleData(prefix, count) {
-        state.data[prefix] = [];
-        for(let i=0; i<count; i++) {
-            state.data[prefix].push(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
-        }
-    }
+    function collectScaleData(prefix, count) {
+        state.data[prefix] = [];
+        for(let i=0; i<count; i++) {
+            state.data[prefix].push(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
+        }
+    }
 
-    function toggleEtc(isShow) {
-        const etcInput = document.getElementById('check-etc-text');
-        if (isShow) {
-            etcInput.classList.remove('hidden');
-            etcInput.focus();
-        } else {
-            etcInput.classList.add('hidden');
-            etcInput.value = "";
-        }
-    }
+    function toggleEtc(isShow) {
+        const etcInput = document.getElementById('check-etc-text');
+        if (isShow) {
+            etcInput.classList.remove('hidden');
+            etcInput.focus();
+        } else {
+            etcInput.classList.add('hidden');
+            etcInput.value = "";
+        }
+    }
 
-    function handleExit() {
-        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
-            window.open('','_self').close(); 
-            window.close();
-            document.querySelector('.app-container').innerHTML = 
-                "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
-        }
-    }
+    function handleExit() {
+        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
+            window.open('','_self').close();
+            window.close();
+            document.querySelector('.app-container').innerHTML =
+                "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
+        }
+    }
 </script>
-
 </body>
 </html>
