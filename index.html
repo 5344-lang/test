@@ -695,32 +695,164 @@
         }
     }
 
-    /* 비네트 렌더링 & 3초 카운트다운 타이머 */
-    function renderVignette() {
-        const idx = state.vignetteIndex;
-        const btnNext = document.getElementById('main-btn');
-        const btnPrev = document.getElementById('prev-btn');
-        const imgContainer = document.getElementById('image-container-vig'); 
-        const imgEl = document.getElementById('stimulus-img');
+   /* 비네트 렌더링 & 3초 카운트다운 타이머 (스크롤 최상단 이동 로직 추가) */
+function renderVignette() {
+    const idx = state.vignetteIndex;
+    const btnNext = document.getElementById('main-btn');
+    const btnPrev = document.getElementById('prev-btn');
+    const imgContainer = document.getElementById('image-container-vig'); 
+    const imgEl = document.getElementById('stimulus-img');
+    const contentArea = document.querySelector('.content'); // content 영역 선택
 
-        // 텍스트 렌더링
-        document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+    // 텍스트 렌더링
+    document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
+    document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+    
+    // ⭐⭐ 페이지 리셋 효과를 위해 스크롤을 최상단으로 이동 ⭐⭐
+    contentArea.scrollTop = 0;
 
-        // 이미지 표시 로직
-        imgContainer.style.display = 'block'; 
-        if (idx < 7) {
-            imgEl.src = imgFiles['waiting'];
-        } else {
-            imgEl.src = imgFiles[state.condition];
-        }
+    // 이미지 표시 로직
+    imgContainer.style.display = 'block'; 
+    if (idx < 7) {
+        imgEl.src = imgFiles['waiting'];
+    } else {
+        imgEl.src = imgFiles[state.condition];
+    }
 
-        // 이전 버튼 관리
-        if (idx === 0) {
-            btnPrev.style.display = 'none';
-        } else {
-            btnPrev.style.display = 'block';
-            btnPrev.disabled = false;
-        }
+    // 이전 버튼 관리
+    if (idx === 0) {
+        btnPrev.style.display = 'none';
+    } else {
+        btnPrev.style.display = 'block';
+        btnPrev.disabled = false;
+    }
 
-        // 타이머 및 카운트다운
+    // 타이머 및 카운트다운 로직
+    if (state.timer) clearInterval(state.timer);
+
+    if (state.visitedVignettes.has(idx)) {
+        // 이미 방문: 즉시 활성화
+        btnNext.disabled = false;
+        btnNext.innerText = "다음 >";
+        state.startTime = Date.now(); 
+    } else {
+        // 처음 방문: 3초 카운트다운
+        let timeLeft = 3; 
+        
+        btnNext.disabled = true;
+        btnNext.innerText = `다음 (${timeLeft})`; 
+        
+        state.startTime = Date.now();
+
+        state.timer = setInterval(() => {
+            timeLeft--; 
+            if (timeLeft > 0) {
+                btnNext.innerText = `다음 (${timeLeft})`;
+            } else {
+                clearInterval(state.timer); 
+                btnNext.disabled = false;
+                btnNext.innerText = "다음 >";
+                state.visitedVignettes.add(idx); 
+            }
+        }, 1000); 
+    }
+}
+    /* 구글 전송 (최종 제출) */
+    function sendDataToGoogle() {
+        const btn = document.getElementById('main-btn');
+        const phoneInput = document.getElementById('reward-phone').value.trim();
+        
+        btn.disabled = true;
+        btn.innerText = "결과 보내는 중...";
+
+        // 최종 전송 데이터 구성
+        const finalData = {
+            id: Date.now(),
+            condition: state.data.condition,
+            demographics: state.data.demographics,
+            vignetteTime: state.data.vignetteTime,
+            check_answer: state.data.check_answer,
+            des: state.data.des,
+            csq: state.data.csq,
+            phone: phoneInput,
+            ip: state.userIP
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(finalData)
+        })
+        .then(() => {
+            // no-cors 모드에서는 .then()이 즉시 실행되므로, 성공으로 간주하고 최종 화면을 표시
+            localStorage.setItem('participation_completed', 'true');
+            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+            document.querySelector('.app-container').innerHTML = 
+                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
+        })
+        .catch(error => {
+            // 네트워크 오류 등의 이유로 실패한 경우에만 실행
+            console.error("Error:", error);
+            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요. (오류 상세: " + error.message + ")");
+            // 오류 발생 시에도 일단 최종 화면으로 전환
+            document.querySelector('.app-container').innerHTML = 
+                "<div style='padding:40px; text-align:center;'><h2>실험 종료 (오류 가능성)</h2><p>데이터 전송 중 오류가 발생했습니다.<br>연구자에게 이 화면을 캡처하여 문의해 주세요.</p></div>";
+        });
+    }
+
+    /* 유틸리티 함수 */
+    function renderScales(prefix, questions, maxScale, containerId) {
+        const container = document.getElementById(containerId === 'step-des' ? 'des-container' : 'csq-container');
+        container.innerHTML = "";
+        questions.forEach((q, index) => {
+            let html = `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-options">`;
+            for(let i=1; i<=maxScale; i++) {
+                html += `<label class="scale-option"><input type="radio" name="${prefix}_q${index}" value="${i}">${i}</label>`;
+            }
+            html += `</div></div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function validateScale(count, prefix) {
+        for(let i=0; i<count; i++) {
+            if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
+                alert(`${i+1}번 문항에 응답해 주세요.`);
+                // 해당 위치로 스크롤 이동
+                const qEl = document.getElementsByName(`${prefix}_q${i}`)[0];
+                qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function collectScaleData(prefix, count) {
+        state.data[prefix] = [];
+        for(let i=0; i<count; i++) {
+            state.data[prefix].push(document.querySelector(`input[name="${prefix}_q${i}"]:checked`).value);
+        }
+    }
+
+    function toggleEtc(isShow) {
+        const etcInput = document.getElementById('check-etc-text');
+        if (isShow) {
+            etcInput.classList.remove('hidden');
+            etcInput.focus();
+        } else {
+            etcInput.classList.add('hidden');
+            etcInput.value = "";
+        }
+    }
+
+    function handleExit() {
+        if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
+            window.open('','_self').close(); 
+            window.close();
+            document.querySelector('.app-container').innerHTML = 
+                "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
+        }
+    }
+</script>
+</body>
+</html>
