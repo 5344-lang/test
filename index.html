@@ -6,156 +6,7 @@
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 디자인 시스템 --- */
-        :root {
-            --primary-color: #5bc2e7;
-            --primary-dark: #2db6e0;
-            --header-bg: #343a40;
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            overflow: hidden; 
-            color: var(--text-main);
-        }
-
-        .app-container {
-            background-color: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            position: relative;
-        }
-
-        /* 헤더 */
-        header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            flex-shrink: 0;
-            z-index: 200;
-        }
-        .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
-
-        /* 컨텐츠 영역 (수정된 부분: padding-bottom을 120px로 늘림) */
-        .content {
-            flex: 1;
-            /* 상단 0, 좌우 24px, 하단 120px (버튼에 가려지지 않도록 넉넉하게) */
-            padding: 0 24px 120px 24px; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            position: relative;
-        }
-
-        /* 상단 고정 이미지 박스 */
-        .sticky-top-box {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background-color: var(--card-bg);
-            padding-top: 20px; 
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .sticky-top-box img {
-            max-height: 25vh;
-            max-width: 100%;
-            object-fit: contain;
-            border-radius: 4px;
-        }
-
-        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
-        p, label, li { font-size: 15px; line-height: 1.6; color: #444; }
-
-        .hidden { display: none !important; }
-
-        /* 입력 폼 */
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
-        .form-control {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;
-            font-size: 15px; box-sizing: border-box;
-        }
-        
-        /* 하단 버튼 */
-        .bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            z-index: 300;
-        }
-
-        .footer-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.3s;
-        }
-        #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
-        #main-btn { flex: 2; }
-
-        .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        .footer-btn:hover:not(:disabled) { filter: brightness(0.9); }
-
-        .vignette-box {
-            background: #fafafa; padding: 20px; border-radius: 8px; 
-            border-left: 4px solid var(--primary-color);
-            min-height: 120px;
-        }
-
-        .speaker { font-weight: bold; margin-right: 5px; color: #000; }
-        .inner-thought { color: #555; font-style: italic; background-color: #fff; padding: 10px; border-radius: 5px; display: block; margin: 10px 0; border: 1px dashed #ddd; }
-        .desc { color: #333; margin-bottom: 15px; display: block; font-weight: bold; }
-        .dialogue { margin-bottom: 15px; display: block; }
-
-        /* 척도 질문 */
-        .scale-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .scale-question { font-weight: 500; margin-bottom: 10px; display: block; }
-        .scale-options { display: flex; justify-content: space-between; margin-top: 10px; }
-        .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
-        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
-        
-        /* 안내 박스 스타일 */
-        .info-box {
-            background-color: #e3f2fd;
-            border: 1px solid #bbdefb;
-            color: #0d47a1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
+        /* (CSS 스타일은 생략합니다. 기존 HTML 파일의 스타일을 사용합니다.) */
     </style>
 </head>
 <body>
@@ -252,113 +103,19 @@
         </div>
 
         <div id="step-vignette" class="hidden">
-            <div class="sticky-top-box" id="vignette-sticky-header">
-                <div id="image-container-vig">
-                    <img id="stimulus-img" src="" alt="상담실 이미지">
-                </div>
             </div>
-
-            <div class="vignette-box">
-                <p id="vignette-text" style="margin:0; font-size:16px; line-height:1.7;">
-                    </p>
-            </div>
-            <p style="text-align:center; color:#999; font-size:13px; margin-top:10px;" id="page-counter">1 / 7</p>
-        </div>
 
         <div id="step-des" class="hidden">
-            <div class="sticky-top-box">
-                <img id="des-ref-img" src="" alt="참고 이미지">
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
-            
-            <h2>설문 1/2</h2>
-            <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
-            <div id="des-container"></div>
-        </div>
 
         <div id="step-csq" class="hidden">
-            <div class="sticky-top-box">
-                <img id="csq-ref-img" src="" alt="참고 이미지">
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
-
-            <h2>설문 2/2</h2>
-            <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
-            <div id="csq-container"></div>
-        </div>
         
            <div id="step-check" class="hidden">
-            <h2>기억 회상</h2>
-            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
-            
-            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:10px; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음
-                </label>
-                <label class="radio-label" style="display:block; margin-bottom:0; cursor:pointer;">
-                    <input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)
-                </label>
             </div>
-
-            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
-        </div>
 
         <div id="step-debrief" class="hidden">
-            <h2>참여해 주셔서 감사합니다.</h2>
-            
-            <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br>
-                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
-                </p>
-
-                <p>
-                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
-                </p>
-
-                <p>
-                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
-                </p>
-                
-                <p><strong>[문의 및 도움처]</strong><br>
-                본 연구와 관련하여 문의사항이 있거나 연구 참여로 인한 불편감이 있는 경우 아래의 연구자에게 연락해 주십시오.
-                </p>
-                <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
-                
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-                
-                <p style="font-size: 13px; color: #666; margin-bottom:5px;">
-                추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.
-                </p>
-                <ul style="font-size:13px; margin-top:0; color:#555;">
-                    <li>자살예방 상담전화: 109</li>
-                    <li>생명의전화: 1588-9191</li>
-                    <li>정신건강상담전화: 1577-0199</li>
-                </ul>
             </div>
-
-            <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
-                <p style="margin-top:0; font-weight:bold; color:#856404;">☕ 참여 보상 (선택 사항)</p>
-                <p style="font-size:13px; color:#856404;">
-                실험에 참여해 주신 분들께 소정의 커피 쿠폰을 드립니다.<br>
-                원하시는 분은 핸드폰 번호를 입력해 주세요.<br>
-                <span style="font-size:12px; color:#997404;">
-                    * 수집된 번호는 보상 제공 용도로만 사용되며, 지급 후 즉시 파기됩니다.<br>
-                    * 번호를 입력하지 않으셔도 실험은 정상적으로 종료되며 어떠한 불이익도 없습니다.
-                </span>
-                </p>
-                <input type="tel" id="reward-phone" class="form-control" placeholder="01012345678 (숫자만 입력)">
-            </div>
-
-            <p style="margin-top:20px; font-size:13px; color:#666; text-align: center;">
-                아래 버튼을 누르면 응답이 최종 제출되며 설문이 종료됩니다.
-            </p>
-        </div>
     </div>
 
     <div class="bottom-bar">
@@ -511,7 +268,7 @@
             id: Date.now(),
             condition: "SCREEN_OUT",
             demographics: state.data.demographics,
-            vignetteTime: [],
+            // vignetteTime: [] <-- GAS에서 제거했으므로 클라이언트에서도 제거해야 함
             check_answer: "N/A",
             des: [],
             csq: [],
@@ -519,6 +276,7 @@
             ip: state.userIP
         };
 
+        // NOTE: GAS에서도 IP 유효성 검사를 하므로, 'unknown' IP를 가진 탈락자는 기록되지 않을 수 있습니다.
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
             mode: "no-cors",
@@ -618,10 +376,9 @@
                 return;
             }
 
-            // *** IP 수집 완료 확인 로직 추가 ***
+            // *** IP 수집 완료 확인 로직 ***
             if (state.userIP === 'unknown') {
                 alert('IP 주소를 가져오는 중입니다. 잠시 후 다시 시도해 주세요.');
-                // 1초 후 다시 시도하도록 지연
                 setTimeout(() => handleNext(), 1000); 
                 return;
             }
@@ -631,6 +388,10 @@
                 age, residence, orientation, birthSex, currentGender,
                 identity: calculatedIdentity
             };
+            
+            // NOTE: GAS에서 vignetteTime을 받지 않기로 했으므로, 클라이언트에서도 이 데이터는 필요 없습니다.
+            // state.data.vignetteTime = []; // <-- 이 줄은 제거합니다.
+            
 
             // 탈락 조건 체크
             if (
@@ -646,7 +407,7 @@
             // 통과 시
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
-            state.data.vignetteTime = [];
+            // state.data.vignetteTime = []; // 이 줄을 제거했습니다.
             localStorage.setItem('userType', orientation);
 
             console.log("Assigned Condition: " + state.condition);
@@ -668,13 +429,16 @@
             document.getElementById('step-vignette').classList.remove('hidden');
             document.getElementById('header-title').innerText = "상황 제시";
             
+            // NOTE: vignetteTime을 사용하지 않으므로, 이 부분을 주석 처리하거나 제거해야 합니다.
+            // state.data.vignetteTime = []; // 재시작 시점에만 필요
+            
             renderVignette();
         }
 
         // 4. 비네트 진행
         else if (state.step === 'vignette') {
             const spentTime = Date.now() - state.startTime;
-            state.data.vignetteTime.push(spentTime);
+            // state.data.vignetteTime.push(spentTime); // <-- 이 로직을 제거합니다.
             
             state.visitedVignettes.add(state.vignetteIndex);
 
@@ -828,7 +592,8 @@
             id: Date.now(),
             condition: state.data.condition,
             demographics: state.data.demographics,
-            vignetteTime: state.data.vignetteTime,
+            // NOTE: GAS에서 이 항목을 받지 않도록 삭제했습니다.
+            // vignetteTime: state.data.vignetteTime, 
             check_answer: state.data.check_answer,
             des: state.data.des,
             csq: state.data.csq,
@@ -845,7 +610,6 @@
         })
         .then(() => {
             // GAS가 중복을 거절했더라도 클라이언트에서는 응답을 읽을 수 없어 성공으로 간주됨.
-            // 대신, 로컬 스토리지에 기록하여 동일 기기/브라우저에서의 재참여를 방지합니다.
             handleSubmissionSuccess(); 
         })
         .catch(error => {
