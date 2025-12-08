@@ -171,7 +171,8 @@
                 <input type="checkbox" id="consent-chk"> 본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.
             </label>
         </div>
-
+<div id="step-screener" class="hidden"> 
+      </div>
             <div class="form-group">
                 <label class="form-label">1. 귀하의 연령은?</label>
                 <select class="form-control" id="age">
@@ -565,12 +566,37 @@
             const currentGender = document.getElementById('current_gender').value;
             const calculatedIdentity = document.getElementById('final_identity_value').value;
             
-            // 고유 코드 입력 필드 제거 (자동 생성 방식이므로)
+            // ❌ 고유 코드 입력 확인 로직 제거
+    /*
+    const uniqueCodeInput = document.getElementById('unique-code').value.trim();
+    if (!uniqueCodeInput) {
+        alert('고유 코드를 입력해 주세요.');
+        return;
+    }
+    // state.data.uniqueCode = uniqueCodeInput; // ❌ 상태 저장 로직 제거
+    */
 
-            if (!age || !residence || !orientation || !birthSex || !currentGender) {
-                alert('모든 항목을 선택해 주세요.');
-                return;
-            }
+    if (!age || !residence || !orientation || !birthSex || !currentGender) {
+        alert('모든 항목을 선택해 주세요.');
+        return;
+    }
+
+    // 입력 정보 임시 저장
+    state.data.demographics = {
+        age, residence, orientation, birthSex, currentGender,
+        identity: calculatedIdentity
+    };
+    
+    // (나머지 탈락 조건 및 통과 로직은 유지)
+    // ...
+    
+    // Instruction 단계로 이동
+    state.step = 'instruction';
+    hideAllSteps();
+    document.getElementById('step-instruction').classList.remove('hidden');
+    document.getElementById('header-title').innerText = "실험 안내";
+    window.scrollTo(0,0);
+}
             
             // 입력 정보 임시 저장
             state.data.demographics = {
