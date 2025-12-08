@@ -372,7 +372,7 @@
 
 <script>
     // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7_OyKlGnmuQVm8MrhXbKato6peYbPTMactk0Q_9Rm8Kr6uvjRZnGE6cnh6v8F_YxY/exec"; // 이 URL을 배포한 GAS URL로 교체해야 합니다.
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwycsV7BYnC9CuvLh2vVg0n16r7GY2dToDyFW7Ze76qDpY-z-weawTeu5yZA91HxVCt/exec"; // 이 URL을 배포한 GAS URL로 교체해야 합니다.
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
@@ -680,7 +680,7 @@
         }
     }
 
-    /* --- [로직] 구글 전송 (최종 제출) --- */
+/* --- [로직] 구글 전송 (최종 제출) : 중복 검사 결과 확인 기능 추가 --- */
     function sendDataToGoogle() {
         const btn = document.getElementById('main-btn');
         const phoneInput = document.getElementById('reward-phone').value.trim();
@@ -689,16 +689,37 @@
         btn.innerText = "결과 보내는 중...";
 
         const finalData = {
-            id: state.data.id, condition: state.condition, demographics: state.data.demographics,
-            vignetteTime: state.data.vignetteTime, check_answer: state.data.check_answer,
-            des: state.data.des, csq: state.data.csq, phone: phoneInput, ip: state.userIP
+            id: state.data.id, 
+            condition: state.condition, 
+            demographics: state.data.demographics,
+            // vignetteTime은 제외됨 (GAS 코드와 일치)
+            check_answer: state.data.check_answer,
+            des: state.data.des, 
+            csq: state.data.csq, 
+            phone: phoneInput, 
+            ip: state.userIP
         };
 
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(finalData) })
-        .then(() => {
-            // 성공으로 간주
-            localStorage.setItem('participation_completed', 'true');
-            showStep('step-complete');
+        // ⚠️ 중요: mode: 'no-cors'를 삭제해야 서버의 응답(성공/중복 등)을 읽을 수 있습니다.
+        fetch(GOOGLE_SCRIPT_URL, { 
+            method: "POST", 
+            body: JSON.stringify(finalData) 
+        })
+        .then(response => response.json()) // JSON 응답 파싱
+        .then(response => {
+            if (response.status === 'success') {
+                // 1. 성공 시
+                localStorage.setItem('participation_completed', 'true');
+                showStep('step-complete');
+            } else if (response.message === 'Duplicate ID') {
+                // 2. 중복 ID일 시 (GAS에서 보낸 메시지 확인)
+                alert("이미 참여 완료된 데이터(ID)입니다.\n중복 참여는 불가능합니다.");
+                btn.disabled = false;
+                btn.innerText = "제출 및 종료";
+            } else {
+                // 3. 기타 에러
+                throw new Error(response.message || "Unknown Error");
+            }
         })
         .catch(error => {
             console.error("Error:", error);
