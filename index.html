@@ -474,29 +474,55 @@
     }
 
     /* --- [기능] 비네트 텍스트 치환 --- */
-    const wordMap = { "homo": "동성", "bi": "양성" };
-    function getProcessedText(index) {
-        let text = vignettes[index];
-        const savedType = localStorage.getItem('userType'); 
-        const targetWord = wordMap[savedType] || "동성"; 
-        return text.replace(/\[동성\/양성\]/g, targetWord); 
-    }
+const wordMap = { "homo": "동성", "bi": "양성" };
+function getProcessedText(index) {
+    let text = vignettes[index];
+    // state.data.demographics에서 orientation 값을 직접 사용 (스크리너 통과 후 값이 있어야 함)
+    const currentOrientation = state.data.demographics && state.data.demographics.orientation; 
+    const targetWord = wordMap[currentOrientation] || "동성"; // 기본값은 "동성"으로 설정
+    return text.replace(/\[동성\/양성\]/g, targetWord); 
+}
 
-    /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
-    function handleScreenFail() {
-        alert("죄송합니다.\n본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.\n(확인 버튼을 누르면 종료됩니다.)");
+/* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
+function handleScreenFail() {
+    alert("죄송합니다.\n본 연구의 참여 대상 기준에 부합하지 않아 참여하실 수 없습니다.\n(확인 버튼을 누르면 종료됩니다.)");
 
-        const failData = {
-            id: Date.now(),
-            condition: "SCREEN_OUT", 
-            demographics: state.data.demographics, 
-            vignetteTime: [],
-            check_answer: "N/A",
-            des: [],
-            csq: [],
-            phone: "",
-            ip: state.userIP 
-        };
+    const failData = {
+        id: Date.now(),
+        condition: "SCREEN_OUT",
+        // GAS에서 디테일 파싱이 가능하도록 demographics 객체 전체를 보냄
+        demographics: state.data.demographics,
+        vignetteTime: [],
+        check_answer: "N/A",
+        des: [],
+        csq: [],
+        phone: "",
+        ip: state.userIP
+    };
+
+    // CORS 우회 및 전송
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        // headers: { "Content-Type": "application/json" }, // no-cors에서는 무의미
+        body: JSON.stringify(failData)
+    }).catch(error => console.log("Fail Log Error:", error)); // 오류는 콘솔에만 기록
+
+    // 화면 종료 처리
+    const app = document.querySelector('.app-container');
+    app.innerHTML = `
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center;">
+            <h2 style="color:#e74c3c;">참여 불가 안내</h2>
+            <p style="color:#555; font-size:14px; line-height:1.6;">
+                죄송합니다.<br>
+                귀하는 본 연구의 참여 기준에 부합하지 않아<br>
+                더 이상 설문을 진행하실 수 없습니다.<br><br>
+                참여해 주셔서 감사합니다.
+            </p>
+        </div>
+    `;
+    document.body.style.backgroundColor = "#eee";
+}
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
@@ -751,43 +777,50 @@
         }
     }
 
-    /* 구글 전송 */
-    function sendDataToGoogle() {
-        const btn = document.getElementById('main-btn');
-        const phoneInput = document.getElementById('reward-phone').value.trim();
-        
-        btn.disabled = true;
-        btn.innerText = "결과 보내는 중...";
+  /* 구글 전송 */
+function sendDataToGoogle() {
+    const btn = document.getElementById('main-btn');
+    const phoneInput = document.getElementById('reward-phone').value.trim();
+    
+    btn.disabled = true;
+    btn.innerText = "결과 보내는 중...";
 
-        const finalData = {
-            id: Date.now(),
-            condition: state.data.condition,
-            demographics: state.data.demographics,
-            vignetteTime: state.data.vignetteTime,
-            check_answer: state.data.check_answer,
-            des: state.data.des,
-            csq: state.data.csq,
-            phone: phoneInput,
-            ip: state.userIP 
-        };
+    // 최종 전송 데이터 구성 (GAS 코드에 맞춰 필드명과 구조 유지)
+    const finalData = {
+        id: Date.now(),
+        condition: state.data.condition,
+        demographics: state.data.demographics,
+        // 시간 배열을 GAS가 처리할 수 있도록 쉼표 문자열로 변환 (선택 사항이지만 GAS에서 처리하는 것이 일반적)
+        vignetteTime: state.data.vignetteTime,
+        check_answer: state.data.check_answer,
+        des: state.data.des,
+        csq: state.data.csq,
+        phone: phoneInput,
+        ip: state.userIP
+    };
 
-        fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(finalData)
-        })
-        .then(() => {
-            localStorage.setItem('participation_completed', 'true');
-            alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
-            document.querySelector('.app-container').innerHTML = 
-                "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요.");
-        });
-    }
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors", // 이 설정이 필수
+        // headers: { "Content-Type": "application/json" }, // no-cors에서는 무시됨
+        body: JSON.stringify(finalData)
+    })
+    .then(() => {
+        // no-cors 모드에서는 .then()이 즉시 실행되므로, 성공으로 간주하고 최종 화면을 표시
+        localStorage.setItem('participation_completed', 'true');
+        alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
+        document.querySelector('.app-container').innerHTML = 
+            "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
+    })
+    .catch(error => {
+        // 네트워크 오류 등의 이유로 실패한 경우에만 실행
+        console.error("Error:", error);
+        alert("데이터 전송 중 오류가 발생했습니다.\n연구자에게 문의해 주세요. (오류 상세: " + error.message + ")");
+        // 오류 발생 시에도 일단 최종 화면으로 전환
+        document.querySelector('.app-container').innerHTML = 
+            "<div style='padding:40px; text-align:center;'><h2>실험 종료 (오류 가능성)</h2><p>데이터 전송 중 오류가 발생했습니다.<br>연구자에게 이 화면을 캡처하여 문의해 주세요.</p></div>";
+    });
+}
 
     /* 유틸리티 함수 */
     function renderScales(prefix, questions, maxScale, containerId) {
