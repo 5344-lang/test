@@ -395,7 +395,7 @@
         'waiting': 'waiting.png'
     };
 
-    // [비네트 데이터]
+    // [비네트 데이터 - 생략 없이 그대로 유지]
     const vignettes = [
         // --- 비네트 1 (Index 0 ~ 6): 대기실 상황 ---
         `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
@@ -442,7 +442,7 @@
 
     const csqQuestions = [
         "1. 귀하가 받은 상담의 질은 어떠했습니까?",
-        "2. 원했던 종류의 상담을 받았습니까?,
+        "2. 원했던 종류의 상담을 받았습니까?", // <--- 쉼표 오류 수정 완료
         "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?",
         "4. 친구가 비슷한 도움이 필요하다면, 이 상담을 추천하시겠습니까?",
         "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?",
@@ -539,11 +539,11 @@
             state.vignetteIndex--;
             renderVignette();
         } else if (state.step === 'des') {
-            state.step = 'check';
-            hideAllSteps();
-            document.getElementById('step-check').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "확인 문항";
-            btnPrev.style.display = 'none'; // 'check' 단계에서는 'prev' 버튼 숨김 (디자인에 따라)
+            state.step = 'vignette'; // 이전 단계가 vignette의 마지막이었다고 가정하고, 다시 vignette으로 돌아갑니다.
+            state.vignetteIndex = vignettes.length - 1; 
+            renderVignette();
+            document.getElementById('header-title').innerText = "상황 제시";
+            btnPrev.style.display = 'block'; 
         } else if (state.step === 'csq') {
             state.step = 'des';
             hideAllSteps();
@@ -551,7 +551,6 @@
             document.getElementById('header-title').innerText = "설문 조사 (1/2)";
             btnPrev.style.display = 'block';
         } 
-        // ***** 이 부분 수정: check 단계가 csq 다음으로 이동 *****
         else if (state.step === 'check') { 
             state.step = 'csq';
             hideAllSteps();
@@ -559,7 +558,6 @@
             document.getElementById('header-title').innerText = "설문 조사 (2/2)";
             btnPrev.style.display = 'block';
         }
-        // ***** 이 부분 수정: debrief 단계에서 check로 돌아가도록 *****
         else if (state.step === 'debrief') { 
             state.step = 'check';
             hideAllSteps();
@@ -569,7 +567,13 @@
             btnPrev.style.flex = '1';
             btnNext.style.flex = '2';
         }
-        // **********************************************
+        else if (state.step === 'screener') { // 스크리너에서 동의 단계로 돌아갈 때
+            state.step = 'consent';
+            hideAllSteps();
+            document.getElementById('step-consent').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "연구 참여 동의";
+            btnPrev.style.display = 'none';
+        }
         
         window.scrollTo(0,0);
     }
@@ -579,7 +583,8 @@
 
         // 1. 연구 동의
         if (state.step === 'consent') {
-            if (!document.getElementById('consent-chk').checked) {
+            const consentCheckbox = document.getElementById('consent-chk');
+            if (!consentCheckbox || !consentCheckbox.checked) { // 요소가 없거나 체크가 안 되었을 경우
                 alert('연구 참여에 동의하셔야 진행할 수 있습니다.');
                 return;
             }
@@ -587,6 +592,7 @@
             hideAllSteps();
             document.getElementById('step-screener').classList.remove('hidden');
             document.getElementById('header-title').innerText = "기본 정보 입력";
+            document.getElementById('prev-btn').style.display = 'block'; // 스크리너부터 이전 버튼 표시
             window.scrollTo(0,0);
         }
 
