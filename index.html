@@ -287,7 +287,7 @@
             <div id="csq-container"></div>
         </div>
         
-           <div id="step-check" class="hidden">
+         <div id="step-check" class="hidden">
             <h2>기억 회상</h2>
             <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
             
@@ -369,18 +369,18 @@
 
 <script>
     // ▼▼▼▼▼▼ [중요] 구글 스크립트 URL ▼▼▼▼▼▼
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec"; 
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5u3GaICzyfh5Ybxj15oWppBfxWRb0g7UC5eMY8FxzGRUqkAest-yQgxeg2PW2goOf/exec";
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
 
     /* --- 1. 실험 변수 및 상태 관리 --- */
-    const conditions = ['cross', 'buddha', 'none']; 
+    const conditions = ['cross', 'buddha', 'none'];
     let state = {
-        step: 'consent', 
-        condition: '', 
-        vignetteIndex: 0, 
-        data: {}, 
+        step: 'consent',
+        condition: '',
+        vignetteIndex: 0,
+        data: {},
         startTime: 0,
         userIP: 'unknown',
         visitedVignettes: new Set(),
@@ -421,30 +421,33 @@
 
         // [Index 20] 성향 치환 구간
         `<span class="dialogue"><span class="speaker">나:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
         `<span class="inner-thought">[상담자의 부드러운 눈빛을 보며 조금 안도하지만, 당신은 여전히 <b>‘애인’</b>이라는 단어를 꺼낼지 고민합니다.]</span>`
+        `<span class="dialogue"><span class="speaker">상담자:</span> 친구인가요? 소중하게 생각하는 사람인데 인연이 끊어졌다 이어졌다를 반복하니까 마음이 많이 소모되셨겠어요.</span>`,
+        `<span class="dialogue"><span class="speaker">나:</span> ..네.</span>`,
+        `<span class="inner-thought">[당신은 망설이다가 결국 말을 멈추었습니다.<br>상담자는 당신의 말을 기다려주다가 입을 엽니다.]</span>`
+        `<span class="dialogue"><span class="speaker">상담자:</span> ..오늘은 시간이 여기까지네요. 이야기 해주셔서 감사해요. 다음에 오실 때는 왜 그 사람을 끊어내지 못하는지에 대해 생각해 오시면 함께 더 깊이 이야기해 볼 수 있을 거예요. 무리하지 말고 천천히 같이 해봐요.​</span>`,
     ];
 
     const desQuestions = [
-        "1. 당신의 개인적인 정보를 이 상담자에게 노출하는 것은 어려운 일일까요?",
+        "1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?",
         "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?",
         "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?",
         "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?",
-        "5. 이 상담자에게 부정적인 감정을 드러낼 때, 상담자가 무슨 생각을 할지 걱정되나요?",
+        "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?",
         "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?",
-        "7. 만약 당신이 슬픔이나 불안 같은 감정을 이 상담자에게 노출한다면 기분이 나아질까요?",
-        "8. 만약 당신이 고민 중인 정서적 문제를 이 상담자에게 드러낸다면 유용한 반응을 얻을 수 있을까요?"
+        "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?",
+        "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"
     ];
 
     const csqQuestions = [
-        "1. 이 상담은 훌륭한 상담일 것이다.",
-        "2. 나는 이번 상담을 통해 내가 원하는 도움을 받을 수 있을 것이다.",
-        "3. 이번 상담을 통해 나의 기대는 충족될 것이다.",
-        "4. 내 친구가 나와 비슷한 고민을 한다면 이 상담을 추천할 것 같다.",
-        "5. 나는 상담을 만족스럽게 끝낼 것이다.",
-        "6. 이번 상담은 내가 고민을 해결하고 극복하는 데 도움을 줄 것이다.",
-        "7. 이번 상담은 전반적으로 나에게 만족스러울 것이다.",
-        "8. 내가 상담을 받아야 할 필요가 있다면 이 상담자를 만나고 싶다."
+        "1. 귀하가 받은 상담의 질은 어떠했습니까?",
+        "2. 원했던 종류의 상담을 받았습니까?,
+        "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?",
+        "4. 친구가 비슷한 도움이 필요하다면, 이 상담을 추천하시겠습니까?",
+        "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?",
+        "6. 이 상담이 문제를 더 효과적으로 다루는 데 도움이 되었습니까?",
+        "7. 전반적으로, 귀하가 받은 상담에 대해 얼마나 만족하십니까?",
+        "8. 다시 상담을 받는다면, 이 상담 기관을 다시 이용하시겠습니까?"
     ];
 
     /* --- [초기화] IP 가져오기 --- */
@@ -477,9 +480,9 @@
     const wordMap = { "homo": "동성", "bi": "양성" };
     function getProcessedText(index) {
         let text = vignettes[index];
-        const savedType = localStorage.getItem('userType'); 
-        const targetWord = wordMap[savedType] || "동성"; 
-        return text.replace(/\[동성\/양성\]/g, targetWord); 
+        const savedType = localStorage.getItem('userType');
+        const targetWord = wordMap[savedType] || "동성";
+        return text.replace(/\[동성\/양성\]/g, targetWord);
     }
 
     /* --- [기능] 스크리닝 탈락 처리 및 자동 종료 --- */
@@ -488,14 +491,14 @@
 
         const failData = {
             id: Date.now(),
-            condition: "SCREEN_OUT", 
-            demographics: state.data.demographics, 
+            condition: "SCREEN_OUT",
+            demographics: state.data.demographics,
             vignetteTime: [],
             check_answer: "N/A",
             des: [],
             csq: [],
             phone: "",
-            ip: state.userIP 
+            ip: state.userIP
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -526,11 +529,48 @@
     }
 
     function handlePrev() {
+        const btnPrev = document.getElementById('prev-btn');
+        const btnNext = document.getElementById('main-btn');
+        btnNext.innerText = "다음 >";
+        btnNext.disabled = false;
+
         if (state.step === 'vignette' && state.vignetteIndex > 0) {
             state.vignetteIndex--;
             renderVignette();
-            window.scrollTo(0,0);
+        } else if (state.step === 'des') {
+            state.step = 'check';
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            btnPrev.style.display = 'none'; // 'check' 단계에서는 'prev' 버튼 숨김 (디자인에 따라)
+        } else if (state.step === 'csq') {
+            state.step = 'des';
+            hideAllSteps();
+            document.getElementById('step-des').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
+            btnPrev.style.display = 'block';
+        } 
+        // ***** 이 부분 수정: check 단계가 csq 다음으로 이동 *****
+        else if (state.step === 'check') { 
+            state.step = 'csq';
+            hideAllSteps();
+            document.getElementById('step-csq').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
+            btnPrev.style.display = 'block';
         }
+        // ***** 이 부분 수정: debrief 단계에서 check로 돌아가도록 *****
+        else if (state.step === 'debrief') { 
+            state.step = 'check';
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            btnPrev.style.display = 'block';
+            btnPrev.style.flex = '1';
+            btnNext.style.flex = '2';
+        }
+        // **********************************************
+        
+        window.scrollTo(0,0);
     }
 
     function handleNext() {
@@ -556,7 +596,7 @@
             const orientation = document.getElementById('orientation').value;
             const birthSex = document.getElementById('birth_sex').value;
             const currentGender = document.getElementById('current_gender').value;
-            const calculatedIdentity = document.getElementById('final_identity_value').value; 
+            const calculatedIdentity = document.getElementById('final_identity_value').value;
 
             if (!age || !residence || !orientation || !birthSex || !currentGender) {
                 alert('모든 항목을 선택해 주세요.');
@@ -564,19 +604,19 @@
             }
 
             // 입력 정보 임시 저장
-            state.data.demographics = { 
+            state.data.demographics = {
                 age, residence, orientation, birthSex, currentGender,
                 identity: calculatedIdentity
             };
 
             // 탈락 조건 체크
             if (
-                age === 'under18' ||                            
-                residence === 'abroad' ||                       
-                (orientation !== 'homo' && orientation !== 'bi') || 
-                calculatedIdentity !== 'cis'                    
+                age === 'under18' ||
+                residence === 'abroad' ||
+                (orientation !== 'homo' && orientation !== 'bi') ||
+                calculatedIdentity !== 'cis'
             ) {
-                handleScreenFail(); 
+                handleScreenFail();
                 return;
             }
 
@@ -584,7 +624,7 @@
             state.condition = conditions[Math.floor(Math.random() * conditions.length)];
             state.data.condition = state.condition;
             state.data.vignetteTime = [];
-            localStorage.setItem('userType', orientation); 
+            localStorage.setItem('userType', orientation);
 
             console.log("Assigned Condition: " + state.condition);
 
@@ -619,17 +659,46 @@
             if (state.vignetteIndex < vignettes.length) {
                 renderVignette();
             } else {
-                state.step = 'check';
+                // 비네트 끝 -> 설문 1 (DES)
+                document.getElementById('des-ref-img').src = imgFiles[state.condition];
+                renderScales('des', desQuestions, 5, 'step-des');
+                state.step = 'des';
                 hideAllSteps();
-                document.getElementById('step-check').classList.remove('hidden');
-                document.getElementById('header-title').innerText = "확인 문항";
-                document.getElementById('prev-btn').style.display = 'none';
-                document.getElementById('main-btn').style.flex = '2';
+                document.getElementById('step-des').classList.remove('hidden');
+                document.getElementById('header-title').innerText = "설문 조사 (1/2)";
+                document.getElementById('prev-btn').style.display = 'block';
             }
             window.scrollTo(0,0);
         }
 
-        // 5. 조작 점검
+        // 5. 설문 (DES)
+        else if (state.step === 'des') {
+            if (!validateScale(desQuestions.length, 'des')) return;
+            collectScaleData('des', desQuestions.length);
+            
+            // 설문 1 끝 -> 설문 2 (CSQ)
+            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
+            renderScales('csq', csqQuestions, 7, 'step-csq');
+            state.step = 'csq';
+            hideAllSteps();
+            document.getElementById('step-csq').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
+            window.scrollTo(0,0);
+        }
+        
+        // ***** 6. 설문 (CSQ) -> 조작 점검 (CHECK) 단계로 이동 *****
+        else if (state.step === 'csq') {
+            if (!validateScale(csqQuestions.length, 'csq')) return;
+            collectScaleData('csq', csqQuestions.length);
+
+            state.step = 'check'; // 순서 변경
+            hideAllSteps();
+            document.getElementById('step-check').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "확인 문항";
+            window.scrollTo(0,0);
+        }
+        
+        // ***** 7. 조작 점검 (CHECK) -> 디브리핑 (DEBRIEF) 단계로 이동 *****
         else if (state.step === 'check') {
             const selectedOption = document.querySelector('input[name="check_opt"]:checked');
             if (!selectedOption) {
@@ -648,44 +717,16 @@
             }
             state.data.check_answer = finalAnswer;
 
-            document.getElementById('des-ref-img').src = imgFiles[state.condition];
-            renderScales('des', desQuestions, 5, 'step-des');
-            state.step = 'des';
-            hideAllSteps();
-            document.getElementById('step-des').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (1/2)";
-            window.scrollTo(0,0);
-        }
-
-        // 6. 설문 (DES)
-        else if (state.step === 'des') {
-            if (!validateScale(desQuestions.length, 'des')) return;
-            collectScaleData('des', desQuestions.length);
-            
-            document.getElementById('csq-ref-img').src = imgFiles[state.condition];
-            renderScales('csq', csqQuestions, 7, 'step-csq');
-            state.step = 'csq';
-            hideAllSteps();
-            document.getElementById('step-csq').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "설문 조사 (2/2)";
-            window.scrollTo(0,0);
-        }
-        
-        // 7. 설문 (CSQ) -> 디브리핑
-        else if (state.step === 'csq') {
-            if (!validateScale(csqQuestions.length, 'csq')) return;
-            collectScaleData('csq', csqQuestions.length);
-
-            state.step = 'debrief';
+            state.step = 'debrief'; // 순서 변경
             hideAllSteps();
             document.getElementById('step-debrief').classList.remove('hidden');
-            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; 
+            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
 
             document.getElementById('header-title').innerText = "종료 및 안내";
             btn.innerText = "제출 및 종료";
             window.scrollTo(0,0);
         }
-
+        
         // 8. 최종 종료
         else if (state.step === 'debrief') {
             sendDataToGoogle();
@@ -697,7 +738,7 @@
         const idx = state.vignetteIndex;
         const btnNext = document.getElementById('main-btn');
         const btnPrev = document.getElementById('prev-btn');
-        const imgContainer = document.getElementById('image-container-vig'); 
+        const imgContainer = document.getElementById('image-container-vig');
         const imgEl = document.getElementById('stimulus-img');
 
         // 텍스트 렌더링
@@ -705,7 +746,7 @@
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
         // 이미지 표시 로직
-        imgContainer.style.display = 'block'; 
+        imgContainer.style.display = 'block';
         if (idx < 7) {
             imgEl.src = imgFiles['waiting'];
         } else {
@@ -727,27 +768,27 @@
             // 이미 방문: 즉시 활성화
             btnNext.disabled = false;
             btnNext.innerText = "다음 >";
-            state.startTime = Date.now(); 
+            state.startTime = Date.now();
         } else {
             // 처음 방문: 3초 카운트다운
-            let timeLeft = 3; 
+            let timeLeft = 3;
             
             btnNext.disabled = true;
-            btnNext.innerText = `다음 (${timeLeft})`; 
+            btnNext.innerText = `다음 (${timeLeft})`;
             
             state.startTime = Date.now();
 
             state.timer = setInterval(() => {
-                timeLeft--; 
+                timeLeft--;
                 if (timeLeft > 0) {
                     btnNext.innerText = `다음 (${timeLeft})`;
                 } else {
-                    clearInterval(state.timer); 
+                    clearInterval(state.timer);
                     btnNext.disabled = false;
                     btnNext.innerText = "다음 >";
-                    state.visitedVignettes.add(idx); 
+                    state.visitedVignettes.add(idx);
                 }
-            }, 1000); 
+            }, 1000);
         }
     }
 
@@ -768,7 +809,7 @@
             des: state.data.des,
             csq: state.data.csq,
             phone: phoneInput,
-            ip: state.userIP 
+            ip: state.userIP
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -780,7 +821,7 @@
         .then(() => {
             localStorage.setItem('participation_completed', 'true');
             alert("결과가 성공적으로 제출되었습니다.\n참여해 주셔서 감사합니다.");
-            document.querySelector('.app-container').innerHTML = 
+            document.querySelector('.app-container').innerHTML =
                 "<div style='padding:40px; text-align:center;'><h2>실험 종료</h2><p>수고하셨습니다.<br>창을 닫으셔도 됩니다.</p></div>";
         })
         .catch(error => {
@@ -836,13 +877,12 @@
 
     function handleExit() {
         if (confirm("정말로 실험을 중단하고 나가시겠습니까?\n지금 나가시면 결과가 전송되지 않습니다.")) {
-            window.open('','_self').close(); 
+            window.open('','_self').close();
             window.close();
-            document.querySelector('.app-container').innerHTML = 
+            document.querySelector('.app-container').innerHTML =
                 "<div style='padding:40px; text-align:center;'><h2>종료</h2><p>창을 닫아주세요.</p></div>";
         }
     }
 </script>
-
 </body>
 </html>
