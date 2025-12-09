@@ -71,8 +71,47 @@
 
         /* --- 비주얼 노벨 스타일 --- */
         #step-vignette { width: 100%; height: 100%; position: relative; }
-        #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        #stimulus-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+        
+        /* [수정] 이미지 컨테이너: 넘치는 이미지 숨김 */
+        #image-container-vig { 
+            width: 100%; 
+            height: 100%; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: 1;
+            overflow: hidden; /* 중요: 이 부분이 있어야 이미지가 박스 안에서만 보임 */
+        }
+        
+        /* [수정] 이미지 기본 스타일 */
+        #stimulus-img { 
+            width: 100%; /* 기본은 꽉 차게 */
+            height: 100%; 
+            object-fit: cover; 
+            object-position: center top;
+            will-change: transform; /* 애니메이션 성능 최적화 */
+            transition: width 0.5s ease; /* 너비 변경 시 부드럽게 */
+        }
+
+        /* [추가] 애니메이션 실행 클래스 (JS에서 추가됨) */
+        .start-panning {
+            width: 115% !important; /* 이미지를 컨테이너보다 넓게 설정 */
+            max-width: none;
+            animation: pan-slow-reveal 48s linear forwards; /* 48초 동안 선형으로 이동 후 정지 */
+        }
+
+        /* [추가] 키프레임: 오른쪽의 숨겨진 부분을 보여주기 위해 왼쪽으로 이동 */
+        @keyframes pan-slow-reveal {
+            from {
+                transform: translateX(0); /* 시작: 기본 위치 (왼쪽 기준 정렬) */
+            }
+            to {
+                /* 끝: 왼쪽으로 이동하여 오른쪽 끝을 보여줌 */
+                /* 계산: (115% - 100%) / 115% * 100 약 13.04% */
+                transform: translateX(-13.04%); 
+            }
+        }
+
 
         .vn-text-box {
             position: absolute; bottom: 0; left: 0; width: 100%;
@@ -124,21 +163,14 @@
         #main-btn { flex: 2; }
         .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* [수정됨] 척도 질문 스타일 개선 */
+        /* 척도 질문 스타일 */
         .scale-group { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         .scale-question { font-weight: 500; margin-bottom: 15px; display: block; line-height: 1.5; font-size: 15px; }
         
-        /* 척도 라벨 (전혀 그렇지 않다 ~ 매우 그렇다) */
         .scale-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
-            padding: 0 5px;
+            display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 8px; padding: 0 5px;
         }
         .scale-labels span { text-align: center; flex: 1; }
-        /* 양 끝 정렬 보정 */
         .scale-labels span:first-child { text-align: left; }
         .scale-labels span:last-child { text-align: right; }
 
@@ -194,7 +226,7 @@
                 <p style="margin-top:0; font-weight:bold;">[잠시 후 실험 장면이 제시됩니다]</p>
                 <ul style="padding-left: 20px; margin-bottom:0;">
                     <li>귀하는 <strong>상담실 이미지</strong>와 상담자와 나의 <strong>대화 내용</strong>을 보게 됩니다.</li>
-                    <li><strong>각 화면은 최소 1초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
+                    <li><strong>각 화면은 최소 3초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
                     <li>화면을 주의 깊게 본 후 이후 물음에 답해 주세요.</li>
                 </ul>
             </div>
@@ -215,7 +247,7 @@
                 <img id="des-ref-img" src="" alt="참고 이미지">
                 <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
-            <h2>설문 1/3 (DES)</h2>
+            <h2>설문</h2>
             <p>다음 문항들은 방금 보신 상담실 장면에서, 그 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
             <div id="des-container"></div>
         </div>
@@ -225,13 +257,13 @@
                 <img id="csq-ref-img" src="" alt="참고 이미지">
                 <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
             </div>
-            <h2>설문 2/3 (CSQ)</h2>
+            <h2>설문</h2>
             <p>다음 문항들은 방금 경험하신 상담 장면 전체에 대해, 당신이 얼마나 만족하거나 도움이 될 것 같다고 느끼는지를 묻는 질문입니다. (1: 전혀 아니다 ~ 7: 매우 그렇다)</p>
             <div id="csq-container"></div>
         </div>
         
         <div id="step-check" class="hidden">
-            <h2>설문 3/3 (조작 확인)</h2>
+            <h2>확인</h2>
             <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
             <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
                 <label class="radio-label" style="display:block; margin-bottom:10px;"><input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가</label>
@@ -245,7 +277,15 @@
         <div id="step-debrief" class="hidden">
             <h2>참여해 주셔서 감사합니다.</h2>
             <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p>본 연구는 상담 장면에서 상담실에 배치된 종교적 상징이...</p>
+                <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br>
+                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
+                </p>
+                <p>
+                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
+                </p>
+                <p>
+                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
+                </p>
                 <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
                 <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
                 <p style="font-size: 13px; color: #666; margin-bottom:5px;">추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.</p>
@@ -299,6 +339,7 @@
     const imgFiles = { 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png', 'waiting': 'waiting.png' };
 
     const vignettes = [
+        // V1 (대기실, 7개)
         `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.</span>`,
         `<span class="desc">사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`,
         `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`,
@@ -307,14 +348,14 @@
         `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.</span>`,
         `<span class="desc">이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`,
         
-        // --- 비네트 이미지 + 오버레이 ---
+        // V2 (상담실 입장, 15개) - 여기서부터 애니메이션 시작
         `<span class="desc">[당신은 상담실을 한 번 둘러봅니다.]</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 날이 추운데 오는데 힘들지는 않았어요?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`,
         `<span class="inner-thought">(무슨 말을 해야 하지? 상담은 처음이라 긴장되네…)</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 상담은 처음 받아본다고 하셨죠?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><span class="desc" style="display:inline; color:#ccc;">[사전에 작성한 질문지를 살핀다]</span><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
+        `<span class="dialogue"><span class="speaker">상담자:</span> 처음 오시는 분들이 대부분 그렇게 말씀하세요. 준비되신 만큼만 천천히 이야기해 주셔도 괜찮아요.<br><span class="desc" style="display:inline; color:#ccc;"><br>[사전에 작성한 질문지를 살핀다]<br></span><br>최근에 잠을 잘 못 주무셨다고요?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주 째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
         `<span class="dialogue"><span class="speaker">상담자:</span> 잠을 못 잘 정도로 신경 쓰이는 일이 있었어요?</span>`,
         `<span class="dialogue"><span class="speaker">나:</span> (잠시 침묵) …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요.<br>음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
@@ -328,7 +369,7 @@
     const V1_LENGTH = 7; 
 
     const desQuestions = ["1. 이 상담자에게 자신의 사적인 이야기를 하는 것은 위험할까요?", "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?", "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?", "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?", "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?", "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?", "7. 만약 당신이 슬픔이나 불안 같은 감정을 이 상담자에게 노출한다면 기분이 나아질까요?", "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"];
-    const csqQuestions = ["1. 귀하가 제공받은 상담의 질에 대해서 어떻게 평가하십니까?", "2. 원했던 종류의 상담을 제공 받았습니까?", "3. 이번 상담이 귀하의 필요를 어느 정도 충족시켰습니까?", "4. 비슷한 도움을 필요로 하는 친구가 있다면, 이 프로그램을 친구에게 추천하겠습니까?", "5. 제공받은 상담의 양에 대해 얼마나 만족하나요?", "6. 이 상담이 귀하의 문제를 더 잘 해결하도록 도움을 주었습니까?", "7. 전반적으로, 귀하가 받은 상담에 대해 얼마나 만족하십니까?", "8. 추후 다시 도움이 필요할 때, 이 상담 기관을 다시 이용하시겠습니까?"];
+    const csqQuestions = ["1. 이 상담은 훌륭한 상담이었다.", "2. 나는 이번 상담을 통해 내가 원하는 도움을 받았다.", "3. 이번 상담을 통해 나의 기대는 충족되었다.", "4. 내 친구가 나와 비슷한 고민을 한다면 이 상담을 추천할 것이다.", "5. 상담을 통해 받은 도움의 양에 얼마나 만족하십니까?", "6. 이번 상담은 내가 고민을 해결하고 극복하는데 도움을 줄 것이다.", "7. 이번 상담은 전반적으로 나에게 만족스러웠다.", "8. 상담을 받아야 할 필요가 있다면, 이 상담자를 다시 만나고 싶다."];
 
     function checkIPBlock(currentIP) {
         const LAST_IP_KEY = 'last_experiment_ip';
@@ -390,7 +431,8 @@
     function startVignetteTimer() {
         const btnNext = document.getElementById('main-btn');
         if (state.timer) clearInterval(state.timer);
-        let timeLeft = 1; 
+        // 타이머 3초로 변경
+        let timeLeft = 3; 
         btnNext.disabled = true;
         btnNext.innerText = `다음 (${timeLeft})`; 
         state.startTime = Date.now(); 
@@ -407,7 +449,6 @@
         document.getElementById(stepId).classList.remove('hidden');
         document.getElementById('header-title').innerText = title || "연구 참여 동의";
         
-        // [중요] 비네트 단계면 꽉 찬 화면(padding 제거), 아니면 기본 화면
         if (stepId === 'step-vignette') {
             document.getElementById('content-area').classList.add('full-screen-mode');
         } else {
@@ -424,12 +465,22 @@
         document.getElementById('vignette-text').innerHTML = getProcessedText(idx);
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
         
-        // 이미지 소스 교체
-        if (idx < V1_LENGTH) { imgEl.src = imgFiles['waiting']; } 
-        else { imgEl.src = imgFiles[state.condition]; }
+        if (idx < V1_LENGTH) { 
+            imgEl.src = imgFiles['waiting'];
+            // [수정] 대기실에서는 애니메이션 클래스 제거 및 너비 초기화
+            imgEl.classList.remove('start-panning');
+            imgEl.style.width = '100%';
+        } else { 
+            imgEl.src = imgFiles[state.condition]; 
+            // [수정] 상담실 입장(V2) 시작 시점에 애니메이션 클래스 추가 (딱 한 번만)
+            if (idx === V1_LENGTH) {
+                 imgEl.classList.add('start-panning');
+            }
+        }
 
         btnPrev.style.display = 'block';
-        btnPrev.disabled = (idx === 0);
+        // V2 시작점 이전까지만 이전 버튼 활성화 (애니메이션 시작 후에는 이전 불가)
+        btnPrev.disabled = (idx <= V1_LENGTH);
         startVignetteTimer();
     }
 
@@ -465,6 +516,7 @@
             state.vignetteIndex++;
             if (state.vignetteIndex < vignettes.length) { renderVignette(); } 
             else { 
+                document.getElementById('des-ref-img').src = imgFiles[state.condition]; 
                 state.step = 'des'; showStep('step-des', '설문 1/3 (DES)'); 
                 btn.innerText = "다음"; prevBtn.style.display = 'none'; 
             }
@@ -499,7 +551,8 @@
     }
 
     function handlePrev() {
-        if (state.step === 'vignette' && state.vignetteIndex > 0) {
+        // [수정] V2 시작점(V1_LENGTH)보다 클 때만 이전으로 이동 가능
+        if (state.step === 'vignette' && state.vignetteIndex > V1_LENGTH) {
             state.vignetteIndex--; renderVignette(); 
         }
     }
@@ -513,7 +566,6 @@
             check_answer: state.data.check_answer, des: state.data.des, csq: state.data.csq, 
             phone: phoneInput, ip: state.userIP
         };
-        // [중요] no-cors 모드 사용 시 .then이 실행되지 않을 수 있어 에러가 안나면 성공으로 간주
         fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(finalData) })
         .then(() => {
             localStorage.setItem('participation_completed', 'true');
@@ -524,29 +576,17 @@
     function renderScales() {
         const desContainer = document.getElementById('des-container');
         const csqContainer = document.getElementById('csq-container');
-        
-        // [수정됨] DES 5점 척도 (1: 전혀 그렇지 않다 ~ 3: 보통이다 ~ 5: 매우 그렇다)
         desContainer.innerHTML = desQuestions.map((q, i) => `
             <div class="scale-group">
                 <span class="scale-question">${q}</span>
-                <div class="scale-labels">
-                    <span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span>
-                </div>
-                <div class="scale-options">
-                    ${Array(5).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${j+1}" required>${j+1}</label>`).join('')}
-                </div>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div>
+                <div class="scale-options">${Array(5).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${j+1}" required>${j+1}</label>`).join('')}</div>
             </div>`).join('');
-
-        // [수정됨] CSQ 7점 척도 (1: 전혀 그렇지 않다 ~ 4: 보통이다 ~ 7: 매우 그렇다)
         csqContainer.innerHTML = csqQuestions.map((q, i) => `
             <div class="scale-group">
                 <span class="scale-question">${q}</span>
-                <div class="scale-labels">
-                    <span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span>
-                </div>
-                <div class="scale-options">
-                    ${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="csq_q${i}" value="${j+1}" required>${j+1}</label>`).join('')}
-                </div>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div>
+                <div class="scale-options">${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="csq_q${i}" value="${j+1}" required>${j+1}</label>`).join('')}</div>
             </div>`).join('');
     }
 
