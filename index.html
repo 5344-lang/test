@@ -357,30 +357,47 @@
         return false;
     }
 
-    window.onload = function() {
+   window.onload = function() {
+        // [수정] IP 조회와 상관없이 일단 실험 준비 함수 정의
+        const initExperiment = (ip) => {
+            state.userIP = ip || 'unknown'; // IP 없으면 unknown으로 저장
+            
+            // IP 차단 체크 (필요하면 사용)
+            if (ip && checkIPBlock(ip)) {
+                hideAllSteps(); 
+                document.getElementById('step-ip-blocked').classList.remove('hidden'); 
+                return; 
+            }
+
+            // 기존 로직 수행
+            const participantId = localStorage.getItem('participantId');
+            if (!participantId) {
+                state.data.id = generateUUID();
+                state.condition = conditions[Math.floor(Math.random() * conditions.length)];
+                localStorage.setItem('participantId', state.data.id);
+                localStorage.setItem('condition', state.condition);
+            } else {
+                state.data.id = participantId;
+                state.condition = localStorage.getItem('condition');
+            }
+            
+            renderScales(); // 문항 만들기
+            document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
+            hideAllSteps();
+            document.getElementById('step-consent').classList.remove('hidden');
+        };
+
+        // IP 조회 시도
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => { 
-                state.userIP = data.ip;
-                if (checkIPBlock(state.userIP)) {
-                    hideAllSteps(); document.getElementById('step-ip-blocked').classList.remove('hidden'); return; 
-                }
-                const participantId = localStorage.getItem('participantId');
-                if (!participantId) {
-                    state.data.id = generateUUID();
-                    state.condition = conditions[Math.floor(Math.random() * conditions.length)];
-                    localStorage.setItem('participantId', state.data.id);
-                    localStorage.setItem('condition', state.condition);
-                } else {
-                    state.data.id = participantId;
-                    state.condition = localStorage.getItem('condition');
-                }
-                renderScales(); 
-                document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
-                hideAllSteps();
-                document.getElementById('step-consent').classList.remove('hidden');
+                initExperiment(data.ip); // 성공하면 IP 넣고 시작
             })
-            .catch(error => console.log("IP Fetch Error:", error));
+            .catch(error => { 
+                console.log("IP Fetch Error:", error);
+                // [중요] 실패해도 실험은 시작되게 함!
+                initExperiment(null); 
+            });
     };
 
     function generateUUID() { return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); }
