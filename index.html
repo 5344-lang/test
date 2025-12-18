@@ -9,7 +9,6 @@
         /* --- 디자인 시스템 --- */
         :root {
             --primary-color: #5bc2e7;
-            --primary-dark: #2db6e0;
             --header-bg: #343a40;
             --bg-color: #f5f5f5;
             --card-bg: #ffffff;
@@ -30,12 +29,12 @@
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 120px 24px; }
         .content.full-screen-mode { padding: 0; overflow: hidden; }
 
-        /* 비주얼 노벨 스타일 */
+        /* --- 비주얼 노벨 스타일 --- */
         #step-vignette { width: 100%; height: 100%; position: relative; }
         #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
         #stimulus-img { 
-            width: 120%; height: 100%; object-fit: cover; 
-            object-position: 85% top; /* 요청하신 오른쪽 고정 위치 */
+            width: 115%; height: 100%; object-fit: cover; 
+            object-position: 55% 15%; /* 얼굴과 창틀 선반이 모두 보이도록 보정 */
             transition: none; 
         }
 
@@ -50,45 +49,51 @@
         .desc { color: #eee; display: block; font-weight: normal; }
         .dialogue { display: block; color: white; }
 
-        /* 설문 스타일 */
-        .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
-        .sticky-top-box img { max-height: 22vh; max-width: 100%; object-fit: contain; }
         #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white !important; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
 
-        h2 { font-size: 20px; margin-bottom: 20px; color: #222; margin-top: 20px; }
+        /* --- 설문 스타일 --- */
+        .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
+        .sticky-top-box img { max-height: 22vh; max-width: 100%; object-fit: contain; }
+
+        h2 { font-size: 20px; margin-bottom: 15px; color: #222; margin-top: 20px; }
         .hidden { display: none !important; }
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
         .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
         
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; background: white; border-top: 1px solid #eee; display: flex; z-index: 300; }
-        .footer-btn { background-color: var(--primary-color); color: white; border: none; padding: 18px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; transition: background 0.3s; }
+        .footer-btn { background-color: var(--primary-color); color: white; border: none; padding: 18px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; }
         #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
         #main-btn { flex: 2; }
         .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
         .scale-group { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         .scale-question { font-weight: 500; margin-bottom: 15px; display: block; line-height: 1.5; font-size: 15px; }
-        .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 5px; padding: 0 5px; }
-        .scale-labels span { text-align: center; flex: 1; }
+        
+        /* 척도 라벨 스타일 보정 (1번과 7번 위에 글자 정렬) */
+        .scale-labels {
+            display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 10px;
+            padding: 0 calc(100% / 14); 
+            box-sizing: border-box;
+        }
+        .scale-labels span { text-align: center; flex: 0 1 auto; width: 80px; }
+        .scale-labels span:first-child { margin-left: -40px; }
+        .scale-labels span:last-child { margin-right: -40px; }
+
         .scale-options { display: flex; justify-content: space-between; margin-top: 5px; }
         .scale-option { text-align: center; font-size: 12px; cursor: pointer; flex: 1; position: relative; }
-        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.3); }
-        .info-box { background-color: #e3f2fd; border: 1px solid #bbdefb; color: #0d47a1; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.3); cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header>
-        <span id="header-title">연구 참여 동의</span>
-        <span class="close-btn" onclick="handleExit()">나가기 X</span>
-    </header>
+    <header><span id="header-title">연구 참여 동의</span><span class="close-btn" onclick="handleExit()">나가기 X</span></header>
 
     <div class="content" id="content-area">
         <div id="step-consent"> 
             <h2>연구 참여 동의서</h2>
-            <div style="background:#fafafa; max-height: 300px; overflow-y: auto; padding:15px; margin-bottom:20px; border:1px solid #eee; font-size: 14px; line-height: 1.6;">
+            <div style="background:#fafafa; max-height: 300px; overflow-y: auto; padding:15px; margin-bottom:20px; border:1px solid #eee; font-size:14px; line-height:1.6;">
                 본 연구는 상담 장면에서 내담자가 경험하는 인지 및 정서적 반응과 상담 만족도에 영향을 미치는 요인을 알아보기 위한 것입니다. 귀하는 온라인으로 제시되는 상담 장면(상담실 이미지와 상담과 관련된 대본)을 읽고, 해당 장면에 대한 인상과 예상되는 상담 경험에 대해 응답하게 됩니다.<br><br>
                 이 설문은 전체 응답 기준으로 약 5~10분 정도 소요될 것으로 예상됩니다.<br><br>
                 이 설문에는 동성 파트너와의 관계, 정서 경험, 상담에 대한 생각 등 민감할 수 있는 내용이 포함될 수 있습니다. 응답은 각 문항에 순서대로 답하는 방식으로 진행되며, 개별 문항을 건너뛰는 기능은 제공되지 않습니다. 다만 설문 참여 중단을 원하실 경우에는 언제든지 설문 창을 닫거나 “나가기” 버튼을 눌러 참여를 중단하실 수 있으며, 이로 인한 어떠한 불이익도 발생하지 않습니다.<br><br>
@@ -98,18 +103,9 @@
             <label><input type="checkbox" id="consent-chk"> 본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.</label>
         </div>
 
-        <div id="step-screener" class="hidden"> 
+        <div id="step-screener" class="hidden">
             <p>연구 참여 기준 확인을 위해 정보를 입력해 주세요.</p>
-            <div class="form-group">
-                <label class="form-label">1. 귀하의 연령은?</label>
-                <select class="form-control" id="age">
-                    <option value="">선택하세요</option>
-                    <option value="under18">만 18세 미만</option>
-                    <option value="18-29">만 18세~29세</option>
-                    <option value="30-39">만 30세~39세</option>
-                    <option value="over40">만 40세 이상</option>
-                </select>
-            </div>
+            <div class="form-group"><label class="form-label">1. 귀하의 연령은?</label><select class="form-control" id="age"><option value="">선택하세요</option><option value="under18">만 18세 미만</option><option value="18-29">만 18세~29세</option><option value="30-39">만 30세~39세</option><option value="over40">만 40세 이상</option></select></div>
             <div class="form-group"><label class="form-label">2. 거주지</label><select class="form-control" id="residence"><option value="">선택하세요</option><option value="korea">대한민국</option><option value="abroad">해외</option></select></div>
             <div class="form-group"><label class="form-label">3. 성적지향</label><select class="form-control" id="orientation"><option value="">선택하세요</option><option value="homo">동성애자(레즈비언, 게이)</option><option value="bi">양성애자(바이섹슈얼)</option><option value="hetero">이성애자</option><option value="other">그 외</option></select></div>
             <div class="form-group"><label class="form-label">4-1. 출생 성별</label><select class="form-control" id="birth_sex" onchange="checkGenderIdentity()"><option value="">선택하세요</option><option value="male">남성</option><option value="female">여성</option></select></div>
@@ -117,104 +113,60 @@
             <input type="hidden" id="final_identity_value" value="">
         </div>
 
-        <div id="step-instruction" class="hidden">
-            <h2>실험 진행 안내</h2>
-            <div class="info-box">
-                <p style="margin-top:0; font-weight:bold;">[잠시 후 실험 장면이 제시됩니다]</p>
-                <ul style="padding-left: 20px; margin-bottom:0;">
-                    <li>귀하는 <strong>상담실 이미지</strong>와 상담자와 나의 <strong>대화 내용</strong>을 보게 됩니다.</li>
-                    <li><strong>각 화면은 최소 1초가 지나야 다음으로 넘어갈 수 있습니다.</strong></li>
-                    <li>화면을 주의 깊게 본 후 이후 물음에 답해 주세요.</li>
-                </ul>
-            </div>
-        </div>
-
         <div id="step-vignette" class="hidden">
-            <div id="image-container-vig">
-                <img id="stimulus-img" src="" alt="상담실 이미지">
-            </div>
-            <div id="page-counter">1 / 22</div>
-            <div class="vn-text-box">
-                <p id="vignette-text"></p>
-            </div>
+            <div id="image-container-vig"><img id="stimulus-img" src=""></div>
+            <div id="page-counter">1 / 20</div>
+            <div class="vn-text-box"><p id="vignette-text"></p></div>
         </div>
 
         <div id="step-des" class="hidden">
-            <div class="sticky-top-box">
-                <img id="des-ref-img" src="" alt="참고 이미지">
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p>
-            </div>
+            <div class="sticky-top-box"><img id="des-ref-img" src=""><p style="font-size:12px; color:#666;">※ 위 상담실과 상담자를 떠올리며 응답해 주세요.</p></div>
             <h2>설문 1/3 (자기개방 기대)</h2>
-            <p>다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오. (1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
             <div id="des-container"></div>
         </div>
 
         <div id="step-seq" class="hidden">
-            <div class="sticky-top-box">
-                <img id="seq-ref-img" src="" alt="참고 이미지">
-            </div>
+            <div class="sticky-top-box"><img id="seq-ref-img" src=""></div>
             <h2>설문 2/3 (회기 평가)</h2>
-            <p>다음 문항들은 귀하께서 이 상담자와 진행된 상담시간에 대해 어떻게 느끼고 있는지 알아보고자 하는 것입니다. 각 문항마다 대조되는 단어가 쌍으로 제시되어 있으며, 귀하께서는 앞서 본 상담시간에 대해 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오. (1: 전혀 그렇지 않다 ~ 7: 매우 그렇다)
-</p>
             <div id="seq-container"></div>
         </div>
 
         <div id="step-crf" class="hidden">
-            <div class="sticky-top-box">
-                <img id="crf-ref-img" src="" alt="참고 이미지">
-            </div>
-            <h2>설문 3/3 (상담자 인상 평가)</h2>
-            <p>귀하께서 지금까지 상담자를 어떻게 보았는지, 그 정도를 가장 잘 나타내는 숫자에 표시하여 주세요. (1: 전혀 그렇지 않다 ~ 7: 매우 그렇다)
-</p>
+            <div class="sticky-top-box"><img id="crf-ref-img" src=""></div>
+            <h2>설문 3/3 (상담자 평가)</h2>
             <div id="crf-container"></div>
         </div>
 
         <div id="step-check" class="hidden">
             <h2>확인문제</h2>
-            <p>방금 보신 상담실 장면을 떠올려 주세요.<br>상담실에서 <strong>기억에 남는 물건이나 표시</strong>가 있다면 선택해 주세요.</p>
-            <div class="form-group" style="text-align: left; background: #fafafa; padding: 20px; border-radius: 8px;">
-                <label style="display:block; margin-bottom:10px;"><input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가</label>
-                <label style="display:block; margin-bottom:10px;"><input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)</label>
-                <label style="display:block; margin-bottom:10px;"><input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음</label>
-                <label style="display:block;"><input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)</label>
+            <p>상담실에서 기억에 남는 물건이나 표시가 있다면 선택해 주세요.</p>
+            <div class="form-group" style="background:#fafafa; padding:20px; border-radius:8px;">
+                <label><input type="radio" name="check_opt" value="cross" onclick="toggleEtc(false)"> 십자가</label><br>
+                <label><input type="radio" name="check_opt" value="buddha" onclick="toggleEtc(false)"> 불상 (부처상)</label><br>
+                <label><input type="radio" name="check_opt" value="none" onclick="toggleEtc(false)"> 없음</label><br>
+                <label><input type="radio" name="check_opt" value="etc" onclick="toggleEtc(true)"> 기타 (직접 입력)</label>
             </div>
-            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요." style="margin-top: 10px;">
+            <input type="text" id="check-etc-text" class="form-control hidden" placeholder="기억나는 물건을 직접 적어주세요.">
         </div>
 
         <div id="step-debrief" class="hidden">
             <h2>참여해 주셔서 감사합니다.</h2>
-            <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <p style="margin-top:0;"><strong>[연구 목적 안내]</strong><br><br>
-                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다.
-                </p>
-                <p><br>
-                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다.
-                </p>
-                <p><br>
-                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다.
-                </p>
-                <p id="researcher-info" style="color:#0056b3; font-weight:bold;"></p>
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-                <p style="font-size: 13px; color: #666; margin-bottom:5px;">추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.</p>
-                <ul style="font-size:13px; margin-top:0; color:#555;">
-                    <li>자살예방 상담전화: 109</li>
-                    <li>생명의전화: 1588-9191</li>
-                    <li>정신건강상담전화: 1577-0199</li>
-                </ul>
+            <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 8px; font-size: 14px; line-height: 1.6;">
+                <p><strong>[연구 목적 안내]</strong><br><br>
+                본 연구는 상담 장면에서 <strong>상담실에 배치된 종교적 상징이 성소수자 내담자가 느끼는 안전감, 자기개방 기대, 상담 만족도에 어떤 영향을 미치는지</strong>를 알아보기 위한 실험이었습니다. [cite: 33, 92, 321]<br><br>
+                설문에 사용된 상담실 이미지는 연구 목적을 위해 생성형 인공지능(AI) 도구를 사용하여 제작한 이미지입니다. 상담자의 모습과 상담실의 전반적 분위기는 동일하게 유지한 채, 종교 상징(십자가, 불상, 없음)만 다르게 표현하도록 설계하였습니다. [cite: 33, 269, 321]<br><br>
+                연구 과정에서 종교 상징의 효과를 미리 알리면 응답이 왜곡될 수 있어 동의서와 설문 시작 단계에서는 구체적인 연구 목적을 모두 밝히지 못한 점을 양해 부탁드립니다. 응답 내용은 모두 익명으로 처리되며, 개별 참가자를 식별할 수 없는 형태로만 연구에 사용됩니다. 이 설명을 들은 후 자신의 자료 사용을 원치 않는 경우, 아래 연구자 연락처로 알려주시면 즉시 자료를 삭제하겠습니다. [cite: 322]<br><br>
+                <span id="researcher-info" style="font-weight:bold; color:#0056b3;"></span></p>
+                <hr>
+                <p>추가적인 심리적 지원이 필요하신 경우 아래 기관을 이용하실 수 있습니다.<br>자살예방 상담전화(109), 생명의전화(1588-9191), 정신건강상담전화(1577-0199) [cite: 323]</p>
             </div>
-            <div style="text-align: left; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
-                <p style="font-weight:bold; color:#856404;">☕ 참여 보상 (선택 사항)</p>
-                <p style="font-size:13px; color:#856404;">실험에 참여해 주신 분들께 소정의 커피 쿠폰을 드립니다. 원하시는 분은 핸드폰 번호를 입력해 주세요. 수집된 번호는 <strong>쿠폰 발송 외의 목적으로는 절대 사용되지 않습니다.</strong> 모든 정보는 발송 완료 후 즉시 파기됩니다.</p>
+            <div style="background:#fff3cd; padding:15px; border-radius:8px; margin-top:15px;">
+                <p>☕ 참여 보상 (선택 사항)</p>
                 <input type="tel" id="reward-phone" class="form-control" placeholder="01012345678 (숫자만 입력)">
             </div>
-            <p style="margin-top:20px; text-align: center;">아래 버튼을 누르면 응답이 최종 제출됩니다.</p>
         </div>
-        
-        <div id="step-complete" class="hidden">
-            <h2 style="color: #28a745; text-align:center; margin-top:50px;">제출 완료</h2>
-            <p style="text-align: center;">결과가 성공적으로 제출되었습니다. 참여해 주셔서 감사합니다.</p>
-            <div style="text-align: center; margin-top: 20px;"><button class="footer-btn" onclick="window.close()" style="width: 200px;">창 닫기</button></div>
-        </div>
+
+        <div id="step-complete" class="hidden"><h2 style="color:#28a745; text-align:center; margin-top:50px;">제출 완료</h2></div>
     </div>
 
     <div class="bottom-bar">
@@ -224,122 +176,157 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzP_2LYTANNgIpUOZJN_8oi7Urgc9fwGHZypRaJtjJIyLz1blYs-jr0HzVGjNvM6yW/exec";
+    const GOOGLE_SCRIPT_URL = "여기에_스크립트_URL_입력";
     const RESEARCHER_CONTACT = "연구자 김윤서 (이메일: pape5344@daegu.ac.kr)";
-    const conditions = ['cross', 'buddha', 'none']; 
-    let state = { step: 'consent', condition: '', vignetteIndex: 0, data: {}, startTime: 0, userIP: 'unknown', timer: null };
     const imgFiles = { 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png', 'waiting': 'waiting.png' };
+    
+    let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, data: {} };
 
-    // 요청하신 상세 대본
+    // 수정된 비네트 대본 (상담자 1-11, 나 1-6)
     const vignettes = [
-        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span>`,
-        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span>`,
-        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다. 대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다. 당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span>`,
-        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다. 이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자1:</span> 날이 추운데, 여기까지 오는 길은 괜찮으셨어요?</span>`,
-        `<span class="dialogue"><span class="speaker">나1:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자2:</span> 처음 오시는 곳이라 오기까지 고민도 되고 긴장도 되셨을 것 같아요. 상담은 오늘이 처음이시라고 하셨죠?</span>`,
-        `<span class="dialogue"><span class="speaker">나2:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자3:</span> 그럴 수 있어요. 처음 오시는 분들 거의 다 그렇게 이야기하세요. 편안한 만큼만, 떠오르는 것부터 천천히 말씀해 주셔도 괜찮아요. 그리고 여기에서 나누시는 이야기는 선생님의 안전과 법에서 정한 예외적인 상황을 빼고는 비밀이 보호돼요. 혹시라도 걱정되시는 부분이 있으면 언제든지 물어보셔도 됩니다.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자4:</span> <span class="desc" style="display:inline; color:#ccc;">[사전에 작성한 질문지를 잠시 살핀다]</span> 최근에 잠을 잘 못 주무신다고 적어 주셨네요.</span>`,
-        `<span class="dialogue"><span class="speaker">나3:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주째 아침마다 지각도 하고… 정신이 너무 없어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자5:</span> 몇 주째 잠도 제대로 못 자고, 아침마다 지각까지 하면서 하루를 버티고 계신 거네요. 몸도 마음도 많이 지치셨겠어요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자6:</span> 잠을 못 잘 정도로, 계속 머릿속을 떠나지 않는 일이 있으신가요?</span>`,
-        `<span class="dialogue"><span class="speaker">나4:</span> …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요. 음, 이런 이야기도 해도 되는지 모르겠는데...</span>`,
-        `<span class="dialogue"><span class="speaker">상담자7:</span> 여기에서는 그런 이야기들을 해도 되는 공간이었으면 좋겠어요. 방금 말씀하신 우울함이랑 외로움, 그리고 ‘어디 말할 데가 없다’는 느낌이 특히 크게 느껴지네요. 그중에서 지금 가장 먼저 같이 들여다보고 싶은 건 어떤 부분인지, 편한 것부터 골라 주셔도 괜찮습니다.</span>`,
-        `<span class="dialogue"><span class="speaker">나5:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자8:</span> 가장 가까운 관계에서 그런 일이 반복되니까, 상처도 크고 에너지도 많이 소모되셨겠어요. 한편으로는 그 사람을 많이 소중하게 여기기 때문에 쉽게 끊어내지 못하는 마음도 같이 있으신 것 같고요.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자9:</span> 그 관계가 선생님께 어떤 의미였는지, 또 끊어내지 못하게 만드는 마음이 무엇인지가 앞으로 우리가 함께 살펴볼 중요한 부분이 될 것 같아요.</span>`,
-        `<span class="dialogue"><span class="speaker">나6:</span> ...네.</span>`,
-        `<span class="dialogue"><span class="speaker">상담자10:</span> 오늘은 첫 시간이라 오시기까지의 이야기와 요즘 상태, 그리고 중요한 관계에 대해 큰 흐름을 같이 살펴봤어요. 쉽지 않았을 텐데 여기까지 이야기해 주신 것만으로도 중요한 시작을 하신 거라고 생각합니다. 다음 시간까지는 그 관계에서 특히 힘들었던 순간과, 그럼에도 불구하고 놓기 어려운 이유를 한두 가지 정도만 떠올려 보실 수 있을까요? 오늘 용기 내서 와 주시고 이야기해 주셔서 고맙습니다.</span>`
+        `<span class="desc">당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.</span> [cite: 493]`,
+        `<span class="desc">잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.</span> [cite: 493]`,
+        `<span class="desc">결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다. 대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다. 당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.</span> [cite: 493]`,
+        `<span class="desc">당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다. 이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.</span> [cite: 493]`,
+        `<span class="dialogue"><span class="speaker">상담자1:</span> 날이 추운데, 여기까지 오는 길은 괜찮으셨어요?</span> [cite: 493]`,
+        `<span class="dialogue"><span class="speaker">나1:</span> 네, 따뜻하게 입었더니 괜찮았어요.</span> [cite: 493]`,
+        `<span class="dialogue"><span class="speaker">상담자2:</span> 처음 오시는 곳이라 오기까지 고민도 되고 긴장도 되셨을 것 같아요. 상담은 오늘이 처음이시라고 하셨죠?</span> [cite: 493]`,
+        `<span class="dialogue"><span class="speaker">나2:</span> 네… 어떤 걸 말해야 할지 잘 모르겠어요.</span> [cite: 493]`,
+        `<span class="dialogue"><span class="speaker">상담자3:</span> 그럴 수 있어요. 처음 오시는 분들 거의 다 그렇게 이야기하세요. 편안한 만큼만, 떠오르는 것부터 천천히 말씀해 주셔도 괜찮아요. 그리고 여기에서 나누시는 이야기는 선생님의 안전과 법에서 정한 예외적인 상황을 빼고는 비밀이 보호돼요. 혹시라도 걱정되시는 부분이 있으면 언제든지 물어보셔도 됩니다.</span> [cite: 493, 495]`,
+        `<span class="dialogue"><span class="speaker">상담자4:</span> <span class="desc" style="display:inline; color:#ccc;">[사전에 작성한 질문지를 잠시 살핀다]</span> 최근에 잠을 잘 못 주무신다고 적어 주셨네요.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">나3:</span> 네.. 요즘 잠을 잘 못 자요. 밤에 자주 뒤척이다가 새벽에 겨우 잠들고, 몇 주째 아침마다 지각도 하고… 정신이 너무 없어요.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">상담자5:</span> 몇 주째 잠도 제대로 못 자고, 아침마다 지각까지 하면서 하루를 버티고 계신 거네요. 몸도 마음도 많이 지치셨겠어요.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">상담자6:</span> 잠을 못 잘 정도로, 계속 머릿속을 떠나지 않는 일이 있으신가요?</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">나4:</span> …네, 그냥 전반적으로 요즘 많이 힘들어서요. 우울하고 외로워서… 어디 이야기할 데도 없고요. 음, 이런 이야기도 해도 되는지 모르겠는데...</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">상담자7:</span> 여기에서는 그런 이야기들을 해도 되는 공간이었으면 좋겠어요. 방금 말씀하신 우울함이랑 외로움, 그리고 ‘어디 말할 데가 없다’는 느낌이 특히 크게 느껴지네요. 그중에서 지금 가장 먼저 같이 들여다보고 싶은 건 어떤 부분인지, 편한 것부터 골라 주셔도 괜찮습니다.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">나5:</span> …가장 친한 사람과의 관계가 계속 꼬여서요. 예전에 크게 다투고 연락을 끊었는데, 최근에 연락이 와서 다시 받아줬거든요… 근데 또 반복되더라고요. 달라진 건 없고… 끊어내질 못하고 너무 지쳐요.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">상담자8:</span> 가장 가까운 관계에서 그런 일이 반복되니까, 상처도 크고 에너지도 많이 소모되셨겠어요. 한편으로는 그 사람을 많이 소중하게 여기기 때문에 쉽게 끊어내지 못하는 마음도 같이 있으신 것 같고요.</span> [cite: 495]`,
+        `<span class="dialogue"><span class="speaker">상담자9:</span> 그 관계가 선생님께 어떤 의미였는지, 또 끊어내지 못하게 만드는 마음이 무엇인지가 앞으로 우리가 함께 살펴볼 중요한 부분이 될 것 같아요.</span> [cite: 497]`,
+        `<span class="dialogue"><span class="speaker">나6:</span> ...네.</span> [cite: 497]`,
+        `<span class="dialogue"><span class="speaker">상담자10:</span> 오늘은 첫 시간이라 오시기까지의 이야기와 요즘 상태, 힘드셨던 마음을 큰 흐름에서 같이 살펴봤어요. 오늘 용기 내서 와 주시고 이야기해 주셔서 고맙습니다.</span>`,
+        `<span class="dialogue"><span class="speaker">상담자11:</span> 다음 시간에 오실 때는 그 관계에서 특히 힘들었던 순간과, 그럼에도 불구하고 놓기 어려운 이유를 한두 가지 정도만 떠올려 보실 수 있을까요?</span> [cite: 497]`
     ];
-    const V1_LENGTH = 4; // 대기실 -> 상담실 입장 시점
+    const V1_LENGTH = 4; // 대기실 장면 끝 지점
 
+    // 설문 문항 데이터
     const desQuestions = ["1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?", "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?", "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?", "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?", "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?", "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?", "7. 만약 당신이 슬픔이나 불안 같은 감정을 이 상담자에게 노출한다면 기분이 나아질까요?", "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"];
-    const seqPairs = [{L:"힘들었다", R:"쉬웠다"}, {L:"가치있었다", R:"가치없었다"}, {L:"피상적이었다", R:"깊이있었다"}, {L:"마음 편했다", R:"긴장되었다"}, {L:"언좧았다", R:"즐거웠다"}, {L:"가득찼다", R:"비었다"}, {L:"약했다", R:"강했다"}, {L:"특별했다", R:"보통이었다"}, {L:"거칠었다", R:"매끄러웠다"}, {L:"편안했다", R:"불편했다"}];
+    const seqPairs = [{L:"힘들었다",R:"쉬웠다"}, {L:"가치있었다",R:"가치없었다"}, {L:"피상적이었다",R:"깊이있었다"}, {L:"마음 편했다",R:"긴장되었다"}, {L:"언좧았다",R:"즐거웠다"}, {L:"가득찼다",R:"비었다"}, {L:"약했다",R:"강했다"}, {L:"특별했다",R:"보통이었다"}, {L:"거칠었다",R:"매끄러웠다"}, {L:"편안했다",R:"불편했다"}];
     const crfQuestions = ["경험이 많다", "믿음직스럽다", "사교적이다", "노련하다", "우호적이다", "전문적이다", "진실하다", "온화하다", "정직하다", "호감이 간다", "준비가 되어있다", "신뢰할 수 있다"];
 
-    window.onload = function() {
-        state.condition = conditions[Math.floor(Math.random() * 3)];
-        renderScales();
-        document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT;
-        showStep('step-consent');
-    };
+    window.onload = function() { renderScales(); document.getElementById('researcher-info').innerText = RESEARCHER_CONTACT; };
+
+    function renderScales() {
+        document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels" style="padding:0 calc(100%/10);"><span>전혀 아님</span><span>매우 그럼</span></div><div class="scale-options">${Array(5).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
+        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group"><div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
+        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels" style="padding:0 calc(100%/14);"><span>전혀 아님</span><span>매우 그럼</span></div><div class="scale-options">${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
+    }
 
     function renderVignette() {
         const idx = state.vignetteIndex;
         const imgEl = document.getElementById('stimulus-img');
         imgEl.src = (idx < V1_LENGTH) ? imgFiles['waiting'] : imgFiles[state.condition];
-        imgEl.style.objectPosition = (idx < V1_LENGTH) ? "center top" : "85% top"; // 고정 위치
+        imgEl.style.objectPosition = (idx < V1_LENGTH) ? "center top" : "55% 15%";
         document.getElementById('vignette-text').innerHTML = vignettes[idx];
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-        document.getElementById('prev-btn').style.display = 'block';
-        document.getElementById('prev-btn').disabled = (idx <= V1_LENGTH);
+        document.getElementById('prev-btn').style.display = (idx > V1_LENGTH) ? 'block' : 'none';
         startTimer();
     }
 
     function handleNext() {
         const btn = document.getElementById('main-btn');
-        const curr = state.step;
-        if (curr === 'consent') {
+        if (state.step === 'consent') {
             if (!document.getElementById('consent-chk').checked) return alert('동의가 필요합니다.');
-            state.step = 'screener'; showStep('step-screener', '기본 정보 입력');
-        } else if (curr === 'screener') {
-            const inputs = ['age', 'residence', 'orientation', 'birth_sex', 'current_gender'];
-            if (inputs.some(id => !document.getElementById(id).value)) return alert('모든 항목을 선택해 주세요.');
-            state.step = 'instruction'; showStep('step-instruction', '실험 안내');
-        } else if (curr === 'instruction') {
-            state.step = 'vignette'; showStep('step-vignette', '상황 제시'); renderVignette();
-        } else if (curr === 'vignette') {
-            if (btn.disabled) return;
-            state.vignetteIndex++;
-            if (state.vignetteIndex < vignettes.length) { renderVignette(); } 
-            else { 
-                state.step = 'des'; showStep('step-des', '설문 1/3');
-                document.getElementById('des-ref-img').src = imgFiles[state.condition];
-            }
-        } else if (curr === 'des') {
+            state.step = 'screener'; showStep('step-screener');
+        } else if (state.step === 'screener') {
+            state.step = 'vignette'; showStep('step-vignette'); renderVignette();
+        } else if (state.step === 'vignette') {
+            if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); } 
+            else { state.step = 'des'; showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
+        } else if (state.step === 'des') {
             if (!validateScale(8, 'des')) return;
-            state.step = 'seq'; showStep('step-seq', '설문 2/3');
-            document.getElementById('seq-ref-img').src = imgFiles[state.condition];
-        } else if (curr === 'seq') {
+            state.step = 'seq'; showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition];
+        } else if (state.step === 'seq') {
             if (!validateScale(10, 'seq')) return;
-            state.step = 'crf'; showStep('step-crf', '설문 3/3');
-            document.getElementById('crf-ref-img').src = imgFiles[state.condition];
-        } else if (curr === 'crf') {
+            state.step = 'crf'; showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition];
+        } else if (state.step === 'crf') {
             if (!validateScale(12, 'crf')) return;
-            state.step = 'check'; showStep('step-check', '확인문제');
-        } else if (curr === 'check') {
+            state.step = 'check'; showStep('step-check');
+        } else if (state.step === 'check') {
             if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
-            state.step = 'debrief'; showStep('step-debrief', '참여 종료'); btn.innerText = "최종 제출하기";
-        } else if (curr === 'debrief') { sendData(); }
+            state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기";
+        } else if (state.step === 'debrief') { sendData(); }
     }
 
-    function handlePrev() { if (state.step === 'vignette' && state.vignetteIndex > V1_LENGTH) { state.vignetteIndex--; renderVignette(); } }
-
-    function renderScales() {
-        document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div><div class="scale-options">${Array(5).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
-        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group"><div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
-        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div><div class="scale-options">${Array(7).fill(0).map((_, j) => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${j+1}">${j+1}</label>`).join('')}</div></div>`).join('');
-    }
-
-    function validateScale(count, prefix) {
-        for(let i=0; i<count; i++) { if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } }
-        return true;
-    }
-
-    function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; setTimeout(() => { btn.disabled = false; }, 1000); }
-    function showStep(id, title) { 
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden')); 
-        document.getElementById(id).classList.remove('hidden'); 
-        if(title) document.getElementById('header-title').innerText = title;
-        document.getElementById('content-area').classList.toggle('full-screen-mode', id === 'step-vignette');
-        document.getElementById('content-area').scrollTop = 0; 
-    }
-    function checkGenderIdentity() { const b = document.getElementById("birth_sex").value, c = document.getElementById("current_gender").value, h = document.getElementById("final_identity_value"); h.value = (b && c) ? (b === c ? "cis" : "trans") : ""; }
+    function validateScale(count, prefix) { for(let i=0; i<count; i++) { if (!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
+    function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; setTimeout(() => btn.disabled = false, 1000); }
+    function showStep(id) { document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); document.getElementById('content-area').classList.toggle('full-screen-mode', id === 'step-vignette'); }
+    function checkGenderIdentity() { const b = document.getElementById("birth_sex").value, c = document.getElementById("current_gender").value; document.getElementById("final_identity_value").value = (b === c) ? "cis" : "trans"; }
     function toggleEtc(s) { document.getElementById('check-etc-text').classList.toggle('hidden', !s); }
+    function handlePrev() { if (state.vignetteIndex > V1_LENGTH) { state.vignetteIndex--; renderVignette(); } }
     function handleExit() { if (confirm("실험을 중단하시겠습니까?")) window.close(); }
-    function sendData() { alert('제출 중...'); showStep('step-complete'); }
+    function sendData() {
+    const btn = document.getElementById('main-btn');
+    const phoneInput = document.getElementById('reward-phone').value.trim();
+    
+    btn.disabled = true;
+    btn.innerText = "제출 중...";
+
+    // 전송할 데이터 조립
+    const finalData = {
+        id: state.data.id || generateUUID(),
+        condition: state.condition,
+        demographics: {
+            age: document.getElementById('age').value,
+            residence: document.getElementById('residence').value,
+            orientation: document.getElementById('orientation').value,
+            birthSex: document.getElementById('birth_sex').value,
+            currentGender: document.getElementById('current_gender').value,
+            identity: document.getElementById('final_identity_value').value
+        },
+        check_answer: document.querySelector('input[name="check_opt"]:checked')?.value || "N/A",
+        des: collectScaleData('des', 8),
+        seq: collectScaleData('seq', 10),
+        crf: collectScaleData('crf', 12),
+        phone: phoneInput,
+        ip: state.userIP || "unknown"
+    };
+
+    // 구글 스크립트로 전송
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors", // CORS 정책 우회
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalData)
+    })
+    .then(() => {
+        alert("성공적으로 제출되었습니다.");
+        showStep('step-complete', '제출 완료');
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("전송 중 오류가 발생했습니다. 네트워크를 확인해 주세요.");
+        btn.disabled = false;
+        btn.innerText = "다시 제출하기";
+    });
+}
+
+// 스케일 데이터를 배열로 수집하는 보조 함수
+function collectScaleData(prefix, count) {
+    let scores = [];
+    for(let i=0; i<count; i++) {
+        const checked = document.querySelector(`input[name="${prefix}_q${i}"]:checked`);
+        scores.push(checked ? checked.value : "");
+    }
+    return scores;
+}
+
+// ID 생성을 위한 보조 함수 (기존 코드에 없다면 추가)
+function generateUUID() {
+    return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 </script>
 </body>
 </html>
