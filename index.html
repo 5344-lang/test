@@ -220,11 +220,11 @@
 </div>
 
 <script>
-    // 1. 변수 선언을 먼저 해야 합니다.
+// 1. 기본 설정 (상수)
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby90Gk6cjubtOv7vUzynGd_ujpsLnMJ64u0Mk1W7kQsDCPS-t5XnncYJxZChpNsjoM3/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-    
-    // state 객체를 먼저 정의합니다.
+
+    // 2. state 객체를 먼저 생성 (순서 중요!)
     let state = { 
         step: 'consent', 
         condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
@@ -232,11 +232,10 @@
         userId: null // 초기값 설정
     };
 
-    // 2. 그 다음 ID를 생성합니다.
+    // 3. 그 다음 ID 생성
     if (!state.userId) {
         state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -465,15 +464,16 @@ function validateScreener() {
         return true;
     }
 
-    function startTimer() {
-        const btn = document.getElementById('main-btn');
-        btn.disabled = true;
-        btn.innerText = "읽는 중";
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerText = "다음";
-        }, 2000);
-    }
+function startTimer() {
+    const btn = document.getElementById('main-btn');
+    btn.disabled = true;
+    btn.innerText = "읽는 중";
+    
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
+    }, 2000);
+}
 
     function showStep(id) {
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
