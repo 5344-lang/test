@@ -379,6 +379,7 @@ select.form-control.selected {
         // input 박스 이벤트 연결
         const inputs = document.querySelectorAll('#step-screener input');
         inputs.forEach(input => {
+            if(input.id !== 'reward-phone') {
             input.style.backgroundColor = "#f0f0f0"; 
             input.addEventListener('input', updateInputColor);
         }
