@@ -343,7 +343,6 @@ select.form-control.selected {
         recordInitialVisit(); 
     }
 
-    // 3. 초기 기록 함수
     function recordInitialVisit() {
         const initialData = { id: state.userId, condition: state.condition };
         fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) });
@@ -379,7 +378,7 @@ select.form-control.selected {
         const inputs = document.querySelectorAll('#step-screener input');
         inputs.forEach(input => {
             input.style.backgroundColor = "#f0f0f0"; 
-            input.addEventListener('input', updateInputColor);
+            input.addEventListener('input', updateInputColor);}
         });
     };
     /* --- 비네트 대본 (수정 불가) --- */
