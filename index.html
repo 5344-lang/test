@@ -16,15 +16,41 @@
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 120px 24px; }
         .content.full-screen-mode { padding: 0; overflow: hidden; }
 
-        /* --- 비주얼 노벨 스타일 --- */
-        #step-vignette { width: 100%; height: 100%; position: relative; }
-        #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
-        #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; transition: none; }
-        .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 20px 90px 20px; box-sizing: border-box; background: linear-gradient(to top, rgba(0,0,0,0.8) 10%, rgba(0,0,0,0.6) 60%, transparent 100%); z-index: 10; min-height: 35%; display: flex; flex-direction: column; justify-content: flex-end; transition: opacity 0.5s ease-in-out; }
-        .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
-        .speaker { font-weight: 700; color: #ffeb3b; margin-right: 8px; font-size: 17px; display: block; margin-bottom: 5px; }
-        #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
+        /* --- 비주얼 노벨 스타일 수정 --- */
+#step-vignette { width: 100%; height: 100%; position: relative; }
+#image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
+#stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; transition: none; }
 
+/* 대화창 공통: transition을 추가해 색상 변화를 부드럽게 합니다 */
+.vn-text-box { 
+    position: absolute; bottom: 0; left: 0; width: 100%; 
+    padding: 30px 20px 90px 20px; box-sizing: border-box; 
+    z-index: 10; min-height: 35%; display: flex; 
+    flex-direction: column; justify-content: flex-end; 
+    transition: opacity 0.5s ease-in-out, background 0.3s ease; 
+}
+
+/* 상담자일 때 배경 (파란색 계열) */
+.vn-text-box.speaker-counselor {
+    background: linear-gradient(to top, rgba(0, 50, 120, 0.9) 10%, rgba(0, 50, 120, 0.6) 60%, transparent 100%);
+}
+
+/* 나일 때 배경 (초록색 계열) */
+.vn-text-box.speaker-me {
+    background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 10%, rgba(0, 80, 40, 0.6) 60%, transparent 100%);
+}
+
+/* 해설/기본 배경 (기존 검정색) */
+.vn-text-box.speaker-default {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 10%, rgba(0,0,0,0.6) 60%, transparent 100%);
+}
+
+.vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
+
+/* 이름 표시: 노란색(#ffeb3b)에서 흰색(#ffffff)으로 수정 */
+.speaker { font-weight: 700; color: #ffffff; margin-right: 8px; font-size: 17px; display: block; margin-bottom: 5px; }
+
+#page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
         /* --- 설문 공통 스타일 --- */
         .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
         .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
@@ -359,31 +385,42 @@ function renderCRF() {
             </div>
         </div>`).join('');
 }
-    function renderVignette() {
-        const idx = state.vignetteIndex;
-        const current = vignettes[idx];
-        const imgEl = document.getElementById('stimulus-img');
-        const textBox = document.querySelector('.vn-text-box');
-        const btn = document.getElementById('main-btn');
+function renderVignette() {
+    const idx = state.vignetteIndex;
+    const current = vignettes[idx];
+    const imgEl = document.getElementById('stimulus-img');
+    const textBox = document.querySelector('.vn-text-box');
+    const btn = document.getElementById('main-btn');
 
-        imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+    imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+    document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-        if (idx === 5) {
-            textBox.style.opacity = '0';
-            btn.disabled = true;
-            btn.innerText = "기다리는 중...";
-            setTimeout(() => {
-                textBox.style.opacity = '1';
-                document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-                startTimer();
-            }, 3000);
-        } else {
+    // --- 대화창 색상 변경 로직 ---
+    textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
+    if (current.speaker === "상담자") {
+        textBox.classList.add('speaker-counselor');
+    } else if (current.speaker === "나") {
+        textBox.classList.add('speaker-me');
+    } else {
+        textBox.classList.add('speaker-default');
+    }
+    // ----------------------------
+
+    if (idx === 5) { // 상담실 입장 연출
+        textBox.style.opacity = '0';
+        btn.disabled = true;
+        btn.innerText = "기다리는 중...";
+        setTimeout(() => {
             textBox.style.opacity = '1';
             document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
             startTimer();
-        }
+        }, 3000);
+    } else {
+        textBox.style.opacity = '1';
+        document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+        startTimer();
     }
+}
 
 function handleNext() {
         const btn = document.getElementById('main-btn');
