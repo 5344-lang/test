@@ -106,7 +106,7 @@
             <div class="form-group">
                 <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
                 <select class="form-control" id="residence">
-                    <option value="">선택하세요</option>
+                    <option value="" disabled selected hidden>선택하세요</option>
                     <option value="korea">대한민국</option>
                     <option value="abroad">대한민국 외 지역</option>
                 </select>
@@ -114,7 +114,7 @@
             <div class="form-group">
                 <label class="form-label">3. 당신의 성적지향은 무엇입니까?</label>
                 <select class="form-control" id="orientation">
-                    <option value="">선택하세요</option>
+                    <option value="" disabled selected hidden>선택하세요</option>
                     <option value="homo">동성애자(레즈비언, 게이)</option>
                     <option value="bi">양성애자(바이섹슈얼)</option>
                     <option value="hetero">이성애자</option>
@@ -125,7 +125,7 @@
             <div class="form-group">
                 <label class="form-label">4-1. 귀하의 출생 시 법적/생물학적 성별은 무엇입니까?</label>
                 <select class="form-control" id="birth_sex">
-                    <option value="">선택하세요</option>
+                    <option value="" disabled selected hidden>선택하세요</option>
                     <option value="male">남성 (Male, 男)</option>
                     <option value="female">여성 (Female, 女)</option>
                 </select>
@@ -133,7 +133,7 @@
             <div class="form-group">
                 <label class="form-label">4-2. 귀하가 현재 인식하는 성별 정체성은 무엇입니까?</label>
                 <select class="form-control" id="current_gender">
-                    <option value="">선택하세요</option>
+                    <option value="" disabled selected hidden>선택하세요</option>
                     <option value="male">남성 (Male, 男)</option>
                     <option value="female">여성 (Female, 女)</option>
                     <option value="nonbinary">논바이너리 (Non-binary)</option>
@@ -225,7 +225,7 @@
 
 <script>
 // 1. 기본 설정 (상수)
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby90Gk6cjubtOv7vUzynGd_ujpsLnMJ64u0Mk1W7kQsDCPS-t5XnncYJxZChpNsjoM3/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVOdxat7DH1tWAEaqzWmh2pmWThnfPqkk4ZNON_MjaQQQ0C24olYF6mjiTEMLZpbq6/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
 
     // 2. state 객체를 먼저 생성 (순서 중요!)
@@ -430,26 +430,31 @@ function handleNext() {
     }
 
 function validateScreener() {
-    const age = document.getElementById('age').value;
+    // 1. 나이 입력 확인
+    const ageInput = document.getElementById('age');
+    const age = ageInput.value;
     if (!age || age < 1) { 
-        alert('나이를 입력해주세요.'); 
+        alert('나이를 정확히 입력해주세요.'); 
+        ageInput.focus(); // 입력창으로 커서 이동
         return false; 
     }
     
-    // 검사할 ID 목록 (종교 religion 포함)
+    // 2. 검사할 ID 목록 (거주지, 성적지향, 성별, 정체성, 종교)
     const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
     
     for(let id of ids) { 
         const element = document.getElementById(id);
-        // .trim()을 사용하면 공백만 입력한 경우도 빈칸으로 간주하여 잡아냅니다.
+        
+        // value가 없거나, "선택하세요" 옵션(value="")인 경우, 또는 공백만 있는 경우 체크
         if(!element.value || !element.value.trim()) { 
             alert('모든 질문에 답해 주세요.'); 
+            element.focus(); // 선택하지 않은 항목으로 커서 이동
             return false; 
         } 
     }
-    return true;
+    
+    return true; // 모든 검사를 통과하면 다음 단계 진행
 }
-
     function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
         const orient = document.getElementById('orientation').value;
