@@ -520,45 +520,84 @@ function renderCRF() {
         }
     }
 
-    function handleNext() {
-        const btn = document.getElementById('main-btn');
-        if (state.step === 'consent') {
-            const c = document.querySelector('input[name="consent_choice"]:checked');
-            if (!c) return alert('동의 여부를 선택해 주세요.');
-            if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-            state.step = 'screener'; showStep('step-screener');
-        } else if (state.step === 'screener') {
-            if (!validateScreener()) return;
-            checkEligibility();
-        } else if (state.step === 'vignette') {
-            if (state.vignetteIndex < vignettes.length - 1) {
-                state.vignetteIndex++; renderVignette();
-            } else {
-                state.step = 'des'; showStep('step-des');
-                document.getElementById('des-ref-img').src = imgFiles[state.condition];
-                showModal('des');
-            }
-        } else if (state.step === 'des') {
-            if (!validateScale(8, 'des')) return;
-            state.step = 'seq'; showStep('step-seq');
-            document.getElementById('seq-ref-img').src = imgFiles[state.condition];
-            showModal('seq');
-        } else if (state.step === 'seq') {
-            if (!validateScale(10, 'seq')) return;
-            state.step = 'crf'; showStep('step-crf');
-            document.getElementById('crf-ref-img').src = imgFiles[state.condition];
-            showModal('crf');
-        } else if (state.step === 'crf') {
-            if (!validateScale(12, 'crf')) return;
-            state.step = 'check'; showStep('step-check');
-        } else if (state.step === 'check') {
-            if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
-            state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기";
-        } else if (state.step === 'debrief') {
-            sendData();
-        }
+function handleNext() {
+    const btn = document.getElementById('main-btn');
+
+    // 1. 동의 단계
+    if (state.step === 'consent') {
+        const c = document.querySelector('input[name="consent_choice"]:checked');
+        if (!c) return alert('동의 여부를 선택해 주세요.');
+        if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
+
+        state.step = 'screener';
+        showStep('step-screener');
+        return; 
     }
 
+    // 2. 인구통계(스크리너) 단계
+    else if (state.step === 'screener') {
+        if (!validateScreener()) return;
+        checkEligibility();
+        return;
+    }
+
+    // 3. 비네트(실험) 단계
+    else if (state.step === 'vignette') {
+        if (state.vignetteIndex < vignettes.length - 1) {
+            state.vignetteIndex++;
+            renderVignette();
+        } else {
+            state.step = 'des';
+            showStep('step-des');
+            document.getElementById('des-ref-img').src = imgFiles[state.condition];
+            showModal('des');
+        }
+        return;
+    }
+
+    // 4. DES 척도 단계
+    else if (state.step === 'des') {
+        if (!validateScale(8, 'des')) return;
+        state.step = 'seq';
+        showStep('step-seq');
+        document.getElementById('seq-ref-img').src = imgFiles[state.condition];
+        showModal('seq');
+        return;
+    }
+
+    // 5. SEQ 척도 단계
+    else if (state.step === 'seq') {
+        if (!validateScale(10, 'seq')) return;
+        state.step = 'crf';
+        showStep('step-crf');
+        document.getElementById('crf-ref-img').src = imgFiles[state.condition];
+        showModal('crf');
+        return;
+    }
+
+    // 6. CRF 척도 단계
+    else if (state.step === 'crf') {
+        if (!validateScale(12, 'crf')) return;
+        state.step = 'check';
+        showStep('step-check');
+        return;
+    }
+
+    // 7. 조작 점검 단계
+    else if (state.step === 'check') {
+        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
+        state.step = 'debrief';
+        showStep('step-debrief');
+        btn.innerText = "제출하기";
+        return;
+    }
+
+    // 8. 사후 설명 및 데이터 전송
+    else if (state.step === 'debrief') {
+        sendData();
+        return;
+    }
+}
     function validateScreener() {
         const age = document.getElementById('age').value;
         if (!age || age < 1) { alert('나이를 정확히 입력해주세요.'); return false; }
