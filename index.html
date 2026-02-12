@@ -347,7 +347,7 @@ select.form-control.selected {
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyruMXhClRtuPisK8CaW6_eCsarvVvO0F8T4_QZ4if_u1K-QMZ1ip-IpG9NffnKy6fX/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJ0ZubvcnniOvawHLoSmwMvsPocuzsWomP51BLBTJ9twQnwbdyPV0KRigK-HnMuEJx/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
     
     // 1. 상태 변수 선언
@@ -358,20 +358,38 @@ select.form-control.selected {
         userId: null 
     };
 
-    // 2. 중복 방지 ID 로직 및 접속 기록 전송
-    const savedId = localStorage.getItem('survey_user_id');
-    if (savedId) {
-        state.userId = savedId;
-    } else {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(); 
-    }
+   // 2. 중복 방지 ID 로직 및 접속 기록 전송
+let savedId = localStorage.getItem('survey_user_id');
 
-    function recordInitialVisit() {
-        const initialData = { id: state.userId, condition: state.condition };
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) });
-    }
+if (savedId) {
+    // 이미 ID가 있다면 그 ID를 사용 (중복 전송 금지)
+    state.userId = savedId;
+} else {
+    // 처음 방문한 경우에만 ID 생성 및 기록
+    state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('survey_user_id', state.userId);
+    recordInitialVisit(); // 오직 최초 1회만 실행됨
+}
+
+function recordInitialVisit() {
+    // 이미 전송된 기록이 있는지 한 번 더 로컬에서 체크 (이중 방어)
+    if (localStorage.getItem('initial_visit_recorded')) return;
+
+    const initialData = { 
+        method: 'initial', // 초기 접속임을 알림
+        id: state.userId, 
+        condition: state.condition 
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, { 
+        method: "POST", 
+        mode: "no-cors", 
+        body: JSON.stringify(initialData) 
+    }).then(() => {
+        // 성공적으로 전송했다면 플래그 저장
+        localStorage.setItem('initial_visit_recorded', 'true');
+    });
+}
 
     // 4. 입력창 색상 변경 함수
     function updateInputColor(event) {
