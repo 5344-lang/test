@@ -220,10 +220,22 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOvYYzvO1evds1RpPYBIPbK_GmFe5R4O6i_AKpDIpRGa4JEmNRDVHe-o0kjKocSazg/exec";
+    // 1. 변수 선언을 먼저 해야 합니다.
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby90Gk6cjubtOv7vUzynGd_ujpsLnMJ64u0Mk1W7kQsDCPS-t5XnncYJxZChpNsjoM3/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-    let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0 };
+    
+    // state 객체를 먼저 정의합니다.
+    let state = { 
+        step: 'consent', 
+        condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
+        vignetteIndex: 0,
+        userId: null // 초기값 설정
+    };
 
+    // 2. 그 다음 ID를 생성합니다.
+    if (!state.userId) {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
 
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
@@ -284,66 +296,66 @@ const guideMessages = {
     }
 
 function renderDES() {
-        document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
-            <div class="scale-group">
-                <span class="scale-question">${q}</span>
-                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
-                <div class="scale-options">
-                    ${[1, 2, 3, 4, 5].map(v => `
-                        <label class="scale-option">
-                            <input type="radio" name="des_q${i}" value="${v}">
-                            <span style="display: block; margin-top: 5px;">
-                                ${v}
-                                <br><span style="font-size: 12px; color: #666; font-weight: normal;">
-                                    ${v === 3 ? '보통이다' : '&nbsp;'}
-                                </span>
+    document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
+        <div class="scale-group">
+            <span class="scale-question">${q}</span>
+            <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+            <div class="scale-options">
+                ${[1, 2, 3, 4, 5].map(v => `
+                    <label class="scale-option">
+                        <input type="radio" name="des_q${i}" value="${v}">
+                        <span style="display: block; margin-top: 5px;">
+                            ${v}
+                            <br><span style="font-size: 12px; color: #666; font-weight: normal;">
+                                ${v === 3 ? '보통이다' : '&nbsp;'}
                             </span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>`).join('');
-    }
+                        </span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>`).join('');
+}
 
-    function renderSEQ() {
-        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
-            <div class="scale-group">
-                <div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div>
-                <div class="scale-options">
-                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `
-                        <label class="scale-option">
-                            <input type="radio" name="seq_q${i}" value="${v}">
-                            <span style="display: block; margin-top: 5px;">
-                                ${v}
-                                <br><span style="font-size: 12px; color: #666; font-weight: normal; display: none;">
-                                    ${v === 4 ? '보통이다' : '&nbsp;'}
-                                </span>
+function renderSEQ() {
+    document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
+        <div class="scale-group">
+            <div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div>
+            <div class="scale-options">
+                ${[1, 2, 3, 4, 5, 6, 7].map(v => `
+                    <label class="scale-option">
+                        <input type="radio" name="seq_q${i}" value="${v}">
+                        <span style="display: block; margin-top: 5px;">
+                            ${v}
+                            <br><span style="font-size: 12px; color: #666; font-weight: normal; display: none;">
+                                ${/*v === 4 ? '보통이다' : */'&nbsp;'}
                             </span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>`).join('');
-    }
+                        </span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>`).join('');
+}
 
-    function renderCRF() {
-        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
-            <div class="scale-group">
-                <span class="scale-question">${q}</span>
-                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
-                <div class="scale-options">
-                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `
-                        <label class="scale-option">
-                            <input type="radio" name="crf_q${i}" value="${v}">
-                            <span style="display: block; margin-top: 5px;">
-                                ${v}
-                                <br><span style="font-size: 12px; color: #666; font-weight: normal;">
-                                    ${v === 4 ? '보통이다' : '&nbsp;'}
-                                </span>
+function renderCRF() {
+    document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
+        <div class="scale-group">
+            <span class="scale-question">${q}</span>
+            <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+            <div class="scale-options">
+                ${[1, 2, 3, 4, 5, 6, 7].map(v => `
+                    <label class="scale-option">
+                        <input type="radio" name="crf_q${i}" value="${v}">
+                        <span style="display: block; margin-top: 5px;">
+                            ${v}
+                            <br><span style="font-size: 12px; color: #666; font-weight: normal;">
+                                ${v === 4 ? '보통이다' : '&nbsp;'}
                             </span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>`).join('');
-    }
+                        </span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>`).join('');
+}
     function renderVignette() {
         const idx = state.vignetteIndex;
         const current = vignettes[idx];
@@ -459,7 +471,7 @@ function validateScreener() {
         btn.innerText = "읽는 중";
         setTimeout(() => {
             btn.disabled = false;
-            btn.innerText = (state.vignetteIndex === vignettes.length - 1) ? "시작" : "다음";
+            btn.innerText = (state.vignetteIndex === vignettes.length - 1) ? "다음";
         }, 2000);
     }
 
@@ -497,43 +509,55 @@ function validateScreener() {
         if(confirm("실험을 중단하시겠습니까?")) window.close();
     }
 
-    function sendData() {
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true;
-    btn.innerText = "제출 중";
+   function sendData() {
+        const btn = document.getElementById('main-btn');
+        btn.disabled = true;
+        btn.innerText = "제출 중";
 
-   let checkAns = document.querySelector('input[name="check_opt"]:checked').value;
+        // 라디오 버튼이 체크되었는지 확인 후 값 추출
+        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+        let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+        
         if (checkAns === 'etc') {
-            // 기타를 선택했다면 텍스트 입력창의 값을 가져와서 합칩니다.
             checkAns = "기타: " + document.getElementById('check-etc-input').value;
         }
 
         const results = {
+            id: state.userId,
             condition: state.condition,
             age: document.getElementById('age').value,
             residence: document.getElementById('residence').value,
             orientation: document.getElementById('orientation').value,
             birth_sex: document.getElementById('birth_sex').value,
             current_gender: document.getElementById('current_gender').value,
-            religion: document.getElementById('religion').value, 
-            
-            // 위에서 가공한 checkAns 변수를 사용합니다.
-            check_answer: checkAns, 
-            
+            religion: document.getElementById('religion').value,
+            check_answer: checkAns,
             phone: document.getElementById('reward-phone').value || "",
-            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
-            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
+            des_scores: Array.from({length:8}, (_,i) => {
+                const el = document.querySelector(`input[name="des_q${i}"]:checked`);
+                return el ? el.value : "0";
+            }).join(','),
+            seq_scores: Array.from({length:10}, (_,i) => {
+                const el = document.querySelector(`input[name="seq_q${i}"]:checked`);
+                return el ? el.value : "0";
+            }).join(','),
+            crf_scores: Array.from({length:12}, (_,i) => {
+                const el = document.querySelector(`input[name="crf_q${i}"]:checked`);
+                return el ? el.value : "0";
+            }).join(',')
         };
 
-    // 구글 스크립트로 전송
-    fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-    .then(() => {
-        showStep('step-complete');
-        document.querySelector('.bottom-bar').style.display = 'none';
-    })
-    .catch(() => { alert("오류가 발생했습니다."); btn.disabled = false; });
-}
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
+        .then(() => {
+            showStep('step-complete');
+            document.querySelector('.bottom-bar').style.display = 'none';
+        })
+        .catch(() => { 
+            alert("오류가 발생했습니다. 다시 시도해주세요."); 
+            btn.disabled = false; 
+            btn.innerText = "제출하기";
+        });
+    }
 </script>
 </body>
 </html>
