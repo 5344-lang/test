@@ -77,14 +77,75 @@ select.form-control.selected {
         #main-btn { flex: 2; }
         .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* --- 리커트 척도 스타일 --- */
-        .scale-group { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .scale-question { font-weight: 500; margin-bottom: 15px; display: block; line-height: 1.5; font-size: 15px; }
-        .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold; }
-        .scale-options { display: flex; justify-content: space-between; align-items: center; }
-        .scale-option { text-align: center; flex: 1; cursor: pointer; }
-        .scale-option input { display: block; margin: 0 auto 5px; transform: scale(1.2); }
-        .scale-option span { font-size: 12px; color: #444; }
+/* 리커트 척도 숫자 버튼 스타일 */
+.scale-options {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #ccc; /* 바깥 테두리 */
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 15px 0 8px 0;
+}
+
+.scale-option {
+    flex: 1;
+    position: relative;
+    border-right: 1px solid #ccc; /* 숫자 사이 구분선 */
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.scale-option:last-child { border-right: none; }
+
+/* 라디오 버튼 숨기기 */
+.scale-option input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* 숫자 표시 */
+.scale-number {
+    display: block;
+    padding: 15px 0;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* 선택되었을 때 배경색 변경 (파란색) */
+.scale-option:has(input:checked) {
+    background-color: var(--primary-color);
+}
+
+/* 선택된 숫자는 하얗게 */
+.scale-option:has(input:checked) .scale-number {
+    color: #fff;
+    font-weight: bold;
+}
+
+/* 하단 라벨 (전혀 그렇지 않다 - 보통이다 - 매우 그렇다) */
+.scale-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+
+.scale-labels span {
+    font-size: 12px;
+    color: #666;
+    flex: 1;
+    text-align: center;
+}
+
+/* 양 끝 라벨 정렬 */
+.scale-labels span:first-child { text-align: left; }
+.scale-labels span:last-child { text-align: right; }
     </style>
 </head>
 <body>
@@ -274,29 +335,21 @@ select.form-control.selected {
 
     // 2. 중복 방지 ID 로직 및 접속 기록 전송
     const savedId = localStorage.getItem('survey_user_id');
-
     if (savedId) {
         state.userId = savedId;
     } else {
         state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(); // 새 방문자일 때만 즉시 실행
+        recordInitialVisit(); 
     }
 
-    // 3. 데이터 전송 함수 (초기 기록용)
+    // 3. 초기 기록 함수
     function recordInitialVisit() {
-        const initialData = {
-            id: state.userId,
-            condition: state.condition
-        };
-        fetch(GOOGLE_SCRIPT_URL, { 
-            method: "POST", 
-            mode: "no-cors", 
-            body: JSON.stringify(initialData) 
-        });
+        const initialData = { id: state.userId, condition: state.condition };
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) });
     }
 
-    // 4. 배경색 변경 함수 (입력 감지용)
+    // 4. 입력창 색상 변경 함수
     function updateInputColor(event) {
         const el = event.target;
         if (el.value && el.value.trim() !== "") {
@@ -308,21 +361,21 @@ select.form-control.selected {
         }
     }
 
-    // 5. 페이지 로드 시 초기화 및 이벤트 연결
+    // 5. 페이지 초기화 (이벤트 연결 통합)
     window.onload = function() {
         preloadImages();
         renderDES();
         renderSEQ();
         renderCRF();
 
-        // 인구통계 select 박스 이벤트 연결
+        // select 박스 이벤트 연결
         const selects = document.querySelectorAll('#step-screener select');
         selects.forEach(select => {
             if(select.value !== "") select.classList.add('selected');
             select.addEventListener('change', updateInputColor);
         });
 
-        // 인구통계 input 박스(나이, 종교) 이벤트 연결
+        // input 박스 이벤트 연결
         const inputs = document.querySelectorAll('#step-screener input');
         inputs.forEach(input => {
             input.style.backgroundColor = "#f0f0f0"; 
@@ -373,67 +426,23 @@ const guideMessages = {
         body: '귀하께서 지금까지 상담자를 어떻게 보았는지, 그 정도를 가장 잘 나타내는 숫자에 표시하여 주십시오.'
     }
 };
-    function updateInputColor(event) {
-    const el = event.target;
-    // 값이 비어있지 않으면 'selected' 클래스 추가 (흰색 배경)
-    if (el.value && el.value.trim() !== "") {
-        el.classList.add('selected');
-    } else {
-        el.classList.remove('selected');
-    }
-}
-    
-    window.onload = function() {
-        preloadImages();
-        renderDES();
-        renderSEQ();
-        renderCRF();
-    };
-// 1. 인구통계 select 박스들을 찾아 이벤트 등록
-    const selects = document.querySelectorAll('#step-screener select');
-    selects.forEach(select => {
-        if(select.value !== "") select.classList.add('selected');
-        select.addEventListener('change', updateInputColor);
-    });
+function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
 
-    // 2. 나이와 종교 입력창도 입력 시 흰색으로 바뀌도록 설정
-    const inputs = document.querySelectorAll('#step-screener input');
-    inputs.forEach(input => {
-        // 초기 배경색 설정 (CSS 파일에 직접 넣어도 되지만 여기서도 보정)
-        input.style.backgroundColor = "#f0f0f0"; 
-        input.addEventListener('input', (e) => {
-            if(e.target.value !== "") {
-                e.target.style.backgroundColor = "#ffffff";
-            } else {
-                e.target.style.backgroundColor = "#f0f0f0";
-            }
-        });
-    });
-};
-    function preloadImages() {
-        ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
-    }
-
-function renderDES() {
+    function renderDES() {
     document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
         <div class="scale-group">
-            <span class="scale-question">${q}</span>
-            <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
             <div class="scale-options">
                 ${[1, 2, 3, 4, 5].map(v => `
                     <label class="scale-option">
                         <input type="radio" name="des_q${i}" value="${v}">
-                        <span style="display: block; margin-top: 5px;">
-                            ${v}
-                            <br><span style="font-size: 12px; color: #666; font-weight: normal;">
-                                ${v === 3 ? '보통이다' : '&nbsp;'}
-                            </span>
-                        </span>
-                    </label>
-                `).join('')}
+                        <span class="scale-number">${v}</span>
+                    </label>`).join('')}
+            </div>
+            <div class="scale-labels">
+                <span>전혀 그렇지 않다</span>
+                <span>보통이다</span>
+                <span>매우 그렇다</span>
             </div>
         </div>`).join('');
 }
@@ -441,19 +450,21 @@ function renderDES() {
 function renderSEQ() {
     document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
         <div class="scale-group">
-            <div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div>
+            <div class="scale-labels" style="margin-bottom: 8px; font-weight:bold; color:#222;">
+                <span style="text-align:left;">${p.L}</span>
+                <span style="text-align:right;">${p.R}</span>
+            </div>
             <div class="scale-options">
                 ${[1, 2, 3, 4, 5, 6, 7].map(v => `
                     <label class="scale-option">
                         <input type="radio" name="seq_q${i}" value="${v}">
-                        <span style="display: block; margin-top: 5px;">
-                            ${v}
-                            <br><span style="font-size: 12px; color: #666; font-weight: normal; display: none;">
-                                ${/*v === 4 ? '보통이다' : */'&nbsp;'}
-                            </span>
-                        </span>
-                    </label>
-                `).join('')}
+                        <span class="scale-number">${v}</span>
+                    </label>`).join('')}
+            </div>
+            <div class="scale-labels">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>`).join('');
 }
@@ -461,63 +472,53 @@ function renderSEQ() {
 function renderCRF() {
     document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
         <div class="scale-group">
-            <span class="scale-question">${q}</span>
-            <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
             <div class="scale-options">
                 ${[1, 2, 3, 4, 5, 6, 7].map(v => `
                     <label class="scale-option">
                         <input type="radio" name="crf_q${i}" value="${v}">
-                        <span style="display: block; margin-top: 5px;">
-                            ${v}
-                            <br><span style="font-size: 12px; color: #666; font-weight: normal;">
-                                ${v === 4 ? '보통이다' : '&nbsp;'}
-                            </span>
-                        </span>
-                    </label>
-                `).join('')}
+                        <span class="scale-number">${v}</span>
+                    </label>`).join('')}
+            </div>
+            <div class="scale-labels">
+                <span>전혀 그렇지 않다</span>
+                <span>보통이다</span>
+                <span>매우 그렇다</span>
             </div>
         </div>`).join('');
 }
-function renderVignette() {
-    const idx = state.vignetteIndex;
-    const current = vignettes[idx];
-    const imgEl = document.getElementById('stimulus-img');
-    const textBox = document.querySelector('.vn-text-box');
-    const btn = document.getElementById('main-btn');
 
-    imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-    document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+    function renderVignette() {
+        const idx = state.vignetteIndex;
+        const current = vignettes[idx];
+        const imgEl = document.getElementById('stimulus-img');
+        const textBox = document.querySelector('.vn-text-box');
+        const btn = document.getElementById('main-btn');
 
-    // --- 대화창 색상 변경 로직 ---
-    textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
-    if (current.speaker === "상담자") {
-        textBox.classList.add('speaker-counselor');
-    } else if (current.speaker === "나") {
-        textBox.classList.add('speaker-me');
-    } else {
-        textBox.classList.add('speaker-default');
-    }
-    // ----------------------------
+        imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
 
-    if (idx === 5) { // 상담실 입장 연출
-        textBox.style.opacity = '0';
-        btn.disabled = true;
-        btn.innerText = "기다리는 중...";
-        setTimeout(() => {
+        textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
+        if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
+        else if (current.speaker === "나") textBox.classList.add('speaker-me');
+        else textBox.classList.add('speaker-default');
+
+        if (idx === 5) {
+            textBox.style.opacity = '0'; btn.disabled = true; btn.innerText = "기다리는 중...";
+            setTimeout(() => {
+                textBox.style.opacity = '1';
+                document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+                startTimer();
+            }, 3000);
+        } else {
             textBox.style.opacity = '1';
             document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
             startTimer();
-        }, 3000);
-    } else {
-        textBox.style.opacity = '1';
-        document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-        startTimer();
+        }
     }
-}
 
-function handleNext() {
+    function handleNext() {
         const btn = document.getElementById('main-btn');
-        
         if (state.step === 'consent') {
             const c = document.querySelector('input[name="consent_choice"]:checked');
             if (!c) return alert('동의 여부를 선택해 주세요.');
@@ -530,27 +531,23 @@ function handleNext() {
             if (state.vignetteIndex < vignettes.length - 1) {
                 state.vignetteIndex++; renderVignette();
             } else {
-                state.step = 'des';
-                showStep('step-des');
+                state.step = 'des'; showStep('step-des');
                 document.getElementById('des-ref-img').src = imgFiles[state.condition];
                 showModal('des');
             }
         } else if (state.step === 'des') {
             if (!validateScale(8, 'des')) return;
-            state.step = 'seq';
-            showStep('step-seq');
+            state.step = 'seq'; showStep('step-seq');
             document.getElementById('seq-ref-img').src = imgFiles[state.condition];
             showModal('seq');
         } else if (state.step === 'seq') {
             if (!validateScale(10, 'seq')) return;
-            state.step = 'crf';
-            showStep('step-crf');
+            state.step = 'crf'; showStep('step-crf');
             document.getElementById('crf-ref-img').src = imgFiles[state.condition];
             showModal('crf');
         } else if (state.step === 'crf') {
             if (!validateScale(12, 'crf')) return;
-            state.step = 'check';
-            showStep('step-check');
+            state.step = 'check'; showStep('step-check');
         } else if (state.step === 'check') {
             if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
             state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기";
@@ -559,38 +556,19 @@ function handleNext() {
         }
     }
 
-function validateScreener() {
-    // 1. 나이 입력 확인
-    const ageInput = document.getElementById('age');
-    const age = ageInput.value;
-    if (!age || age < 1) { 
-        alert('나이를 정확히 입력해주세요.'); 
-        ageInput.focus(); // 입력창으로 커서 이동
-        return false; 
+    function validateScreener() {
+        const age = document.getElementById('age').value;
+        if (!age || age < 1) { alert('나이를 정확히 입력해주세요.'); return false; }
+        const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
+        for(let id of ids) { if(!document.getElementById(id).value.trim()) { alert('모든 질문에 답해 주세요.'); return false; } }
+        return true;
     }
-    
-    // 2. 검사할 ID 목록 (거주지, 성적지향, 성별, 정체성, 종교)
-    const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
-    
-    for(let id of ids) { 
-        const element = document.getElementById(id);
-        
-        // value가 없거나, "선택하세요" 옵션(value="")인 경우, 또는 공백만 있는 경우 체크
-        if(!element.value || !element.value.trim()) { 
-            alert('모든 질문에 답해 주세요.'); 
-            element.focus(); // 선택하지 않은 항목으로 커서 이동
-            return false; 
-        } 
-    }
-    
-    return true; // 모든 검사를 통과하면 다음 단계 진행
-}
+
     function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
         const orient = document.getElementById('orientation').value;
         const bSex = document.getElementById('birth_sex').value;
         const cGen = document.getElementById('current_gender').value;
-
         if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
             state.step = 'vignette'; showStep('step-vignette'); renderVignette();
         } else {
@@ -603,24 +581,20 @@ function validateScreener() {
         return true;
     }
 
-function startTimer() {
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true;
-    btn.innerText = "읽는 중";
-    
-    setTimeout(() => {
-        btn.disabled = false;
-        btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
-    }, 2000);
-}
+    function startTimer() {
+        const btn = document.getElementById('main-btn');
+        btn.disabled = true; btn.innerText = "읽는 중";
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
+        }, 2000);
+    }
 
     function showStep(id) {
         document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.getElementById('content-area').classList.toggle('full-screen-mode', id === 'step-vignette');
         document.getElementById('content-area').scrollTop = 0;
-        window.scrollTo(0,0);
-        
         const prevBtn = document.getElementById('prev-btn');
         prevBtn.style.display = (id === 'step-vignette' && state.vignetteIndex > 0) ? 'block' : 'none';
     }
@@ -632,38 +606,19 @@ function startTimer() {
         modal.style.display = 'flex';
     }
 
-    function closeModal() {
-        document.getElementById('guide-modal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
+    function handlePrev() { if (state.step === 'vignette' && state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); } }
+    function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
 
-    function handlePrev() {
-        if (state.step === 'vignette' && state.vignetteIndex > 0) {
-            state.vignetteIndex--;
-            renderVignette();
-            if(state.vignetteIndex === 0) document.getElementById('prev-btn').style.display = 'none';
-        }
-    }
-
-    function handleExit() {
-        if(confirm("실험을 중단하시겠습니까?")) window.close();
-    }
-
-   function sendData() {
+    function sendData() {
         const btn = document.getElementById('main-btn');
-        btn.disabled = true;
-        btn.innerText = "제출 중";
-
-        // 라디오 버튼이 체크되었는지 확인 후 값 추출
+        btn.disabled = true; btn.innerText = "제출 중";
         const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
         let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-        
-        if (checkAns === 'etc') {
-            checkAns = "기타: " + document.getElementById('check-etc-input').value;
-        }
+        if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
 
         const results = {
-            id: state.userId,
-            condition: state.condition,
+            id: state.userId, condition: state.condition,
             age: document.getElementById('age').value,
             residence: document.getElementById('residence').value,
             orientation: document.getElementById('orientation').value,
@@ -672,31 +627,13 @@ function startTimer() {
             religion: document.getElementById('religion').value,
             check_answer: checkAns,
             phone: document.getElementById('reward-phone').value || "",
-            des_scores: Array.from({length:8}, (_,i) => {
-                const el = document.querySelector(`input[name="des_q${i}"]:checked`);
-                return el ? el.value : "0";
-            }).join(','),
-            seq_scores: Array.from({length:10}, (_,i) => {
-                const el = document.querySelector(`input[name="seq_q${i}"]:checked`);
-                return el ? el.value : "0";
-            }).join(','),
-            crf_scores: Array.from({length:12}, (_,i) => {
-                const el = document.querySelector(`input[name="crf_q${i}"]:checked`);
-                return el ? el.value : "0";
-            }).join(',')
+            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
+            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
+            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
         };
 
         fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-        .then(() => {
-            showStep('step-complete');
-            document.querySelector('.bottom-bar').style.display = 'none';
-        })
-        .catch(() => { 
-            alert("오류가 발생했습니다. 다시 시도해주세요."); 
-            btn.disabled = false; 
-            btn.innerText = "제출하기";
-        });
+        .then(() => { showStep('step-complete'); document.querySelector('.bottom-bar').style.display = 'none'; })
+        .catch(() => { alert("오류가 발생했습니다."); btn.disabled = false; btn.innerText = "제출하기"; });
     }
 </script>
-</body>
-</html>
