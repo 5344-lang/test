@@ -283,22 +283,67 @@ const guideMessages = {
         });
     }
 
-    function renderDES() {
+function renderDES() {
         document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
-            <div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div><div class="scale-options">
-            ${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span>${v}</span></label>`).join('')}</div></div>`).join('');
-    }
-    function renderSEQ() {
-        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
-            <div class="scale-group"><div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">
-            ${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span>${v}</span></label>`).join('')}</div></div>`).join('');
-    }
-    function renderCRF() {
-        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
-            <div class="scale-group"><span class="scale-question">${q}</span><div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div><div class="scale-options">
-            ${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span>${v}</span></label>`).join('')}</div></div>`).join('');
+            <div class="scale-group">
+                <span class="scale-question">${q}</span>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5].map(v => `
+                        <label class="scale-option">
+                            <input type="radio" name="des_q${i}" value="${v}">
+                            <span style="display: block; margin-top: 5px;">
+                                ${v}
+                                <br><span style="font-size: 12px; color: #666; font-weight: normal;">
+                                    ${v === 3 ? '보통이다' : '&nbsp;'}
+                                </span>
+                            </span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>`).join('');
     }
 
+    function renderSEQ() {
+        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
+            <div class="scale-group">
+                <div class="scale-labels"><span>${p.L}</span><span>${p.R}</span></div>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `
+                        <label class="scale-option">
+                            <input type="radio" name="seq_q${i}" value="${v}">
+                            <span style="display: block; margin-top: 5px;">
+                                ${v}
+                                <br><span style="font-size: 12px; color: #666; font-weight: normal; display: none;">
+                                    ${v === 4 ? '보통이다' : '&nbsp;'}
+                                </span>
+                            </span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>`).join('');
+    }
+
+    function renderCRF() {
+        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
+            <div class="scale-group">
+                <span class="scale-question">${q}</span>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>매우 그렇다</span></div>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `
+                        <label class="scale-option">
+                            <input type="radio" name="crf_q${i}" value="${v}">
+                            <span style="display: block; margin-top: 5px;">
+                                ${v}
+                                <br><span style="font-size: 12px; color: #666; font-weight: normal;">
+                                    ${v === 4 ? '보통이다' : '&nbsp;'}
+                                </span>
+                            </span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>`).join('');
+    }
     function renderVignette() {
         const idx = state.vignetteIndex;
         const current = vignettes[idx];
