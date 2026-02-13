@@ -42,7 +42,7 @@
     
     /* 2. 위치 조정 (왼쪽으로 이동시키려면 수치를 낮추세요) */
     /* 0%에 가까울수록 이미지의 왼쪽 끝이 보입니다. */
-    object-position: 30% center !important; 
+    object-position: 35% center !important; 
     
     /* 3. 중앙 정렬 유지 */
     position: absolute;
@@ -58,12 +58,14 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    /* 아래 패딩(120px)이 하단 버튼과 겹치지 않게 밀어 올려줍니다 */
-    padding: 30px 30px 120px 30px; 
+    /* 아래 패딩을 70px 정도로 줄여 대사가 화면 아래쪽에 더 붙게 합니다 */
+    padding: 30px 30px 70px 30px; 
     box-sizing: border-box;
     z-index: 10;
     transition: opacity 0.5s ease-in-out, background 0.3s ease;
     word-break: keep-all;
+    /* 대사창 자체가 너무 높게 올라오지 않도록 최소 높이 제거 */
+    min-height: auto; 
 }
 
 /* 상담자일 때 배경 (파란색 계열) */
