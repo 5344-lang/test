@@ -513,28 +513,21 @@ let state = {
     userId: null 
 };
 
-// 5. 페이지 초기화 및 초기 설정 통합
+// 5. 페이지 초기화 (이벤트 연결 통합)
     window.onload = function() {
-        // [1] 중복 참여자 체크 (최우선)
-        if (localStorage.getItem('survey_finished') === 'true') {
-            alert("이미 본 연구에 참여하셨습니다.");
-            window.location.href = "about:blank";
-            return;
-        }
-
-        // [2] 기본 렌더링 실행
         preloadImages();
         renderDES();
         renderSEQ();
         renderCRF();
 
-        // [3] 입력창 이벤트 연결 (이동됨)
+        // select 박스 이벤트 연결
         const selects = document.querySelectorAll('#step-screener select');
         selects.forEach(select => {
             if(select.value !== "") select.classList.add('selected');
             select.addEventListener('change', updateInputColor);
         });
 
+        // input 박스 이벤트 연결
         const inputs = document.querySelectorAll('#step-screener input');
         inputs.forEach(input => {
             if(input.id !== 'reward-phone') {
@@ -542,11 +535,8 @@ let state = {
                 input.addEventListener('input', updateInputColor);
             }
         });
-
-        // [4] 첫 화면(동의서) 강제 활성화
-        showStep('step-consent');
     };
-
+}; // 중괄호 닫기 기호도 확인하여 함께 삭제
     // ID 설정
     let savedId = localStorage.getItem('survey_user_id');
     if (savedId) {
@@ -882,7 +872,7 @@ function showStep(id) {
     area.classList.toggle('full-screen-mode', id === 'step-vignette');
     area.scrollTop = 0;
 
-    // 첫 페이지(consent)에서는 이전 버튼을 숨김 처리
+    // 첫 페이지(consent)가 아니면 이전 버튼을 보여줌
     const prevBtn = document.getElementById('prev-btn');
     if (state.step === 'consent') {
         prevBtn.style.visibility = 'hidden';
