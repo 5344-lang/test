@@ -16,20 +16,21 @@
         --input-bg: #f0f0f0;
     }
 
-    /* --- 2. 기본 레이아웃 & 스크롤 제어 --- */
+    /* --- 2. 기본 레이아웃 & 중앙 정렬 강화 --- */
     html, body { 
         height: 100%; 
         margin: 0; 
         padding: 0; 
         background-color: var(--bg-color); 
-        /* 전체 페이지 바운스 방지 및 깔끔한 스크롤을 위해 설정 */
-        overscroll-behavior-y: none;
+        width: 100%; /* 너비 명시 */
     }
 
     body { 
         font-family: 'Noto Sans KR', sans-serif; 
         display: flex; 
-        justify-content: center; 
+        flex-direction: column; /* 수직 정렬 기반 */
+        align-items: center;    /* 수평 중앙 정렬 */
+        justify-content: flex-start; 
         color: var(--text-main); 
         overflow-x: hidden; 
     }
@@ -37,12 +38,14 @@
     .app-container { 
         background-color: var(--card-bg); 
         width: 100%; 
-        max-width: 500px; 
+        max-width: 500px; /* 최대 너비 제한 */
         min-height: 100vh; 
         display: flex; 
         flex-direction: column; 
-        box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+        box-shadow: 0 0 20px rgba(0,0,0,0.1); 
         position: relative; 
+        margin: 0 auto; /* 좌우 자동 여백으로 중앙 고정 */
+        box-sizing: border-box;
     }
 
     header { 
@@ -57,6 +60,8 @@
         position: sticky; 
         top: 0; 
         z-index: 500; 
+        width: 100%; /* 부모 너비에 맞춤 */
+        box-sizing: border-box;
     }
 
     .content { 
@@ -64,10 +69,10 @@
         position: relative; 
         padding: 0 24px 120px 24px; 
         box-sizing: border-box;
+        width: 100%;
     }
 
-    /* --- 3. 핵심 페이지 제어 (페이지가 겹치지 않게 함) --- */
-    /* JS에서 .hidden을 추가하면 절대 보이지 않도록 강력하게 설정 */
+    /* --- 3. 핵심 페이지 및 스크롤 제어 --- */
     .hidden { display: none !important; }
 
     /* 동의서 스크롤 박스 (중앙 50% 고정) */
@@ -84,17 +89,17 @@
         -webkit-overflow-scrolling: touch; 
     }
 
-    /* 각 스텝이 부모 너비를 꽉 채우도록 설정 */
-    .content > div {
-        width: 100%;
+    .content.consent-mode { 
+        display: block;
+        padding-top: 20px;
     }
 
-    /* 동의서 페이지에서는 하단 버튼 바를 강제 숨김 */
+    /* 동의서 페이지 하단 바 강제 숨김 */
     .content.consent-mode ~ .bottom-bar { 
         display: none !important; 
     }
 
-    /* 비주얼 노벨 모드 (이미지 고정) */
+    /* 비주얼 노벨 모드 (이미지 꽉 차게) */
     .content.full-screen-mode { 
         padding: 0 !important; 
         overflow: hidden; 
@@ -104,7 +109,7 @@
     /* --- 4. 비주얼 노벨 스타일 --- */
     #step-vignette { width: 100%; height: 100%; position: relative; }
     #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
-    #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; }
+    #stimulus-img { width: 100%; height: 100%; object-fit: cover; } /* 너비 115% -> 100%로 찌그러짐 방지 */
 
     .vn-text-box { 
         position: absolute; bottom: 0; left: 0; width: 100%; 
@@ -122,7 +127,7 @@
     .speaker { font-weight: 700; color: #ffffff; font-size: 17px; display: block; margin-bottom: 5px; }
     #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
 
-    /* --- 5. 인구통계 질문지 스타일 --- */
+    /* --- 5. 질문지 & 입력창 스타일 --- */
     .form-group { margin-bottom: 25px; }
     .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
 
@@ -140,27 +145,25 @@
 
     /* --- 6. 하단 버튼 바 --- */
     .bottom-bar { 
-        position: fixed; bottom: 0; left: 0; right: 0; 
-        max-width: 500px; margin: 0 auto; 
+        position: fixed; bottom: 0; left: 50%; /* 화면 중앙 정렬 */
+        transform: translateX(-50%);
+        width: 100%; max-width: 500px;
         background: white; border-top: 1px solid #eee; 
         display: flex; z-index: 400; 
     }
 
     .footer-btn { 
-        background-color: var(--primary-color); color: white; 
+        flex: 1; background-color: var(--primary-color); color: white; 
         border: none; padding: 18px; font-size: 16px; 
         font-weight: bold; cursor: pointer; text-align: center; 
     }
 
-    #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
+    #prev-btn { background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
     #main-btn { flex: 2; }
-    .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-    /* --- 7. 리커트 척도 & 이미지 상단 고정 --- */
+    /* --- 7. 리커트 척도 스타일 --- */
     .sticky-top-box { position: sticky; top: 54px; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
     .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
-
-    h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
 
     .scale-group { margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
     .scale-options { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
