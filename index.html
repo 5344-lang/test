@@ -532,23 +532,21 @@ window.onload = function() {
     showStep('step-consent');
 
     // 2. 동의 버튼 이벤트 등록 (중요: 여기서 직접 선택해야 에러가 안 납니다)
-    const consentRadios = document.querySelectorAll('input[name="consent_choice"]');
-    consentRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'agree') {
-                state.step = 'screener';
-                // 화면 전환
-                showStep('step-screener');
-                // 숨겨졌던 하단 바를 다시 보이게 설정
-                const bottomBar = document.querySelector('.bottom-bar');
-                if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
-            } else if (this.value === 'disagree') {
-                alert('연구에 동의하지 않으시면 참여하실 수 없습니다.');
-                window.location.href = "about:blank";
-            }
-        });
+const consentRadios = document.querySelectorAll('input[name="consent_choice"]');
+consentRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+        if (this.value === 'agree') {
+            state.step = 'screener';
+            showStep('step-screener'); // 문법 오류가 해결되면 정상 작동함
+            // 하단 바 다시 표시
+            const bottomBar = document.querySelector('.bottom-bar');
+            if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
+        } else if (this.value === 'disagree') {
+            alert('연구에 동의하지 않으시면 참여하실 수 없습니다.');
+            window.location.href = "about:blank";
+        }
     });
-};
+});
 
     /* --- 주요 기능 함수 --- */
 
@@ -630,7 +628,6 @@ async function preloadImages() {
     }
 
     /* --- 4. 유틸리티 함수 --- */
-
 function showStep(id) {
     document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById(id);
@@ -651,21 +648,14 @@ function showStep(id) {
     contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
     contentArea.scrollTop = 0;
 
-    // 헤더 타이틀 업데이트 (함수 안으로 이동됨)
-    const titles = { 'step-consent': '연구 참여 동의', 'step-screener': '인구통계학적 질문', 'step-vignette': '상담 장면 대화' };
+    // 헤더 타이틀 업데이트
+    const titles = { 
+        'step-consent': '연구 참여 동의', 
+        'step-screener': '인구통계학적 질문', 
+        'step-vignette': '상담 장면 대화' 
+    };
     if(titles[id]) document.getElementById('header-title').innerText = titles[id];
 }
-    function validateScreener() {
-        const ageEl = document.getElementById('age');
-        const age = parseInt(ageEl.value.trim());
-        if (!age || isNaN(age) || age < 19 || age > 100) { alert('만 19세 이상의 성인만 참여 가능합니다.'); return false; }
-        const requiredIds = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
-        for (const id of requiredIds) {
-            const el = document.getElementById(id);
-            if (!el || !el.value || el.value.trim() === "") { alert('모든 항목을 입력해 주세요.'); return false; }
-        }
-        return true; 
-    }
 
     function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
