@@ -698,11 +698,10 @@ function handleNext() {
         state.step = 'screener'; 
         showStep('step-screener');
         return;
-        else if (state.step === 'screener') {
+    } else if (state.step === 'screener') {
         if (!validateScreener()) return; // 미입력 시 차단
         checkEligibility(); // 자격 확인 후 비네트로 이동
         return;
-    }
     } else if (state.step === 'vignette') {
         if (state.vignetteIndex < vignettes.length - 1) { 
             state.vignetteIndex++; 
