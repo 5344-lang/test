@@ -180,19 +180,19 @@ select.form-control.selected {
 
 /* 스크롤 박스가 화면의 적절한 비율을 차지하도록 수정 */
 #consent-scroll-box {
-    flex: 1; 
-    min-height: 50px; /* 최소 높이 확보 */
-    max-height: 60vh;  /* 화면 높이의 60%를 넘지 않도록 제한 */
-    margin-bottom: 15px;
-    padding: 20px;     /* 가독성을 위해 패딩 증가 */
+    /* flex: 1; 이 줄을 삭제하거나 주석 처리하세요 */
+    height: 40vh;       /* 화면 높이의 정확히 40%를 차지하게 합니다 */
+    min-height: 200px;  /* 너무 작은 화면에서도 최소한의 읽을 공간 확보 */
+    margin-bottom: 20px;
+    padding: 15px;
     border: 1px solid #ddd;
     background: #ffffff;
-    overflow-y: auto;  /* 세로 스크롤 활성화 */
+    overflow-y: auto;   /* 내용이 많으면 내부 스크롤 발생 */
     border-radius: 8px;
-    font-size: 13px;   /* 폰트 크기 소폭 확대 */
-    line-height: 1.6;  /* 줄 간격 확대 */
-    color: #444;       /* 텍스트 색상 부드럽게 */
-    -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 */
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* 문단 간격 조정 */
