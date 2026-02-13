@@ -14,12 +14,11 @@
         header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 120px 24px; }
-        .content.full-screen-mode { padding: 0; overflow: hidden; }
-
+        .content.full-screen-mode {     padding: 0 !important;     margin: 0 !important;    overflow: hidden;}
         /* --- 비주얼 노벨 스타일 수정 --- */
 #step-vignette { width: 100%; height: 100%; position: relative; }
 #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
-#stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; transition: none; }
+#stimulus-img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 15%; display: block; transition: none;}
 
 /* 대화창 공통: transition을 추가해 색상 변화를 부드럽게 합니다 */
         /* padding: 위 좌 아래 우 */
@@ -154,18 +153,26 @@ select.form-control.selected {
     padding: 0 24px 80px 24px !important; /* 기존 120px에서 80px로 수정 */
 }
 
-/* 스크롤 박스가 남은 공간을 모두 차지하도록 설정 */
+/* 스크롤 박스가 화면의 적절한 비율을 차지하도록 수정 */
 #consent-scroll-box {
     flex: 1; 
-    min-height: 0; /* 스크롤 활성화를 위한 필수 설정 */
-    margin-bottom: 10px;
-    padding: 15px;
-    border: 1px solid #ccc;
+    min-height: 350px; /* 최소 높이 확보 */
+    max-height: 60vh;  /* 화면 높이의 60%를 넘지 않도록 제한 */
+    margin-bottom: 15px;
+    padding: 20px;     /* 가독성을 위해 패딩 증가 */
+    border: 1px solid #ddd;
     background: #ffffff;
-    overflow-y: auto;
-    border-radius: 5px;
-    font-size: 13px;
-    line-height: 1.6;
+    overflow-y: auto;  /* 세로 스크롤 활성화 */
+    border-radius: 8px;
+    font-size: 14px;   /* 폰트 크기 소폭 확대 */
+    line-height: 1.7;  /* 줄 간격 확대 */
+    color: #444;       /* 텍스트 색상 부드럽게 */
+    -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 */
+}
+
+/* 문단 간격 조정 */
+#consent-scroll-box p {
+    margin-bottom: 15px;
 }
 
 /* 동의 라디오 버튼 박스 */
