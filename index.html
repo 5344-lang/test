@@ -695,10 +695,14 @@ function handleNext() {
         const c = document.querySelector('input[name="consent_choice"]:checked');
         if (!c) return alert('동의 여부를 선택해 주세요.');
         if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-
         state.step = 'screener'; 
         showStep('step-screener');
-        return; 
+        return;
+        else if (state.step === 'screener') {
+        if (!validateScreener()) return; // 미입력 시 차단
+        checkEligibility(); // 자격 확인 후 비네트로 이동
+        return;
+    }
     } else if (state.step === 'vignette') {
         if (state.vignetteIndex < vignettes.length - 1) { 
             state.vignetteIndex++; 
