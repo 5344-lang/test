@@ -40,11 +40,9 @@
     transition: opacity 0.5s ease-in-out, background 0.3s ease;
     word-break: keep-all;
 }
-/* --- 인구통계학적 질문지 스타일 최적화 --- */
+/* 인구통계학적 질문지 스타일 최적화 */
 #step-screener {
-    padding: 0 20px;
-    display: flex;
-    flex-direction: column;
+    padding: 0 10px;
 }
 
 /* 모든 입력 요소(나이, 선택창, 텍스트창)의 크기 및 디자인 통일 */
@@ -63,6 +61,38 @@
     margin-top: 5px;
 }
 
+        /* 모든 입력창의 기본 상태 (회색) */
+#step-screener .form-control, 
+#step-screener input[type="number"],
+#step-screener input[type="text"],
+#step-screener select {
+    width: 100% !important;
+    height: 48px;
+    padding: 12px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    font-size: 15px !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    background-color: #f0f0f0 !important; /* 기본 회색 */
+    color: #666;
+    margin-top: 5px;
+    transition: background-color 0.2s ease;
+}
+
+/* 값이 입력되거나 선택되었을 때의 상태 (흰색) */
+#step-screener .form-control.selected,
+#step-screener input.selected,
+#step-screener select.selected {
+    background-color: #ffffff !important;
+    color: #333;
+    border-color: var(--primary-color) !important;
+}
+
+/* 불필요한 상단 여백 제거 */
+#step-screener h2 {
+    margin-top: 10px; /* 기존 20px에서 줄임 */
+}
 /* 하단 버튼 바에 의한 가려짐 방지: 스크롤 여유 공간 대폭 확보 */
 .content {
     flex: 1;
@@ -385,7 +415,7 @@ select.form-control.selected {
     <label class="form-label">5. 귀하의 종교는 무엇입니까?</label>
     <input type="text" id="religion" class="form-control" placeholder="무교, 기독교, 천주교, 불교 등">
 </div>
-            <div style="height: 50px;"></div>
+            <div style="height: 20px;"></div>
         </div>
 
         <div id="step-vignette" class="hidden">
@@ -522,11 +552,21 @@ window.onload = function() {
     renderSEQ();
     renderCRF();
 
-    // 입력창 색상 변경 이벤트 등록
-    document.querySelectorAll('select, input').forEach(el => {
-        el.addEventListener('change', updateInputColor);
-        if(el.tagName === 'INPUT') el.addEventListener('input', updateInputColor);
-    });
+// 입력창 색상 변경 이벤트 등록 (연령 입력 등 모든 input 대응)
+document.querySelectorAll('#step-screener input, #step-screener select').forEach(el => {
+    // 값이 바뀔 때마다 체크
+    const updateColor = () => {
+        if (el.value && el.value.trim() !== "") {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    };
+
+    el.addEventListener('change', updateColor);
+    el.addEventListener('input', updateColor); // 타자 칠 때 즉시 반영
+    el.addEventListener('blur', updateColor);  // 포커스 나갈 때 재확인
+});
 
     // 1. 첫 실행 시 '연구 참여 동의' 단계이므로 바텀 바를 숨김
     showStep('step-consent');
