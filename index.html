@@ -691,6 +691,7 @@ function renderCRF() {
 function handleNext() {
     const btn = document.getElementById('main-btn');
     
+    // 1. 동의 단계
     if (state.step === 'consent') {
         const c = document.querySelector('input[name="consent_choice"]:checked');
         if (!c) return alert('동의 여부를 선택해 주세요.');
@@ -698,11 +699,15 @@ function handleNext() {
         state.step = 'screener'; 
         showStep('step-screener');
         return;
-    } else if (state.step === 'screener') {
-        if (!validateScreener()) return; // 미입력 시 차단
-        checkEligibility(); // 자격 확인 후 비네트로 이동
+    } 
+    // 2. 인구통계 단계 (이 구간이 정확히 있어야 다음으로 넘어감)
+    else if (state.step === 'screener') {
+        if (!validateScreener()) return; 
+        checkEligibility(); // 이 함수 내부에서 통과 시 state.step을 vignette로 바꿈
         return;
-    } else if (state.step === 'vignette') {
+    } 
+    // 3. 비네트(실험) 단계
+    else if (state.step === 'vignette') {
         if (state.vignetteIndex < vignettes.length - 1) { 
             state.vignetteIndex++; 
             renderVignette(); 
@@ -712,40 +717,56 @@ function handleNext() {
             document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; 
             showModal('des'); 
         }
-    } else if (state.step === 'des-intro') { 
+    } 
+    // 4. DES 안내 -> 질문지
+    else if (state.step === 'des-intro') { 
         state.step = 'des'; 
         showStep('step-des'); 
         document.getElementById('des-ref-img').src = imgFiles[state.condition]; 
-    } else if (state.step === 'des') { 
+    } 
+    // 5. DES 질문지 -> SEQ 안내
+    else if (state.step === 'des') { 
         if (!validateScale(8, 'des')) return; 
         state.step = 'seq-intro'; 
         showStep('step-seq-intro'); 
         document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; 
         showModal('seq'); 
-    } else if (state.step === 'seq-intro') { 
+    } 
+    // 6. SEQ 안내 -> 질문지
+    else if (state.step === 'seq-intro') { 
         state.step = 'seq'; 
         showStep('step-seq'); 
         document.getElementById('seq-ref-img').src = imgFiles[state.condition]; 
-    } else if (state.step === 'seq') { 
+    } 
+    // 7. SEQ 질문지 -> CRF 안내
+    else if (state.step === 'seq') { 
         if (!validateScale(10, 'seq')) return; 
         state.step = 'crf-intro'; 
         showStep('step-crf-intro'); 
         document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; 
-        showModal('crf'); 
-    } else if (state.step === 'crf-intro') { 
+        showModal('crf');
+    } 
+    // 8. CRF 안내 -> 질문지
+    else if (state.step === 'crf-intro') { 
         state.step = 'crf'; 
         showStep('step-crf'); 
         document.getElementById('crf-ref-img').src = imgFiles[state.condition]; 
-    } else if (state.step === 'crf') { 
+    } 
+    // 9. CRF 질문지 -> 조작 점검
+    else if (state.step === 'crf') { 
         if (!validateScale(12, 'crf')) return; 
         state.step = 'check'; 
         showStep('step-check'); 
-    } else if (state.step === 'check') { 
+    } 
+    // 10. 조작 점검 -> 사후 설명
+    else if (state.step === 'check') { 
         if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.'); 
         state.step = 'debrief'; 
         showStep('step-debrief'); 
         btn.innerText = "제출하기"; 
-    } else if (state.step === 'debrief') { 
+    } 
+    // 11. 최종 제출
+    else if (state.step === 'debrief') { 
         sendData(); 
     }
 }
@@ -812,18 +833,45 @@ function validateScreener() {
     }
     return true;
 }
+function checkEligibility() {
+    const age = parseInt(document.getElementById('age').value);
+    const orient = document.getElementById('orientation').value;
+    const bSex = document.getElementById('birth_sex').value;
+    const cGen = document.getElementById('current_gender').value;
 
-    function checkEligibility() {
-        const age = parseInt(document.getElementById('age').value);
-        const orient = document.getElementById('orientation').value;
-        const bSex = document.getElementById('birth_sex').value;
-        const cGen = document.getElementById('current_gender').value;
-        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
-            state.step = 'vignette'; showStep('step-vignette'); renderVignette();
-        } else {
-            alert("참여 대상자가 아닙니다. 종료합니다."); window.location.href = "about:blank";
-        }
+    // 1. 만 19세 이상 
+    // 2. 이성애자('hetero') 및 모름('dontknow') 제외 
+    // 3. 출생 성별과 정체성이 같은 시스젠더(bSex === cGen)
+    if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
+        state.step = 'vignette'; 
+        showStep('step-vignette'); 
+        renderVignette(); // 비네트 화면 렌더링
+    } else {
+        alert("참여 대상자가 아닙니다. 종료합니다."); 
+        window.location.href = "about:blank"; // 부적격자 차단
     }
+}
+function checkEligibility() {
+    const age = parseInt(document.getElementById('age').value);
+    const orient = document.getElementById('orientation').value;
+    const bSex = document.getElementById('birth_sex').value;
+    const cGen = document.getElementById('current_gender').value;
+
+    // 참여 자격 조건 검사:
+    // 1. 만 19세 이상 (age >= 19)
+    // 2. 성적지향이 이성애자('hetero')나 모름('dontknow')이 아님
+    // 3. 출생 시 성별과 현재 정체성이 일치하는 시스젠더 (bSex === cGen)
+    if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
+        // 자격 통과 시 실험(비네트) 단계로 진입
+        state.step = 'vignette'; 
+        showStep('step-vignette'); 
+        renderVignette(); 
+    } else {
+        // 자격 미달 시 안내 후 종료
+        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
+        window.location.href = "about:blank"; 
+    }
+}
 
     function validateScale(count, prefix) {
         for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } }
