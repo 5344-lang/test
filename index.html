@@ -200,34 +200,26 @@ select.form-control.selected {
     font-weight: bold;
 }
 
-/* 하단 라벨 (전혀 그렇지 않다 - 보통이다 - 매우 그렇다) */
+/* 하단 라벨 정렬 교정 */
 .scale-labels {
     display: flex;
     justify-content: space-between;
-    padding: 0; /* 패딩 제거로 양 끝 정렬 정확도 향상 */
     margin-top: 5px;
+    padding: 0 2px;
 }
 
 .scale-labels span {
     font-size: 12px;
     color: #666;
-    flex: 1; /* 3등분 유지 */
+    flex: 1;
 }
 
-/* 1번(왼쪽 끝) 라벨은 왼쪽 정렬 */
-.scale-labels span:first-child {
-    text-align: left;
-}
-
-/* 보통이다(가운데) 라벨은 중앙 정렬 */
-.scale-labels span:nth-child(2) {
-    text-align: center;
-}
-
-/* 7번(오른쪽 끝) 라벨은 오른쪽 정렬 */
-.scale-labels span:last-child {
-    text-align: right;
-}
+/* 1번 밑으로 */
+.scale-labels span:first-child { text-align: left; }
+/* 중간 */
+.scale-labels span:nth-child(2) { text-align: center; }
+/* 7번 밑으로 */
+.scale-labels span:last-child { text-align: right; }
 
 /* 전체 컨테이너 패딩: 하단 여백을 버튼 높이(약 80px)만큼만 잡습니다 */
 .content {
@@ -524,40 +516,36 @@ let state = {
 };
 
 window.onload = function() {
-    // [1] 중복 참여자 체크
+    // [1] 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
-        return; 
+        return;
     }
 
     // [2] ID 설정
-    let savedId = localStorage.getItem('survey_user_id');
-    if (savedId) {
-        state.userId = savedId;
-    } else {
+    if (!localStorage.getItem('survey_user_id')) {
         state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(); 
+        recordInitialVisit();
+    } else {
+        state.userId = localStorage.getItem('survey_user_id');
     }
 
-    // [3] 기본 렌더링
+    // [3] 모든 척도 렌더링 (이게 실행되어야 화면에 나옵니다)
     preloadImages();
     renderDES();
     renderSEQ();
     renderCRF();
 
-    // [4] 모든 입력창(form-control) 이벤트 연결
+    // [4] 입력창 색상 변경 이벤트 연결
     document.querySelectorAll('.form-control').forEach(el => {
-        // 이전에 입력한 값이 있다면(이전 버튼 등으로 돌아왔을 때) 흰색 유지
-        if (el.value && el.value.trim() !== "") el.classList.add('selected');
-
-        // 값이 바뀔 때마다 색상 체크 함수 실행
-        el.addEventListener('change', updateInputColor); // select용
-        el.addEventListener('input', updateInputColor);  // input용
+        if (el.value) el.classList.add('selected');
+        el.addEventListener('change', updateInputColor);
+        el.addEventListener('input', updateInputColor);
     });
 
-    // [5] 첫 페이지 강제 로드
+    // [5] 첫 화면 표시
     showStep('step-consent');
 };
     /* --- 비네트 대본 (수정 불가) --- */
@@ -641,7 +629,7 @@ function renderSEQ() {
             </div>
             <div class="scale-labels">
                 <span></span>
-                <span>보통이다</span>
+                <span></span>
                 <span></span>
             </div>
         </div>`).join('');
