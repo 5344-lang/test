@@ -40,29 +40,35 @@
     transition: opacity 0.5s ease-in-out, background 0.3s ease;
     word-break: keep-all;
 }
-/* 인구통계학적 질문지 컨테이너 여백 */
+/* --- 인구통계학적 질문지 스타일 최적화 --- */
 #step-screener {
-    padding: 0 20px 40px 20px; /* 좌우 20px, 하단 40px 여백 */
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* 나이 입력창과 종교 입력창 크기 조절 */
+/* 모든 입력 요소(나이, 선택창, 텍스트창)의 크기 및 디자인 통일 */
+#step-screener .form-control, 
 #step-screener input[type="number"],
 #step-screener input[type="text"] {
-    width: 100%;            /* 너비를 100%로 꽉 차게 */
-    height: 48px;           /* 다른 select 박스와 높이 통일 */
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 15px;
-    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+    width: 100% !important; /* 너비 강제 고정 */
+    height: 48px; /* 높이 통일 */
+    padding: 12px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    font-size: 15px !important;
+    box-sizing: border-box !important;
+    display: block !important;
     background-color: #f0f0f0;
+    margin-top: 5px;
 }
 
-/* 스크롤 시 마지막 문항이 '다음' 버튼에 가려지지 않도록 설정 */
+/* 하단 버튼 바에 의한 가려짐 방지: 스크롤 여유 공간 대폭 확보 */
 .content {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 120px !important; /* 하단 바 높이만큼 여유 공간 확보 */
+    -webkit-overflow-scrolling: touch;
+    padding: 0 24px 150px 24px; /* 바닥 여백을 150px로 늘림 */
 }
 
 /* 상담자일 때 배경 (파란색 계열) */
@@ -315,10 +321,10 @@ select.form-control.selected {
         </div>
         <div id="step-screener" class="hidden">
         <h2>1. 인구통계학적 질문지</h2>
-            <div class="form-group">
-                <label class="form-label">1. 귀하의 연령은?</label>    
-                <input type="number" id="age" min="19" max="100" placeholder="숫자로 입력">
-            </div>
+<div class="form-group">
+        <label class="form-label">1. 귀하의 연령은?</label>    
+        <input type="number" id="age" class="form-control" min="19" max="100" placeholder="숫자로 입력">
+    </div>
             <div class="form-group">
                 <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
                 <select class="form-control" id="residence">
@@ -360,6 +366,7 @@ select.form-control.selected {
     <label class="form-label">5. 귀하의 종교는 무엇입니까?</label>
     <input type="text" id="religion" class="form-control" placeholder="무교, 기독교, 천주교, 불교 등">
 </div>
+            <div style="height: 50px;"></div>
         </div>
 
         <div id="step-vignette" class="hidden">
@@ -609,20 +616,21 @@ function showStep(id) {
     document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById(id);
     if (target) target.classList.remove('hidden');
-
+    
+    const contentArea = document.getElementById('content-area');
     const bottomBar = document.querySelector('.bottom-bar');
 
-    // 1단계: 동의서(step-consent)일 때는 하단 버튼 바를 완전히 숨김
+    // 1. 첫 페이지 '연구 참여 동의' 단계일 때 하단 바 강제 숨김
     if (id === 'step-consent') {
-        document.getElementById('content-area').classList.add('consent-mode');
-        if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+        contentArea.classList.add('consent-mode');
+        if (bottomBar) bottomBar.style.display = 'none'; 
     } else {
-        // 그 외 단계에서는 버튼 바를 다시 표시
-        document.getElementById('content-area').classList.remove('consent-mode');
-        if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
+        contentArea.classList.remove('consent-mode');
+        if (bottomBar) bottomBar.style.display = 'flex'; // 그 외 단계에선 표시
     }
 
-    document.getElementById('content-area').scrollTop = 0;
+    contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
+    contentArea.scrollTop = 0;
 }
     // 헤더 타이틀 업데이트
     const titles = { 'step-consent': '연구 참여 동의', 'step-screener': '인구통계학적 질문', 'step-vignette': '상담 장면 대화' };
