@@ -5,155 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
- <style>
-    /* --- 1. 디자인 시스템 & 변수 --- */
-    :root { 
-        --primary-color: #5bc2e7; 
-        --header-bg: #343a40; 
-        --bg-color: #f5f5f5; 
-        --card-bg: #ffffff; 
-        --text-main: #333333; 
-        --input-bg: #f0f0f0;
-    }
+<style>
+    /* --- 1. 디자인 시스템 & 변수 --- */
+    :root { 
+        --primary-color: #5bc2e7; 
+        --header-bg: #343a40; 
+        --bg-color: #f5f5f5; 
+        --card-bg: #ffffff; 
+        --text-main: #333333; 
+        --input-bg: #f0f0f0;
+    }
 
-    /* --- 2. 기본 레이아웃 --- */
-/* --- 기존 스타일 수정 --- */
-html, body { 
-    height: 100%; 
-    margin: 0; 
-    padding: 0; 
-    background-color: var(--bg-color); 
-    /* overflow: hidden; <- 이 부분을 제거하거나 아래처럼 수정하세요 */
-}
+    /* --- 2. 기본 레이아웃 & 스크롤 제어 --- */
+    html, body { 
+        height: 100%; 
+        margin: 0; 
+        padding: 0; 
+        background-color: var(--bg-color); 
+    }
 
-body { 
-    font-family: 'Noto Sans KR', sans-serif; 
-    display: flex; 
-    justify-content: center; 
-    color: var(--text-main); 
-    overflow-x: hidden; /* 가로 스크롤만 방지 */
-}
+    body { 
+        font-family: 'Noto Sans KR', sans-serif; 
+        display: flex; 
+        justify-content: center; 
+        color: var(--text-main); 
+        overflow-x: hidden; /* 가로 스크롤 방지 */
+    }
 
-/* 동의서 스크롤 박스 (50% 높이 고정) */
-#consent-scroll-box { 
-    height: 50vh; /* 화면 높이의 50%로 고정 */
-    flex: none;   /* flex: 1 대신 고정 높이 사용 */
-    overflow-y: auto !important; 
-    background: #ffffff; 
-    padding: 15px; 
-    border: 1px solid #ccc; 
-    border-radius: 5px; 
-    font-size: 14px; 
-    line-height: 1.6; 
-    margin-bottom: 15px;
-    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
-}
+    .app-container { 
+        background-color: var(--card-bg); 
+        width: 100%; 
+        max-width: 500px; 
+        min-height: 100vh; 
+        display: flex; 
+        flex-direction: column; 
+        box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+        position: relative; 
+    }
 
-/* 동의서 모드일 때 컨텐츠 영역 설정 */
-.content.consent-mode { 
-    padding: 20px 24px !important; 
-    overflow-y: auto !important; /* 전체 페이지 스크롤 허용 */
-    height: auto !important;     /* 높이 제한 해제 */
-    display: block !important;   /* flex 대신 일반 블록 레이아웃 */
-}
-    /* --- 4. 비주얼 노벨(Vignette) 스타일 --- */
-    #step-vignette { width: 100%; height: 100%; position: relative; }
-    #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
-    #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; }
+    header { 
+        background-color: var(--header-bg); 
+        color: white; 
+        padding: 15px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        font-weight: 500; 
+        flex-shrink: 0; 
+        position: sticky; 
+        top: 0; 
+        z-index: 200; 
+    }
 
-    .vn-text-box { 
-        position: absolute; bottom: 0; left: 0; width: 100%; 
-        padding: 30px 30px 100px 30px; box-sizing: border-box; 
-        z-index: 10; min-height: 40%; display: flex; 
-        flex-direction: column; justify-content: flex-end; 
-        transition: opacity 0.5s ease-in-out, background 0.3s ease;
-        word-break: keep-all;
-    }
+    .content { 
+        flex: 1; 
+        position: relative; 
+        padding: 0 24px 120px 24px; /* 하단 바 가림 방지 여백 */
+        box-sizing: border-box;
+    }
 
-    /* 화자별 배경색 */
-    .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 10%, rgba(0, 50, 100, 0.6) 60%, transparent 100%); }
-    .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 10%, rgba(0, 80, 40, 0.6) 60%, transparent 100%); }
-    .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 10%, rgba(0,0,0,0.6) 60%, transparent 100%); }
+    /* --- 3. 동의서 & 특수 모드 제어 --- */
+    .hidden { display: none !important; }
 
-    .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
-    .speaker { font-weight: 700; color: #ffffff; font-size: 17px; display: block; margin-bottom: 5px; }
-    #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
+    /* 동의서 스크롤 박스 (화면 높이의 50% 고정) */
+    #consent-scroll-box { 
+        height: 50vh; 
+        overflow-y: auto !important; 
+        background: #ffffff; 
+        padding: 15px; 
+        border: 1px solid #ccc; 
+        border-radius: 5px; 
+        font-size: 14px; 
+        line-height: 1.6; 
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch; 
+    }
 
-    /* --- 5. 질문지 & 입력창 스타일 (Screener) --- */
-    .form-group { margin-bottom: 25px; }
-    .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
+    /* 동의서 단계일 때 레이아웃 최적화 */
+    .content.consent-mode { 
+        display: block;
+        height: auto;
+        overflow: visible;
+        padding-top: 20px;
+    }
 
-    /* 나이, 거주지, 성적지향, 종교 등 모든 입력창 크기 통일 */
-    #step-screener .form-control, 
-    #step-screener input[type="number"], 
-    #step-screener input[type="text"], 
-    #step-screener select {
-        width: 90% !important;
-        height: 48px;
-        padding: 0 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 15px;
-        box-sizing: border-box;
-        display: block;
-        background-color: var(--input-bg) !important; /* 기본 회색 */
-        color: #666;
-        margin-top: 5px;
-        transition: all 0.2s ease;
-        appearance: none; /* select 화살표 기본 스타일 제거 필요시 */
-    }
+    /* 동의서 페이지 하단 바 강제 숨김 */
+    .content.consent-mode ~ .bottom-bar { 
+        display: none !important; 
+    }
 
-    /* 값이 입력/선택되었을 때의 상태 (흰색) */
-    #step-screener .selected {
-        background-color: #ffffff !important;
-        color: #333 !important;
-        border-color: var(--primary-color);
-    }
+    /* 비주얼 노벨 모드 (전체 화면 고정) */
+    .content.full-screen-mode { 
+        padding: 0; 
+        overflow: hidden; 
+        height: calc(100vh - 54px); /* 헤더 제외 꽉 차게 */
+    }
 
-    /* --- 6. 하단 버튼 바 --- */
-    .bottom-bar { 
-        position: fixed; bottom: 0; left: 0; right: 0; 
-        max-width: 500px; margin: 0 auto; 
-        background: white; border-top: 1px solid #eee; 
-        display: flex; z-index: 300; 
-    }
+    /* --- 4. 비주얼 노벨(Vignette) 스타일 --- */
+    #step-vignette { width: 100%; height: 100%; position: relative; }
+    #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
+    #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; }
 
-    .footer-btn { 
-        background-color: var(--primary-color); color: white; 
-        border: none; padding: 18px; font-size: 16px; 
-        font-weight: bold; cursor: pointer; text-align: center; 
-    }
+    .vn-text-box { 
+        position: absolute; bottom: 0; left: 0; width: 100%; 
+        padding: 30px 30px 100px 30px; box-sizing: border-box; 
+        z-index: 10; min-height: 40%; display: flex; 
+        flex-direction: column; justify-content: flex-end; 
+        transition: opacity 0.5s ease-in-out, background 0.3s ease;
+        word-break: keep-all;
+    }
 
-    #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
-    #main-btn { flex: 2; }
-    .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+    .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 10%, rgba(0, 50, 100, 0.6) 60%, transparent 100%); }
+    .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 10%, rgba(0, 80, 40, 0.6) 60%, transparent 100%); }
+    .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 10%, rgba(0,0,0,0.6) 60%, transparent 100%); }
 
-    /* --- 7. 리커트 척도 & 설문 공통 --- */
-    .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
-    .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
+    .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
+    .speaker { font-weight: 700; color: #ffffff; font-size: 17px; display: block; margin-bottom: 5px; }
+    #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
 
-    h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+    /* --- 5. 질문지 & 입력창 스타일 (Screener) --- */
+    .form-group { margin-bottom: 25px; }
+    .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
 
-    .scale-group { margin-bottom: 50px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-    .scale-group:last-child { border-bottom: none; }
+    #step-screener .form-control, 
+    #step-screener input[type="number"], 
+    #step-screener input[type="text"], 
+    #step-screener select {
+        width: 100%; height: 48px; padding: 0 12px;
+        border: 1px solid #ddd; border-radius: 6px; font-size: 15px;
+        box-sizing: border-box; display: block;
+        background-color: var(--input-bg) !important; color: #666;
+        transition: all 0.2s ease;
+    }
 
-    .scale-options { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
-    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; cursor: pointer; transition: background 0.2s; }
-    .scale-option:last-child { border-right: none; }
-    .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
-    .scale-number { display: block; padding: 15px 0; text-align: center; font-size: 16px; font-weight: 500; color: #333; }
+    #step-screener .selected {
+        background-color: #ffffff !important; color: #333 !important;
+        border-color: var(--primary-color);
+    }
 
-    /* 척도 선택 시 상태 */
-    .scale-option:has(input:checked) { background-color: var(--primary-color); }
-    .scale-option:has(input:checked) .scale-number { color: #fff; font-weight: bold; }
+    /* --- 6. 하단 버튼 바 --- */
+    .bottom-bar { 
+        position: fixed; bottom: 0; left: 0; right: 0; 
+        max-width: 500px; margin: 0 auto; 
+        background: white; border-top: 1px solid #eee; 
+        display: flex; z-index: 300; 
+    }
 
-    .scale-labels { display: flex; justify-content: space-between; padding: 0 5px; }
-    .scale-labels span { font-size: 12px; color: #666; flex: 1; text-align: center; }
+    .footer-btn { 
+        background-color: var(--primary-color); color: white; 
+        border: none; padding: 18px; font-size: 16px; 
+        font-weight: bold; cursor: pointer; text-align: center; 
+    }
 
-    /* --- 8. 기타 요소 --- */
-    .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
-    #guide-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
+    #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
+    #main-btn { flex: 2; }
+    .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+    /* --- 7. 리커트 척도 스타일 --- */
+    .sticky-top-box { position: sticky; top: 54px; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
+    .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
+
+    h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+
+    .scale-group { margin-bottom: 50px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+    .scale-options { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
+    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; cursor: pointer; transition: background 0.2s; }
+    .scale-option:last-child { border-right: none; }
+    .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .scale-number { display: block; padding: 15px 0; text-align: center; font-size: 16px; font-weight: 500; }
+
+    .scale-option:has(input:checked) { background-color: var(--primary-color); }
+    .scale-option:has(input:checked) .scale-number { color: #fff; font-weight: bold; }
+
+    .scale-labels { display: flex; justify-content: space-between; padding: 0 5px; }
+    .scale-labels span { font-size: 12px; color: #666; flex: 1; text-align: center; }
+
+    /* --- 8. 기타 요소 --- */
+    .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
+    #guide-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
 </style>
+
 </head>
 <body>
 
