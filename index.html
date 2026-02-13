@@ -733,85 +733,38 @@ function renderCRF() {
 
 function handleNext() {
     const btn = document.getElementById('main-btn');
-    // 1. 동의 단계 -> 스크리너로
     if (state.step === 'consent') {
         const c = document.querySelector('input[name="consent_choice"]:checked');
         if (!c) return alert('동의 여부를 선택해 주세요.');
         if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-
-        state.step = 'screener'; // 이 줄이 있어야 인구통계로 넘어갑니다
-        showStep('step-screener');
-        return; // 이 단계에서 함수 종료
-    }
-    // ... 나머지 else if 단계들
-    // 2. 스크리너 -> 비네트로
-    else if (state.step === 'screener') {
+        state.step = 'screener'; showStep('step-screener');
+    } else if (state.step === 'screener') {
         if (!validateScreener()) return;
         checkEligibility();
-    } 
-    // 3. 비네트 -> DES 안내(intro)로
-    else if (state.step === 'vignette') {
-        if (state.vignetteIndex < vignettes.length - 1) {
-            state.vignetteIndex++;
-            renderVignette();
-        } else {
-            state.step = 'des-intro'; // intro 단계 추가
-            showStep('step-des-intro');
-            document.getElementById('des-intro-ref-img').src = imgFiles[state.condition];
-            showModal('des');
-        }
-    } 
-    // 4. DES 안내 -> DES 질문지로
-    else if (state.step === 'des-intro') {
-        state.step = 'des';
-        showStep('step-des');
-        document.getElementById('des-ref-img').src = imgFiles[state.condition];
-    }
-    // 5. DES 질문지 -> SEQ 안내(intro)로
-    else if (state.step === 'des') {
-        if (!validateScale(8, 'des')) return;
-        state.step = 'seq-intro';
-        showStep('step-seq-intro');
-        document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition];
-        showModal('seq');
-    }
-    // 6. SEQ 안내 -> SEQ 질문지로
-    else if (state.step === 'seq-intro') {
-        state.step = 'seq';
-        showStep('step-seq');
-        document.getElementById('seq-ref-img').src = imgFiles[state.condition];
-    }
-    // 7. SEQ 질문지 -> CRF 안내(intro)로
-    else if (state.step === 'seq') {
-        if (!validateScale(10, 'seq')) return;
-        state.step = 'crf-intro';
-        showStep('step-crf-intro');
-        document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition];
-        showModal('crf');
-    }
-    // 8. CRF 안내 -> CRF 질문지로
-    else if (state.step === 'crf-intro') {
-        state.step = 'crf';
-        showStep('step-crf');
-        document.getElementById('crf-ref-img').src = imgFiles[state.condition];
-    }
-    // 9. CRF 질문지 -> 조작점검으로
-    else if (state.step === 'crf') {
-        if (!validateScale(12, 'crf')) return;
-        state.step = 'check';
-        showStep('step-check');
-    }
-    // 10. 조작 점검 -> 사후설명으로
-    else if (state.step === 'check') {
-        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
-        state.step = 'debrief';
-        showStep('step-debrief');
-        btn.innerText = "제출하기";
-    }
-    // 11. 최종 제출
-    else if (state.step === 'debrief') {
-        sendData();
-    }
+    } else if (state.step === 'vignette') {
+        if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); } 
+        else { state.step = 'des-intro'; showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
+    } else if (state.step === 'des-intro') { state.step = 'des'; showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
+    else if (state.step === 'des') { if (!validateScale(8, 'des')) return; state.step = 'seq-intro'; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
+    else if (state.step === 'seq-intro') { state.step = 'seq'; showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
+    else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; state.step = 'crf-intro'; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
+    else if (state.step === 'crf-intro') { state.step = 'crf'; showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
+    else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; state.step = 'check'; showStep('step-check'); }
+    else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.'); state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기"; }
+    else if (state.step === 'debrief') { sendData(); }
+}
+
+function handlePrev() {
+    if (state.step === 'screener') { state.step = 'consent'; showStep('step-consent'); }
+    else if (state.step === 'vignette') { if (state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); } else { state.step = 'screener'; showStep('step-screener'); } }
+    else if (state.step === 'des-intro') { state.step = 'vignette'; showStep('step-vignette'); renderVignette(); }
+    else if (state.step === 'des') { state.step = 'des-intro'; showStep('step-des-intro'); }
+    else if (state.step === 'seq-intro') { state.step = 'des'; showStep('step-des'); }
+    else if (state.step === 'seq') { state.step = 'seq-intro'; showStep('step-seq-intro'); }
+    else if (state.step === 'crf-intro') { state.step = 'seq'; showStep('step-seq'); }
+    else if (state.step === 'crf') { state.step = 'crf-intro'; showStep('step-crf-intro'); }
+    else if (state.step === 'check') { state.step = 'crf'; showStep('step-crf'); }
+    else if (state.step === 'debrief') { state.step = 'check'; showStep('step-check'); document.getElementById('main-btn').innerText = "다음"; }
 }
 function validateScreener() {
     const ageInput = document.getElementById('age');
@@ -889,67 +842,7 @@ function showStep(id) {
     }
 
     function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
-    function handlePrev() {
-    // 1. 비네트(실험) 단계 내부에서의 이동
-    if (state.step === 'vignette') {
-        if (state.vignetteIndex > 0) {
-            state.vignetteIndex--;
-            renderVignette();
-        } else {
-            // 비네트 첫 페이지에서 이전 누르면 인구통계로
-            state.step = 'screener';
-            showStep('step-screener');
-        }
-    } 
-    // 2. 인구통계 -> 동의서
-    else if (state.step === 'screener') {
-        state.step = 'consent';
-        showStep('step-consent');
-    }
-    // 3. DES 안내 -> 비네트 마지막
-    else if (state.step === 'des-intro') {
-        state.step = 'vignette';
-        showStep('step-vignette');
-        renderVignette();
-    }
-    // 4. DES 질문지 -> DES 안내
-    else if (state.step === 'des') {
-        state.step = 'des-intro';
-        showStep('step-des-intro');
-    }
-    // 5. SEQ 안내 -> DES 질문지
-    else if (state.step === 'seq-intro') {
-        state.step = 'des';
-        showStep('step-des');
-    }
-    // 6. SEQ 질문지 -> SEQ 안내
-    else if (state.step === 'seq') {
-        state.step = 'seq-intro';
-        showStep('step-seq-intro');
-    }
-    // 7. CRF 안내 -> SEQ 질문지
-    else if (state.step === 'crf-intro') {
-        state.step = 'seq';
-        showStep('step-seq');
-    }
-    // 8. CRF 질문지 -> CRF 안내
-    else if (state.step === 'crf') {
-        state.step = 'crf-intro';
-        showStep('step-crf-intro');
-    }
-    // 9. 조작점검 -> CRF 질문지
-    else if (state.step === 'check') {
-        state.step = 'crf';
-        showStep('step-crf');
-    }
-    // 10. 사후설명 -> 조작점검
-    else if (state.step === 'debrief') {
-        state.step = 'check';
-        showStep('step-check');
-        document.getElementById('main-btn').innerText = "다음";
-    }
-}
-
+    
 
     function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
 
