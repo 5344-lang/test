@@ -704,22 +704,25 @@ function validateScreener() {
     const ageInput = document.getElementById('age');
     const age = parseInt(ageInput.value);
 
-    // 1~100 사이의 숫자인지 확인
-    if (isNaN(age) || age < 1 || age > 100) { 
-        alert('나이를 1세부터 100세 사이의 숫자로 정확히 입력해주세요.'); 
-        ageInput.focus();
+    // 1. 나이 유효성 검사 (1~100세 제한)
+    if (isNaN(age) || age < 10 || age > 100) { 
+        alert('나이를 정확히 입력해주세요.'); 
+        ageInput.focus(); // 잘못된 입력칸으로 바로 이동
         return false; 
     }
 
+    // 2. 나머지 필수 항목 입력 여부 검사
     const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
     for(let id of ids) { 
-        if(!document.getElementById(id).value.trim()) { 
+        const el = document.getElementById(id);
+        if(!el.value.trim()) { 
             alert('모든 질문에 답해 주세요.'); 
+            el.focus();
             return false; 
         } 
     }
     return true;
-}}
+}
 
     function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
