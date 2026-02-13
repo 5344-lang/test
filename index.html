@@ -609,23 +609,21 @@ function showStep(id) {
     document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById(id);
     if (target) target.classList.remove('hidden');
-    
-    const contentArea = document.getElementById('content-area');
+
     const bottomBar = document.querySelector('.bottom-bar');
 
-    // 1. 첫 페이지 '연구 참여 동의' 단계일 때 하단 바 강제 숨김
+    // 1단계: 동의서(step-consent)일 때는 하단 버튼 바를 완전히 숨김
     if (id === 'step-consent') {
-        contentArea.classList.add('consent-mode');
-        if (bottomBar) bottomBar.style.display = 'none'; 
+        document.getElementById('content-area').classList.add('consent-mode');
+        if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
     } else {
-        contentArea.classList.remove('consent-mode');
-        if (bottomBar) bottomBar.style.display = 'flex'; // 그 외 단계에선 표시
+        // 그 외 단계에서는 버튼 바를 다시 표시
+        document.getElementById('content-area').classList.remove('consent-mode');
+        if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
     }
 
-    contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
-    contentArea.scrollTop = 0;
+    document.getElementById('content-area').scrollTop = 0;
 }
-    
     // 헤더 타이틀 업데이트
     const titles = { 'step-consent': '연구 참여 동의', 'step-screener': '인구통계학적 질문', 'step-vignette': '상담 장면 대화' };
     if(titles[id]) document.getElementById('header-title').innerText = titles[id];
