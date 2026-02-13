@@ -270,6 +270,25 @@ select.form-control.selected {
     flex: 1; /* 남는 공간 다 차지 */
     overflow-y: auto;
 }
+        /* 인구통계학적 질문지 내부 요소 크기 및 여백 통일 */
+#step-screener {
+    padding: 0 10px; /* 좌우 여백 */
+}
+
+#step-screener .form-control, 
+#step-screener input[type="number"],
+#step-screener input[type="text"] {
+    width: 100% !important;
+    height: 48px; /* 높이 고정 */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box; /* 패딩이 너비에 영향 주지 않도록 */
+    display: block;
+    background-color: #f0f0f0;
+    margin-top: 5px;
+}
     </style>
 </head>
 <body>
@@ -623,16 +642,16 @@ function showStep(id) {
     // 1. 첫 페이지 '연구 참여 동의' 단계일 때 하단 바 강제 숨김
     if (id === 'step-consent') {
         contentArea.classList.add('consent-mode');
-        if (bottomBar) bottomBar.style.display = 'none'; 
+        if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
     } else {
         contentArea.classList.remove('consent-mode');
-        if (bottomBar) bottomBar.style.display = 'flex'; // 그 외 단계에선 표시
+        if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
     }
 
     contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
     contentArea.scrollTop = 0;
-}
-    // 헤더 타이틀 업데이트
+
+    // 헤더 타이틀 업데이트 (함수 안으로 이동됨)
     const titles = { 'step-consent': '연구 참여 동의', 'step-screener': '인구통계학적 질문', 'step-vignette': '상담 장면 대화' };
     if(titles[id]) document.getElementById('header-title').innerText = titles[id];
 }
