@@ -25,7 +25,7 @@
         /* padding: 위 좌 아래 우 */
 .vn-text-box { 
     position: absolute; bottom: 0; left: 0; width: 100%; 
-    padding: 30px 30px 110px 30px; box-sizing: border-box; 
+    padding: 30px 30px 100px 30px; box-sizing: border-box; 
     z-index: 10; min-height: 40%; display: flex; 
     flex-direction: column; justify-content: flex-end; 
     transition: opacity 0.5s ease-in-out, background 0.3s ease;
@@ -34,7 +34,7 @@
 
 /* 상담자일 때 배경 (파란색 계열) */
 .vn-text-box.speaker-counselor {
-    background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 10%, rgba(0, 50, 120, 0.6) 60%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 10%, rgba(0, 50, 100, 0.6) 60%, transparent 100%);
 }
 
 /* 나일 때 배경 (초록색 계열) */
@@ -145,28 +145,35 @@ select.form-control.selected {
     text-align: center;
 }
 
-/* 1. 컨텐츠 영역 자체의 스크롤을 동의 단계에서만 숨깁니다 */
+/* 1. 컨텐츠 영역 기본값 (기존처럼 여백과 스크롤 허용) */
 .content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* 전체 스크롤 방지 */
-    padding: 20px 24px; /* 여백 조정 */
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+    padding: 0 24px 100px 24px; /* 기존 여백 유지 */
     box-sizing: border-box;
 }
 
-/* 2. 동의 단계 컨테이너 */
+/* 2. [추가] 동의서 단계일 때만 부모 스크롤을 숨김 */
+.content.consent-mode {
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px !important; /* 동의서 단계에선 하단 여백 축소 */
+}
+
+/* 3. 동의 단계 컨테이너 */
 #step-consent {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 120px); /* 헤더와 하단바를 제외한 전체 높이 */
+    height: 100%; /* 부모 .content.consent-mode의 높이를 다 씀 */
+    max-height: calc(100vh - 150px); /* 화면을 넘지 않게 조절 */
 }
 
-/* 3. 스크롤 박스 (가장 중요) */
+/* 4. 스크롤 박스 (기존과 동일) */
 #consent-scroll-box {
-    flex: 1; /* 남는 공간을 다 차지함 */
-    overflow-y: auto !important; /* 내부 스크롤 강제 활성화 */
-    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+    flex: 1;
+    overflow-y: auto !important;
     background: #ffffff;
     padding: 15px;
     border: 1px solid #ccc;
@@ -176,14 +183,31 @@ select.form-control.selected {
     margin-bottom: 15px;
 }
 
-/* 4. 하단 체크박스 영역 (스크롤되지 않고 고정됨) */
+/* 5. 체크박스 영역 (기존과 동일) */
 .consent-options {
-    flex-shrink: 0; /* 높이가 줄어들지 않음 */
+    flex-shrink: 0;
     padding: 15px;
     background: #f0f4f8;
     border-radius: 8px;
     margin-bottom: 10px;
 }
+        /* [추가] 가이드 모달 중앙 정렬 보정 */
+    #guide-modal {
+        display: none; /* 기본 숨김 */
+        position: fixed; 
+        top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.8); 
+        z-index: 2000; 
+        justify-content: center; 
+        align-items: center;
+    }
+        /* [수정] 문항 간 여유 공간 확보 (br 두 번 효과) */
+    .scale-group { 
+        margin-bottom: 50px; 
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .scale-group:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -385,27 +409,42 @@ select.form-control.selected {
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJ0ZubvcnniOvawHLoSmwMvsPocuzsWomP51BLBTJ9twQnwbdyPV0KRigK-HnMuEJx/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
     
-    // 1. 상태 변수 선언
-    let state = { 
+let state = { 
         step: 'consent', 
         condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
         vignetteIndex: 0,
         userId: null 
     };
 
-   // 2. 중복 방지 ID 로직 및 접속 기록 전송
-let savedId = localStorage.getItem('survey_user_id');
+window.onload = function() {
+    // 1. 중복 참여 체크 (이미 제출한 경우 차단)
+    if (localStorage.getItem('survey_submitted') === 'true') {
+        alert("이미 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
+        window.location.href = "about:blank"; 
+        return;
+    }
 
-if (savedId) {
-    // 이미 ID가 있다면 그 ID를 사용 (중복 전송 금지)
-    state.userId = savedId;
-} else {
-    // 처음 방문한 경우에만 ID 생성 및 기록
-    state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('survey_user_id', state.userId);
-    recordInitialVisit(); // 오직 최초 1회만 실행됨
-}
+    // 2. 고유 ID 생성 및 방문 기록
+    let savedId = localStorage.getItem('survey_user_id');
+    if (savedId) {
+        state.userId = savedId;
+    } else {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        recordInitialVisit();
+    }
 
+    // 3. 초기 렌더링 함수 실행
+    renderDES(); renderSEQ(); renderCRF(); preloadImages();
+
+    // 4. 입력창 색상 변경 이벤트 연결
+    document.querySelectorAll('select, input').forEach(el => {
+        el.addEventListener('change', updateInputColor);
+        // input의 경우 실시간 반영을 위해 input 이벤트도 추가하면 좋습니다.
+        if(el.tagName === 'INPUT') el.addEventListener('input', updateInputColor);
+    });
+};
+    
 function recordInitialVisit() {
     // 이미 전송된 기록이 있는지 한 번 더 로컬에서 체크 (이중 방어)
     if (localStorage.getItem('initial_visit_recorded')) return;
@@ -597,140 +636,66 @@ function renderCRF() {
     }
 
 function handleNext() {
-    const btn = document.getElementById('main-btn');
-
-    // 1. 동의 단계
-    if (state.step === 'consent') {
-        const c = document.querySelector('input[name="consent_choice"]:checked');
-        if (!c) return alert('동의 여부를 선택해 주세요.');
-        if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-
-        state.step = 'screener';
-        showStep('step-screener');
-        return; 
-    }
-
-    // 2. 인구통계(스크리너) 단계
-    else if (state.step === 'screener') {
-        if (!validateScreener()) return;
-        checkEligibility();
-        return;
-    }
-
-    // 3. 비네트(실험) 단계
-    else if (state.step === 'vignette') {
-        if (state.vignetteIndex < vignettes.length - 1) {
-            state.vignetteIndex++;
-            renderVignette();
-        } else {
-            state.step = 'des';
-            showStep('step-des');
-            document.getElementById('des-ref-img').src = imgFiles[state.condition];
-            showModal('des');
-        }
-        return;
-    }
-
-    // 4. DES 척도 단계
-    else if (state.step === 'des') {
-        if (!validateScale(8, 'des')) return;
-        state.step = 'seq';
-        showStep('step-seq');
-        document.getElementById('seq-ref-img').src = imgFiles[state.condition];
-        showModal('seq');
-        return;
-    }
-
-    // 5. SEQ 척도 단계
-    else if (state.step === 'seq') {
-        if (!validateScale(10, 'seq')) return;
-        state.step = 'crf';
-        showStep('step-crf');
-        document.getElementById('crf-ref-img').src = imgFiles[state.condition];
-        showModal('crf');
-        return;
-    }
-
-    // 6. CRF 척도 단계
-    else if (state.step === 'crf') {
-        if (!validateScale(12, 'crf')) return;
-        state.step = 'check';
-        showStep('step-check');
-        return;
-    }
-
-    // 7. 조작 점검 단계
-    else if (state.step === 'check') {
-        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
-        state.step = 'debrief';
-        showStep('step-debrief');
-        btn.innerText = "제출하기";
-        return;
-    }
-
-    // 8. 사후 설명 및 데이터 전송
-    else if (state.step === 'debrief') {
-        sendData();
-        return;
-    }
-}
-    function validateScreener() {
-        const age = document.getElementById('age').value;
-        if (!age || age < 1) { alert('나이를 정확히 입력해주세요.'); return false; }
-        const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
-        for(let id of ids) { if(!document.getElementById(id).value.trim()) { alert('모든 질문에 답해 주세요.'); return false; } }
-        return true;
-    }
-
-    function checkEligibility() {
-        const age = parseInt(document.getElementById('age').value);
-        const orient = document.getElementById('orientation').value;
-        const bSex = document.getElementById('birth_sex').value;
-        const cGen = document.getElementById('current_gender').value;
-        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
-            state.step = 'vignette'; showStep('step-vignette'); renderVignette();
-        } else {
-            alert("참여 대상자가 아닙니다. 종료합니다."); window.location.href = "about:blank";
-        }
-    }
-
-    function validateScale(count, prefix) {
-        for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } }
-        return true;
-    }
-
-    function startTimer() {
         const btn = document.getElementById('main-btn');
-        btn.disabled = true; btn.innerText = "읽는 중";
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
-        }, 2000);
+
+        if (state.step === 'consent') {
+            const c = document.querySelector('input[name="consent_choice"]:checked');
+            if (!c) return alert('동의 여부를 선택해 주세요.');
+            if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
+            state.step = 'screener';
+            showStep('step-screener');
+        } 
+        else if (state.step === 'screener') {
+            if (!validateScreener()) return;
+            checkEligibility();
+        } 
+        else if (state.step === 'vignette') {
+            if (state.vignetteIndex < vignettes.length - 1) {
+                state.vignetteIndex++;
+                renderVignette();
+            } else {
+                state.step = 'des';
+                showStep('step-des');
+                document.getElementById('des-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
+                showModal('des'); // 가이드 팝업
+            }
+        } 
+        else if (state.step === 'des') {
+            if (!validateScale(8, 'des')) return;
+            state.step = 'seq';
+            showStep('step-seq');
+            document.getElementById('seq-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
+            showModal('seq'); // 가이드 팝업
+        } 
+        else if (state.step === 'seq') {
+            if (!validateScale(10, 'seq')) return;
+            state.step = 'crf';
+            showStep('step-crf');
+            document.getElementById('crf-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
+            showModal('crf'); // 가이드 팝업
+        } 
+        else if (state.step === 'crf') {
+            if (!validateScale(12, 'crf')) return;
+            state.step = 'check';
+            showStep('step-check');
+        } 
+        else if (state.step === 'check') {
+            if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
+            state.step = 'debrief';
+            showStep('step-debrief');
+            btn.innerText = "제출하기";
+        } 
+        else if (state.step === 'debrief') {
+            sendData();
+        }
     }
 
-    function showStep(id) {
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('content-area').classList.toggle('full-screen-mode', id === 'step-vignette');
-        document.getElementById('content-area').scrollTop = 0;
-        const prevBtn = document.getElementById('prev-btn');
-        prevBtn.style.display = (id === 'step-vignette' && state.vignetteIndex > 0) ? 'block' : 'none';
-    }
-
-    function showModal(type) {
-        const modal = document.getElementById('guide-modal');
-        document.getElementById('modal-title').innerText = guideMessages[type].title;
-        document.getElementById('modal-body').innerText = guideMessages[type].body;
-        modal.style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
-    function handlePrev() { if (state.step === 'vignette' && state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); } }
-    function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
-
+    // [수정] 데이터 전송 완료 후 로컬 스토리지에 기록 보관
     function sendData() {
         const btn = document.getElementById('main-btn');
         btn.disabled = true; btn.innerText = "제출 중";
+        
+        // 결과 객체 생성... (생략된 기존 로직)
         const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
         let checkAns = checkOptEl ? checkOptEl.value : "미응답";
         if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
@@ -750,8 +715,34 @@ function handleNext() {
             crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
         };
 
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-        .then(() => { showStep('step-complete'); document.querySelector('.bottom-bar').style.display = 'none'; })
-        .catch(() => { alert("오류가 발생했습니다."); btn.disabled = false; btn.innerText = "제출하기"; });
+   fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
+    .then(() => { 
+        // 성공 시 브라우저에 완료 기록을 남겨 중복 참여를 방지합니다.
+        localStorage.setItem('survey_submitted', 'true'); 
+        
+        showStep('step-complete'); 
+        document.querySelector('.bottom-bar').style.display = 'none'; 
+    })
+    .catch(() => { 
+        alert("오류가 발생했습니다."); 
+        btn.disabled = false; 
+        btn.innerText = "제출하기"; 
+    });
+    }
+
+    // 모달 닫기 기능 명시적 확인
+    function showModal(type) {
+        const modal = document.getElementById('guide-modal');
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        
+        title.innerText = guideMessages[type].title;
+        body.innerText = guideMessages[type].body;
+        
+        modal.style.display = 'flex'; // 보이게 설정
+    }
+
+    function closeModal() {
+        document.getElementById('guide-modal').style.display = 'none';
     }
 </script>
