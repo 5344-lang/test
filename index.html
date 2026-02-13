@@ -22,6 +22,8 @@
         margin: 0; 
         padding: 0; 
         background-color: var(--bg-color); 
+        /* 전체 페이지 바운스 방지 및 깔끔한 스크롤을 위해 설정 */
+        overscroll-behavior-y: none;
     }
 
     body { 
@@ -29,7 +31,7 @@
         display: flex; 
         justify-content: center; 
         color: var(--text-main); 
-        overflow-x: hidden; /* 가로 스크롤 방지 */
+        overflow-x: hidden; 
     }
 
     .app-container { 
@@ -54,20 +56,21 @@
         flex-shrink: 0; 
         position: sticky; 
         top: 0; 
-        z-index: 200; 
+        z-index: 500; 
     }
 
     .content { 
         flex: 1; 
         position: relative; 
-        padding: 0 24px 120px 24px; /* 하단 바 가림 방지 여백 */
+        padding: 0 24px 120px 24px; 
         box-sizing: border-box;
     }
 
-    /* --- 3. 동의서 & 특수 모드 제어 --- */
+    /* --- 3. 핵심 페이지 제어 (페이지가 겹치지 않게 함) --- */
+    /* JS에서 .hidden을 추가하면 절대 보이지 않도록 강력하게 설정 */
     .hidden { display: none !important; }
 
-    /* 동의서 스크롤 박스 (화면 높이의 50% 고정) */
+    /* 동의서 스크롤 박스 (중앙 50% 고정) */
     #consent-scroll-box { 
         height: 50vh; 
         overflow-y: auto !important; 
@@ -81,27 +84,24 @@
         -webkit-overflow-scrolling: touch; 
     }
 
-    /* 동의서 단계일 때 레이아웃 최적화 */
-    .content.consent-mode { 
-        display: block;
-        height: auto;
-        overflow: visible;
-        padding-top: 20px;
+    /* 각 스텝이 부모 너비를 꽉 채우도록 설정 */
+    .content > div {
+        width: 100%;
     }
 
-    /* 동의서 페이지 하단 바 강제 숨김 */
+    /* 동의서 페이지에서는 하단 버튼 바를 강제 숨김 */
     .content.consent-mode ~ .bottom-bar { 
         display: none !important; 
     }
 
-    /* 비주얼 노벨 모드 (전체 화면 고정) */
+    /* 비주얼 노벨 모드 (이미지 고정) */
     .content.full-screen-mode { 
-        padding: 0; 
+        padding: 0 !important; 
         overflow: hidden; 
-        height: calc(100vh - 54px); /* 헤더 제외 꽉 차게 */
+        height: calc(100vh - 54px);
     }
 
-    /* --- 4. 비주얼 노벨(Vignette) 스타일 --- */
+    /* --- 4. 비주얼 노벨 스타일 --- */
     #step-vignette { width: 100%; height: 100%; position: relative; }
     #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
     #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; }
@@ -111,7 +111,6 @@
         padding: 30px 30px 100px 30px; box-sizing: border-box; 
         z-index: 10; min-height: 40%; display: flex; 
         flex-direction: column; justify-content: flex-end; 
-        transition: opacity 0.5s ease-in-out, background 0.3s ease;
         word-break: keep-all;
     }
 
@@ -123,19 +122,15 @@
     .speaker { font-weight: 700; color: #ffffff; font-size: 17px; display: block; margin-bottom: 5px; }
     #page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
 
-    /* --- 5. 질문지 & 입력창 스타일 (Screener) --- */
+    /* --- 5. 인구통계 질문지 스타일 --- */
     .form-group { margin-bottom: 25px; }
     .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
 
-    #step-screener .form-control, 
-    #step-screener input[type="number"], 
-    #step-screener input[type="text"], 
-    #step-screener select {
+    #step-screener .form-control, #step-screener input, #step-screener select {
         width: 100%; height: 48px; padding: 0 12px;
         border: 1px solid #ddd; border-radius: 6px; font-size: 15px;
         box-sizing: border-box; display: block;
         background-color: var(--input-bg) !important; color: #666;
-        transition: all 0.2s ease;
     }
 
     #step-screener .selected {
@@ -148,7 +143,7 @@
         position: fixed; bottom: 0; left: 0; right: 0; 
         max-width: 500px; margin: 0 auto; 
         background: white; border-top: 1px solid #eee; 
-        display: flex; z-index: 300; 
+        display: flex; z-index: 400; 
     }
 
     .footer-btn { 
@@ -161,30 +156,29 @@
     #main-btn { flex: 2; }
     .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-    /* --- 7. 리커트 척도 스타일 --- */
+    /* --- 7. 리커트 척도 & 이미지 상단 고정 --- */
     .sticky-top-box { position: sticky; top: 54px; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
     .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
 
     h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
 
-    .scale-group { margin-bottom: 50px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+    .scale-group { margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
     .scale-options { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
-    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; cursor: pointer; transition: background 0.2s; }
+    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; cursor: pointer; }
     .scale-option:last-child { border-right: none; }
     .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-    .scale-number { display: block; padding: 15px 0; text-align: center; font-size: 16px; font-weight: 500; }
+    .scale-number { display: block; padding: 15px 0; text-align: center; font-size: 16px; }
 
     .scale-option:has(input:checked) { background-color: var(--primary-color); }
     .scale-option:has(input:checked) .scale-number { color: #fff; font-weight: bold; }
 
     .scale-labels { display: flex; justify-content: space-between; padding: 0 5px; }
-    .scale-labels span { font-size: 12px; color: #666; flex: 1; text-align: center; }
+    .scale-labels span { font-size: 11px; color: #666; flex: 1; text-align: center; }
 
     /* --- 8. 기타 요소 --- */
     .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
     #guide-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
 </style>
-
 </head>
 <body>
 
