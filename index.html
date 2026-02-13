@@ -513,20 +513,39 @@ let state = {
     userId: null 
 };
 
-// 2. 초기화 및 중복 체크 로직
-window.onload = function() {
-    // 중복 참여자 즉시 차단
-    if (localStorage.getItem('survey_finished') === 'true') {
-        alert("이미 본 연구에 참여하셨습니다.\n중복 참여는 연구 결과 왜곡 방지를 위해 제한하고 있습니다.");
-        document.body.innerHTML = `
-            <div style="display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding:20px; text-align:center; font-family:'Noto Sans KR', sans-serif;">
-                <h2 style="color:#333;">참여 완료 안내</h2>
-                <p style="color:#666; line-height:1.6;">귀하는 이미 설문을 제출하셨습니다.<br>본 연구는 1인당 1회 참여를 원칙으로 합니다.</p>
-                <button onclick="location.href='about:blank'" style="margin-top:20px; padding:12px 25px; background:#5bc2e7; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">창 닫기</button>
-            </div>
-        `;
-        return; 
-    }
+// 5. 페이지 초기화 및 초기 설정 통합
+    window.onload = function() {
+        // [1] 중복 참여자 체크 (최우선)
+        if (localStorage.getItem('survey_finished') === 'true') {
+            alert("이미 본 연구에 참여하셨습니다.");
+            window.location.href = "about:blank";
+            return;
+        }
+
+        // [2] 기본 렌더링 실행
+        preloadImages();
+        renderDES();
+        renderSEQ();
+        renderCRF();
+
+        // [3] 입력창 이벤트 연결 (이동됨)
+        const selects = document.querySelectorAll('#step-screener select');
+        selects.forEach(select => {
+            if(select.value !== "") select.classList.add('selected');
+            select.addEventListener('change', updateInputColor);
+        });
+
+        const inputs = document.querySelectorAll('#step-screener input');
+        inputs.forEach(input => {
+            if(input.id !== 'reward-phone') {
+                input.style.backgroundColor = "#f0f0f0"; 
+                input.addEventListener('input', updateInputColor);
+            }
+        });
+
+        // [4] 첫 화면(동의서) 강제 활성화
+        showStep('step-consent');
+    };
 
     // ID 설정
     let savedId = localStorage.getItem('survey_user_id');
@@ -586,29 +605,7 @@ function recordInitialVisit() {
         }
     }
 
-    // 5. 페이지 초기화 (이벤트 연결 통합)
-    window.onload = function() {
-        preloadImages();
-        renderDES();
-        renderSEQ();
-        renderCRF();
 
-        // select 박스 이벤트 연결
-        const selects = document.querySelectorAll('#step-screener select');
-        selects.forEach(select => {
-            if(select.value !== "") select.classList.add('selected');
-            select.addEventListener('change', updateInputColor);
-        });
-
-        // input 박스 이벤트 연결
-        const inputs = document.querySelectorAll('#step-screener input');
-        inputs.forEach(input => {
-            if(input.id !== 'reward-phone') {
-            input.style.backgroundColor = "#f0f0f0"; 
-            input.addEventListener('input', updateInputColor);
-        }
-        });
-    };
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -746,15 +743,17 @@ function renderCRF() {
 
 function handleNext() {
     const btn = document.getElementById('main-btn');
-
     // 1. 동의 단계 -> 스크리너로
     if (state.step === 'consent') {
         const c = document.querySelector('input[name="consent_choice"]:checked');
         if (!c) return alert('동의 여부를 선택해 주세요.');
         if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-        state.step = 'screener';
+
+        state.step = 'screener'; // 이 줄이 있어야 인구통계로 넘어갑니다
         showStep('step-screener');
-    } 
+        return; // 이 단계에서 함수 종료
+    }
+    // ... 나머지 else if 단계들
     // 2. 스크리너 -> 비네트로
     else if (state.step === 'screener') {
         if (!validateScreener()) return;
@@ -985,17 +984,6 @@ function showStep(id) {
             seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
             crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
         };
-
-네, 맞습니다. 올려주신 두 코드 블록은 기능적으로 동일합니다. 다만, **.catch() 블록(에러 처리)**이 포함된 기존 코드를 유지하면서 localStorage 한 줄만 정확히 들어가 있는지 확인하시면 됩니다.
-
-네트워크 오류 등으로 제출에 실패했을 때 사용자가 다시 시도할 수 있도록, 가급적 기존의 .catch() 부분이 포함된 형태를 권장합니다.
-
-아래는 최종적으로 적용해야 할 코드의 모습입니다.
-
-수정할 부분: sendData 함수 하단
-JavaScript
-    // ... 위쪽 results 객체 생성 로직 생략 ...
-
     fetch(GOOGLE_SCRIPT_URL, { 
         method: "POST", 
         mode: "no-cors", 
