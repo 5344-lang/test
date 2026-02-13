@@ -513,16 +513,16 @@ let state = {
     userId: null 
 };
 
-// 2. 페이지 초기화 통합 로직
+// 2. 페이지 초기화 및 중복 체크 로직
 window.onload = function() {
-    // 중복 참여 체크
+    // 중복 참여자 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
-        return;
+        return; 
     }
 
-    // ID 설정 및 초기 방문 기록
+    // ID 설정
     let savedId = localStorage.getItem('survey_user_id');
     if (savedId) {
         state.userId = savedId;
@@ -538,14 +538,12 @@ window.onload = function() {
     renderSEQ();
     renderCRF();
 
-    document.querySelectorAll('#step-screener select').forEach(select => {
-        select.addEventListener('change', updateInputColor);
-    });
-    document.querySelectorAll('#step-screener input').forEach(input => {
-        if(input.id !== 'reward-phone') input.addEventListener('input', updateInputColor);
+    document.querySelectorAll('#step-screener select').forEach(s => s.addEventListener('change', updateInputColor));
+    document.querySelectorAll('#step-screener input').forEach(i => {
+        if(i.id !== 'reward-phone') i.addEventListener('input', updateInputColor);
     });
 
-    // 첫 페이지 강제 로드
+    // 첫 페이지 강제 로드 (이게 있어야 다음 버튼이 작동함)
     showStep('step-consent');
 };
     /* --- 비네트 대본 (수정 불가) --- */
@@ -693,9 +691,6 @@ function handleNext() {
         state.step = 'screener'; 
         showStep('step-screener');
         return; 
-    } else if (state.step === 'screener') {
-        if (!validateScreener()) return;
-        checkEligibility();
     } else if (state.step === 'vignette') {
         if (state.vignetteIndex < vignettes.length - 1) { 
             state.vignetteIndex++; 
