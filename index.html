@@ -178,23 +178,33 @@ select.form-control.selected {
     padding: 0 24px 80px 24px !important; /* 기존 120px에서 80px로 수정 */
 }
 
-/* 스크롤 박스가 화면의 적절한 비율을 차지하도록 수정 */
+/* 스크롤 박스 높이 고정 및 레이아웃 충돌 방지 */
 #consent-scroll-box {
-    /* flex: 1; 이 줄을 삭제하거나 주석 처리하세요 */
-    height: 40vh;       /* 화면 높이의 정확히 40%를 차지하게 합니다 */
-    min-height: 200px;  /* 너무 작은 화면에서도 최소한의 읽을 공간 확보 */
+    height: 40vh;
+    min-height: 200px;
     margin-bottom: 20px;
     padding: 15px;
     border: 1px solid #ddd;
     background: #ffffff;
-    overflow-y: auto;   /* 내용이 많으면 내부 스크롤 발생 */
+    overflow-y: auto;
     border-radius: 8px;
     font-size: 13px;
     line-height: 1.6;
     color: #444;
+    display: block; /* 영역 확보 확인 */
     -webkit-overflow-scrolling: touch;
 }
 
+/* 동의 옵션 박스 위치 확실히 확보 */
+.consent-options {
+    margin-top: 10px;
+    margin-bottom: 30px; /* 다음 버튼과의 간격 확보 */
+    padding: 15px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    position: relative;
+    z-index: 10;
+}
 /* 문단 간격 조정 */
 #consent-scroll-box p {
     margin-bottom: 15px;
