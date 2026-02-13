@@ -42,7 +42,7 @@
     
     /* 2. 위치 조정 (왼쪽으로 이동시키려면 수치를 낮추세요) */
     /* 0%에 가까울수록 이미지의 왼쪽 끝이 보입니다. */
-    object-position: 90% center !important; 
+    object-position: 85% center !important; 
     
     /* 3. 중앙 정렬 유지 */
     position: absolute;
@@ -466,34 +466,75 @@ select.form-control.selected {
 <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJ0ZubvcnniOvawHLoSmwMvsPocuzsWomP51BLBTJ9twQnwbdyPV0KRigK-HnMuEJx/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
+// 페이지 로드 시 즉시 중복 참여자 체크
+(function() {
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다.\n중복 참여는 연구 결과 왜곡 방지를 위해 제한하고 있습니다.");
+        
+        // 1. 안내 메시지로 화면 교체 (사용자가 내용을 볼 수 있게 함)
+        document.body.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding:20px; text-align:center; font-family:'Noto Sans KR', sans-serif;">
+                <h2 style="color:#333;">참여 완료 안내</h2>
+                <p style="color:#666; line-height:1.6;">귀하는 이미 설문을 제출하셨습니다.<br>본 연구는 1인당 1회 참여를 원칙으로 합니다.</p>
+                <p style="color:#999; font-size:13px; margin-top:10px;">협조해 주셔서 감사합니다.</p>
+                <button onclick="location.href='about:blank'" style="margin-top:20px; padding:12px 25px; background:#5bc2e7; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">창 닫기</button>
+            </div>
+        `;
+        
+        // 2. 스크립트 실행 중단
+        throw new Error("중복 참여자 진입 차단");
+    }
+})();
+// 페이지 로드 시 즉시 실행
+if (!checkDuplicateParticipant()) {
+    // 중복이 아닐 때만 기존 ID 로직 실행
+    let savedId = localStorage.getItem('survey_user_id');
+    if (savedId) {
+        state.userId = savedId;
+    } else {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        recordInitialVisit();
+    }
+}    
+// 1. 상태 변수 선언
+let state = { 
+    step: 'consent', 
+    condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
+    vignetteIndex: 0,
+    userId: null 
+};
+
+// 2. 중복 지원 체크 및 ID 로직
+function checkDuplicateAndInitialize() {
+    // 이미 최종 제출을 완료한 이력이 있는지 확인
+    const isCompleted = localStorage.getItem('survey_finished');
     
-    // 1. 상태 변수 선언
-    let state = { 
-        step: 'consent', 
-        condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
-        vignetteIndex: 0,
-        userId: null 
-    };
+    if (isCompleted === 'true') {
+        alert("이미 설문에 참여하셨습니다. 중복 참여는 불가능합니다.");
+        window.location.href = "about:blank"; // 페이지 백지화 또는 특정 안내 페이지로 이동
+        return;
+    }
 
-   // 2. 중복 방지 ID 로직 및 접속 기록 전송
-let savedId = localStorage.getItem('survey_user_id');
+    let savedId = localStorage.getItem('survey_user_id');
 
-if (savedId) {
-    // 이미 ID가 있다면 그 ID를 사용 (중복 전송 금지)
-    state.userId = savedId;
-} else {
-    // 처음 방문한 경우에만 ID 생성 및 기록
-    state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('survey_user_id', state.userId);
-    recordInitialVisit(); // 오직 최초 1회만 실행됨
+    if (savedId) {
+        state.userId = savedId;
+    } else {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        recordInitialVisit(); 
+    }
 }
 
+// 초기 실행
+checkDuplicateAndInitialize();
+
 function recordInitialVisit() {
-    // 이미 전송된 기록이 있는지 한 번 더 로컬에서 체크 (이중 방어)
     if (localStorage.getItem('initial_visit_recorded')) return;
 
     const initialData = { 
-        method: 'initial', // 초기 접속임을 알림
+        method: 'initial',
         id: state.userId, 
         condition: state.condition 
     };
@@ -503,7 +544,6 @@ function recordInitialVisit() {
         mode: "no-cors", 
         body: JSON.stringify(initialData) 
     }).then(() => {
-        // 성공적으로 전송했다면 플래그 저장
         localStorage.setItem('initial_visit_recorded', 'true');
     });
 }
@@ -850,8 +890,34 @@ function validateScreener() {
             crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
         };
 
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-        .then(() => { showStep('step-complete'); document.querySelector('.bottom-bar').style.display = 'none'; })
-        .catch(() => { alert("오류가 발생했습니다."); btn.disabled = false; btn.innerText = "제출하기"; });
-    }
+네, 맞습니다. 올려주신 두 코드 블록은 기능적으로 동일합니다. 다만, **.catch() 블록(에러 처리)**이 포함된 기존 코드를 유지하면서 localStorage 한 줄만 정확히 들어가 있는지 확인하시면 됩니다.
+
+네트워크 오류 등으로 제출에 실패했을 때 사용자가 다시 시도할 수 있도록, 가급적 기존의 .catch() 부분이 포함된 형태를 권장합니다.
+
+아래는 최종적으로 적용해야 할 코드의 모습입니다.
+
+수정할 부분: sendData 함수 하단
+JavaScript
+    // ... 위쪽 results 객체 생성 로직 생략 ...
+
+    fetch(GOOGLE_SCRIPT_URL, { 
+        method: "POST", 
+        mode: "no-cors", 
+        body: JSON.stringify(results) 
+    })
+    .then(() => { 
+        // 1. 서버 전송 성공 시 브라우저에 완료 기록 저장 (중복 참여 차단용)
+        localStorage.setItem('survey_finished', 'true'); 
+        
+        // 2. 완료 화면 표시 및 하단 바 제거
+        showStep('step-complete'); 
+        document.querySelector('.bottom-bar').style.display = 'none'; 
+    })
+    .catch(() => { 
+        // 전송 실패 시 버튼을 다시 활성화하여 재시도 가능하게 함
+        alert("오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요."); 
+        btn.disabled = false; 
+        btn.innerText = "제출하기"; 
+    });
+}
 </script>
