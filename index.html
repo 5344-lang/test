@@ -319,6 +319,10 @@ select.form-control.selected {
     background-color: #f0f0f0;
     margin-top: 5px;
 }
+        /* 동의서 모드일 때 하단 버튼 바를 강제로 숨김 */
+.content.consent-mode ~ .bottom-bar {
+    display: none !important;
+}
     </style>
 </head>
 <body>
@@ -571,18 +575,17 @@ document.querySelectorAll('#step-screener input, #step-screener select').forEach
     // 1. 첫 실행 시 '연구 참여 동의' 단계이므로 바텀 바를 숨김
     showStep('step-consent');
 
-    // 2. 동의 버튼 이벤트 등록 (중요: 여기서 직접 선택해야 에러가 안 납니다)
+// 2. 동의 라디오 버튼 이벤트 등록
 const consentRadios = document.querySelectorAll('input[name="consent_choice"]');
 consentRadios.forEach(radio => {
     radio.addEventListener('change', function() {
         if (this.value === 'agree') {
+            // '동의' 선택 시 즉시 다음 단계로 이동
             state.step = 'screener';
-            showStep('step-screener'); // 문법 오류가 해결되면 정상 작동함
-            // 하단 바 다시 표시
-            const bottomBar = document.querySelector('.bottom-bar');
-            if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
+            showStep('step-screener');
         } else if (this.value === 'disagree') {
-            alert('연구에 동의하지 않으시면 참여하실 수 없습니다.');
+            // '미동의' 선택 시 팝업 후 종료
+            alert('연구에 동의하지 않으셨습니다. 실험을 종료합니다.');
             window.location.href = "about:blank";
         }
     });
@@ -676,13 +679,18 @@ function showStep(id) {
     const contentArea = document.getElementById('content-area');
     const bottomBar = document.querySelector('.bottom-bar');
 
-    // 1. 첫 페이지 '연구 참여 동의' 단계일 때 하단 바 강제 숨김
+    // 첫 페이지 '연구 참여 동의' 단계일 때 하단 바(다음/이전 버튼) 숨김
     if (id === 'step-consent') {
         contentArea.classList.add('consent-mode');
-        if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+        if (bottomBar) {
+            bottomBar.style.display = 'none'; // display flex 해제
+        }
     } else {
+        // 두 번째 페이지(screener)부터 하단 바 표시
         contentArea.classList.remove('consent-mode');
-        if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
+        if (bottomBar) {
+            bottomBar.style.setProperty('display', 'flex', 'important');
+        }
     }
 
     contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
@@ -692,7 +700,10 @@ function showStep(id) {
     const titles = { 
         'step-consent': '연구 참여 동의', 
         'step-screener': '인구통계학적 질문', 
-        'step-vignette': '상담 장면 대화' 
+        'step-vignette': '상담 장면 대화',
+        'step-des': '자기개방 기대 척도',
+        'step-seq': '상담회기평가',
+        'step-crf': '상담자 평가'
     };
     if(titles[id]) document.getElementById('header-title').innerText = titles[id];
 }
