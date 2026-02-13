@@ -14,19 +14,44 @@
         header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 120px 24px; }
-        .content.full-screen-mode {     padding: 0 !important;     margin: 0 !important;    overflow: hidden;}
-        /* --- 비주얼 노벨 스타일 수정 --- */
-#step-vignette { width: 100%; height: 100%; position: relative; }
-#image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
-#stimulus-img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 15%; display: block; transition: none;}
+      
+/* 비네트(실험) 단계에서 여백을 완전히 제거 */
+.content.full-screen-mode { 
+    padding: 0 !important; 
+    margin: 0 !important;
+    height: 100vh; 
+    width: 100%;
+    overflow: hidden; 
+}
 
-/* 대화창 공통: transition을 추가해 색상 변화를 부드럽게 합니다 */
-        /* padding: 위 좌 아래 우 */
-.vn-text-box { 
-    position: absolute; bottom: 0; left: 0; width: 100%; 
-    padding: 30px 30px 110px 30px; box-sizing: border-box; 
-    z-index: 10; min-height: 40%; display: flex; 
-    flex-direction: column; justify-content: flex-end; 
+/* 이미지 컨테이너: 화면 전체를 채우도록 설정 */
+#step-vignette, #image-container-vig { 
+    width: 100%; 
+    height: 100%; 
+    position: absolute; 
+    top: 0;
+    left: 0;
+    background-color: #000;
+}
+
+/* 이미지: 비율을 유지하며 화면에 꽉 차게 (여백 발생 원인 해결) */
+#stimulus-img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    display: block;
+}
+
+/* 대화창: 이미지 위에 뜨도록 절대 위치 고정 */
+.vn-text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* 아래 패딩(120px)이 하단 버튼과 겹치지 않게 밀어 올려줍니다 */
+    padding: 30px 30px 120px 30px; 
+    box-sizing: border-box;
+    z-index: 10;
     transition: opacity 0.5s ease-in-out, background 0.3s ease;
     word-break: keep-all;
 }
@@ -234,7 +259,10 @@ select.form-control.selected {
         <h2>1. 인구통계학적 질문지</h2>
             <div class="form-group">
                 <label class="form-label">1. 귀하의 연령은?</label>
-                <input type="number" class="form-control" id="age" placeholder="숫자로 입력 (예: 25)" min="1" max="120">
+               <input type="number" class="form-control" id="age" 
+       placeholder="숫자로 입력 (1~100)" 
+       min="1" max="100" 
+       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
             <div class="form-group">
                 <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
@@ -672,13 +700,26 @@ function handleNext() {
         return;
     }
 }
-    function validateScreener() {
-        const age = document.getElementById('age').value;
-        if (!age || age < 1) { alert('나이를 정확히 입력해주세요.'); return false; }
-        const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
-        for(let id of ids) { if(!document.getElementById(id).value.trim()) { alert('모든 질문에 답해 주세요.'); return false; } }
-        return true;
+function validateScreener() {
+    const ageInput = document.getElementById('age');
+    const age = parseInt(ageInput.value);
+
+    // 1~100 사이의 숫자인지 확인
+    if (isNaN(age) || age < 1 || age > 100) { 
+        alert('나이를 1세부터 100세 사이의 숫자로 정확히 입력해주세요.'); 
+        ageInput.focus();
+        return false; 
     }
+
+    const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
+    for(let id of ids) { 
+        if(!document.getElementById(id).value.trim()) { 
+            alert('모든 질문에 답해 주세요.'); 
+            return false; 
+        } 
+    }
+    return true;
+}}
 
     function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
