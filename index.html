@@ -109,11 +109,49 @@ select.form-control.selected {
         .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
         .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
         
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; background: white; border-top: 1px solid #eee; display: flex; z-index: 300; }
-        .footer-btn { background-color: var(--primary-color); color: white; border: none; padding: 18px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; }
-        #prev-btn { flex: 1; background-color: #a0a0a0; border-right: 1px solid #ddd; display: none; }
-        #main-btn { flex: 2; }
-        .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+/* 하단 버튼 바 레이아웃 비율 조정 */
+.bottom-bar { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    max-width: 500px; 
+    margin: 0 auto; 
+    background: white; 
+    border-top: 1px solid #eee; 
+    display: flex; 
+    z-index: 300; 
+}
+
+/* 이전 버튼 (20%) */
+#prev-btn { 
+    flex: 2; /* 비율 2 */
+    background-color: #a0a0a0; 
+    border-right: 1px solid #ddd; 
+    display: block; /* 항상 노출 */
+}
+
+/* 다음 버튼 (80%) */
+#main-btn { 
+    flex: 8; /* 비율 8 */
+}
+
+.footer-btn { 
+    background-color: var(--primary-color); 
+    color: white; 
+    border: none; 
+    padding: 18px; 
+    font-size: 16px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    text-align: center; 
+    transition: opacity 0.2s;
+}
+
+.footer-btn:disabled { 
+    background-color: #ccc; 
+    cursor: not-allowed; 
+}
 
 /* 리커트 척도 숫자 버튼 스타일 */
 .scale-options {
@@ -466,37 +504,7 @@ select.form-control.selected {
 <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJ0ZubvcnniOvawHLoSmwMvsPocuzsWomP51BLBTJ9twQnwbdyPV0KRigK-HnMuEJx/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-// 페이지 로드 시 즉시 중복 참여자 체크
-(function() {
-    if (localStorage.getItem('survey_finished') === 'true') {
-        alert("이미 본 연구에 참여하셨습니다.\n중복 참여는 연구 결과 왜곡 방지를 위해 제한하고 있습니다.");
-        
-        // 1. 안내 메시지로 화면 교체 (사용자가 내용을 볼 수 있게 함)
-        document.body.innerHTML = `
-            <div style="display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding:20px; text-align:center; font-family:'Noto Sans KR', sans-serif;">
-                <h2 style="color:#333;">참여 완료 안내</h2>
-                <p style="color:#666; line-height:1.6;">귀하는 이미 설문을 제출하셨습니다.<br>본 연구는 1인당 1회 참여를 원칙으로 합니다.</p>
-                <p style="color:#999; font-size:13px; margin-top:10px;">협조해 주셔서 감사합니다.</p>
-                <button onclick="location.href='about:blank'" style="margin-top:20px; padding:12px 25px; background:#5bc2e7; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">창 닫기</button>
-            </div>
-        `;
-        
-        // 2. 스크립트 실행 중단
-        throw new Error("중복 참여자 진입 차단");
-    }
-})();
-// 페이지 로드 시 즉시 실행
-if (!checkDuplicateParticipant()) {
-    // 중복이 아닐 때만 기존 ID 로직 실행
-    let savedId = localStorage.getItem('survey_user_id');
-    if (savedId) {
-        state.userId = savedId;
-    } else {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit();
-    }
-}    
+
 // 1. 상태 변수 선언
 let state = { 
     step: 'consent', 
@@ -505,19 +513,23 @@ let state = {
     userId: null 
 };
 
-// 2. 중복 지원 체크 및 ID 로직
-function checkDuplicateAndInitialize() {
-    // 이미 최종 제출을 완료한 이력이 있는지 확인
-    const isCompleted = localStorage.getItem('survey_finished');
-    
-    if (isCompleted === 'true') {
-        alert("이미 설문에 참여하셨습니다. 중복 참여는 불가능합니다.");
-        window.location.href = "about:blank"; // 페이지 백지화 또는 특정 안내 페이지로 이동
-        return;
+// 2. 초기화 및 중복 체크 로직
+window.onload = function() {
+    // 중복 참여자 즉시 차단
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다.\n중복 참여는 연구 결과 왜곡 방지를 위해 제한하고 있습니다.");
+        document.body.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding:20px; text-align:center; font-family:'Noto Sans KR', sans-serif;">
+                <h2 style="color:#333;">참여 완료 안내</h2>
+                <p style="color:#666; line-height:1.6;">귀하는 이미 설문을 제출하셨습니다.<br>본 연구는 1인당 1회 참여를 원칙으로 합니다.</p>
+                <button onclick="location.href='about:blank'" style="margin-top:20px; padding:12px 25px; background:#5bc2e7; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">창 닫기</button>
+            </div>
+        `;
+        return; 
     }
 
+    // ID 설정
     let savedId = localStorage.getItem('survey_user_id');
-
     if (savedId) {
         state.userId = savedId;
     } else {
@@ -525,10 +537,24 @@ function checkDuplicateAndInitialize() {
         localStorage.setItem('survey_user_id', state.userId);
         recordInitialVisit(); 
     }
-}
 
-// 초기 실행
-checkDuplicateAndInitialize();
+    // 렌더링 함수 실행
+    preloadImages();
+    renderDES();
+    renderSEQ();
+    renderCRF();
+
+    // 입력창 이벤트 연결
+    document.querySelectorAll('#step-screener select').forEach(select => {
+        select.addEventListener('change', updateInputColor);
+    });
+    document.querySelectorAll('#step-screener input').forEach(input => {
+        if(input.id !== 'reward-phone') {
+            input.style.backgroundColor = "#f0f0f0"; 
+            input.addEventListener('input', updateInputColor);
+        }
+    });
+};
 
 function recordInitialVisit() {
     if (localStorage.getItem('initial_visit_recorded')) return;
@@ -848,14 +874,23 @@ function validateScreener() {
         }, 2000);
     }
 
-    function showStep(id) {
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('content-area').classList.toggle('full-screen-mode', id === 'step-vignette');
-        document.getElementById('content-area').scrollTop = 0;
-        const prevBtn = document.getElementById('prev-btn');
-        prevBtn.style.display = (id === 'step-vignette' && state.vignetteIndex > 0) ? 'block' : 'none';
+// showStep 함수 수정 (이전 버튼 노출 조건 완화)
+function showStep(id) {
+    document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    
+    const area = document.getElementById('content-area');
+    area.classList.toggle('full-screen-mode', id === 'step-vignette');
+    area.scrollTop = 0;
+
+    // 첫 페이지(consent)에서는 이전 버튼을 숨김 처리
+    const prevBtn = document.getElementById('prev-btn');
+    if (state.step === 'consent') {
+        prevBtn.style.visibility = 'hidden';
+    } else {
+        prevBtn.style.visibility = 'visible';
     }
+}
 
     function showModal(type) {
         const modal = document.getElementById('guide-modal');
@@ -865,7 +900,68 @@ function validateScreener() {
     }
 
     function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
-    function handlePrev() { if (state.step === 'vignette' && state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); } }
+    function handlePrev() {
+    // 1. 비네트(실험) 단계 내부에서의 이동
+    if (state.step === 'vignette') {
+        if (state.vignetteIndex > 0) {
+            state.vignetteIndex--;
+            renderVignette();
+        } else {
+            // 비네트 첫 페이지에서 이전 누르면 인구통계로
+            state.step = 'screener';
+            showStep('step-screener');
+        }
+    } 
+    // 2. 인구통계 -> 동의서
+    else if (state.step === 'screener') {
+        state.step = 'consent';
+        showStep('step-consent');
+    }
+    // 3. DES 안내 -> 비네트 마지막
+    else if (state.step === 'des-intro') {
+        state.step = 'vignette';
+        showStep('step-vignette');
+        renderVignette();
+    }
+    // 4. DES 질문지 -> DES 안내
+    else if (state.step === 'des') {
+        state.step = 'des-intro';
+        showStep('step-des-intro');
+    }
+    // 5. SEQ 안내 -> DES 질문지
+    else if (state.step === 'seq-intro') {
+        state.step = 'des';
+        showStep('step-des');
+    }
+    // 6. SEQ 질문지 -> SEQ 안내
+    else if (state.step === 'seq') {
+        state.step = 'seq-intro';
+        showStep('step-seq-intro');
+    }
+    // 7. CRF 안내 -> SEQ 질문지
+    else if (state.step === 'crf-intro') {
+        state.step = 'seq';
+        showStep('step-seq');
+    }
+    // 8. CRF 질문지 -> CRF 안내
+    else if (state.step === 'crf') {
+        state.step = 'crf-intro';
+        showStep('step-crf-intro');
+    }
+    // 9. 조작점검 -> CRF 질문지
+    else if (state.step === 'check') {
+        state.step = 'crf';
+        showStep('step-crf');
+    }
+    // 10. 사후설명 -> 조작점검
+    else if (state.step === 'debrief') {
+        state.step = 'check';
+        showStep('step-check');
+        document.getElementById('main-btn').innerText = "다음";
+    }
+}
+
+
     function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
 
     function sendData() {
