@@ -513,31 +513,16 @@ let state = {
     userId: null 
 };
 
-// 5. 페이지 초기화 (이벤트 연결 통합)
-    window.onload = function() {
-        preloadImages();
-        renderDES();
-        renderSEQ();
-        renderCRF();
+// 2. 페이지 초기화 통합 로직
+window.onload = function() {
+    // 중복 참여 체크
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다.");
+        window.location.href = "about:blank";
+        return;
+    }
 
-        // select 박스 이벤트 연결
-        const selects = document.querySelectorAll('#step-screener select');
-        selects.forEach(select => {
-            if(select.value !== "") select.classList.add('selected');
-            select.addEventListener('change', updateInputColor);
-        });
-
-        // input 박스 이벤트 연결
-        const inputs = document.querySelectorAll('#step-screener input');
-        inputs.forEach(input => {
-            if(input.id !== 'reward-phone') {
-                input.style.backgroundColor = "#f0f0f0"; 
-                input.addEventListener('input', updateInputColor);
-            }
-        });
-    };
-
-    // ID 설정
+    // ID 설정 및 초기 방문 기록
     let savedId = localStorage.getItem('survey_user_id');
     if (savedId) {
         state.userId = savedId;
@@ -547,55 +532,22 @@ let state = {
         recordInitialVisit(); 
     }
 
-    // 렌더링 함수 실행
+    // 렌더링 및 이벤트 연결
     preloadImages();
     renderDES();
     renderSEQ();
     renderCRF();
 
-    // 입력창 이벤트 연결
     document.querySelectorAll('#step-screener select').forEach(select => {
         select.addEventListener('change', updateInputColor);
     });
     document.querySelectorAll('#step-screener input').forEach(input => {
-        if(input.id !== 'reward-phone') {
-            input.style.backgroundColor = "#f0f0f0"; 
-            input.addEventListener('input', updateInputColor);
-        }
+        if(input.id !== 'reward-phone') input.addEventListener('input', updateInputColor);
     });
+
+    // 첫 페이지 강제 로드
+    showStep('step-consent');
 };
-
-function recordInitialVisit() {
-    if (localStorage.getItem('initial_visit_recorded')) return;
-
-    const initialData = { 
-        method: 'initial',
-        id: state.userId, 
-        condition: state.condition 
-    };
-
-    fetch(GOOGLE_SCRIPT_URL, { 
-        method: "POST", 
-        mode: "no-cors", 
-        body: JSON.stringify(initialData) 
-    }).then(() => {
-        localStorage.setItem('initial_visit_recorded', 'true');
-    });
-}
-
-    // 4. 입력창 색상 변경 함수
-    function updateInputColor(event) {
-        const el = event.target;
-        if (el.value && el.value.trim() !== "") {
-            el.classList.add('selected');
-            if(el.tagName === 'INPUT') el.style.backgroundColor = "#ffffff";
-        } else {
-            el.classList.remove('selected');
-            if(el.tagName === 'INPUT') el.style.backgroundColor = "#f0f0f0";
-        }
-    }
-
-
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -730,41 +682,106 @@ function renderCRF() {
             startTimer();
         }
     }
-
 function handleNext() {
     const btn = document.getElementById('main-btn');
+    
     if (state.step === 'consent') {
         const c = document.querySelector('input[name="consent_choice"]:checked');
         if (!c) return alert('동의 여부를 선택해 주세요.');
         if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-        state.step = 'screener'; showStep('step-screener');
+
+        state.step = 'screener'; 
+        showStep('step-screener');
+        return; 
     } else if (state.step === 'screener') {
         if (!validateScreener()) return;
         checkEligibility();
     } else if (state.step === 'vignette') {
-        if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); } 
-        else { state.step = 'des-intro'; showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
-    } else if (state.step === 'des-intro') { state.step = 'des'; showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
-    else if (state.step === 'des') { if (!validateScale(8, 'des')) return; state.step = 'seq-intro'; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
-    else if (state.step === 'seq-intro') { state.step = 'seq'; showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
-    else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; state.step = 'crf-intro'; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
-    else if (state.step === 'crf-intro') { state.step = 'crf'; showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
-    else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; state.step = 'check'; showStep('step-check'); }
-    else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.'); state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기"; }
-    else if (state.step === 'debrief') { sendData(); }
+        if (state.vignetteIndex < vignettes.length - 1) { 
+            state.vignetteIndex++; 
+            renderVignette(); 
+        } else { 
+            state.step = 'des-intro'; 
+            showStep('step-des-intro'); 
+            document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; 
+            showModal('des'); 
+        }
+    } else if (state.step === 'des-intro') { 
+        state.step = 'des'; 
+        showStep('step-des'); 
+        document.getElementById('des-ref-img').src = imgFiles[state.condition]; 
+    } else if (state.step === 'des') { 
+        if (!validateScale(8, 'des')) return; 
+        state.step = 'seq-intro'; 
+        showStep('step-seq-intro'); 
+        document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; 
+        showModal('seq'); 
+    } else if (state.step === 'seq-intro') { 
+        state.step = 'seq'; 
+        showStep('step-seq'); 
+        document.getElementById('seq-ref-img').src = imgFiles[state.condition]; 
+    } else if (state.step === 'seq') { 
+        if (!validateScale(10, 'seq')) return; 
+        state.step = 'crf-intro'; 
+        showStep('step-crf-intro'); 
+        document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; 
+        showModal('crf'); 
+    } else if (state.step === 'crf-intro') { 
+        state.step = 'crf'; 
+        showStep('step-crf'); 
+        document.getElementById('crf-ref-img').src = imgFiles[state.condition]; 
+    } else if (state.step === 'crf') { 
+        if (!validateScale(12, 'crf')) return; 
+        state.step = 'check'; 
+        showStep('step-check'); 
+    } else if (state.step === 'check') { 
+        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.'); 
+        state.step = 'debrief'; 
+        showStep('step-debrief'); 
+        btn.innerText = "제출하기"; 
+    } else if (state.step === 'debrief') { 
+        sendData(); 
+    }
 }
-
-function handlePrev() {
-    if (state.step === 'screener') { state.step = 'consent'; showStep('step-consent'); }
-    else if (state.step === 'vignette') { if (state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); } else { state.step = 'screener'; showStep('step-screener'); } }
-    else if (state.step === 'des-intro') { state.step = 'vignette'; showStep('step-vignette'); renderVignette(); }
-    else if (state.step === 'des') { state.step = 'des-intro'; showStep('step-des-intro'); }
-    else if (state.step === 'seq-intro') { state.step = 'des'; showStep('step-des'); }
-    else if (state.step === 'seq') { state.step = 'seq-intro'; showStep('step-seq-intro'); }
-    else if (state.step === 'crf-intro') { state.step = 'seq'; showStep('step-seq'); }
-    else if (state.step === 'crf') { state.step = 'crf-intro'; showStep('step-crf-intro'); }
-    else if (state.step === 'check') { state.step = 'crf'; showStep('step-crf'); }
-    else if (state.step === 'debrief') { state.step = 'check'; showStep('step-check'); document.getElementById('main-btn').innerText = "다음"; }
+    function handlePrev() {
+    if (state.step === 'screener') { 
+        state.step = 'consent'; 
+        showStep('step-consent'); 
+    } else if (state.step === 'vignette') { 
+        if (state.vignetteIndex > 0) { 
+            state.vignetteIndex--; 
+            renderVignette(); 
+        } else { 
+            state.step = 'screener'; 
+            showStep('step-screener'); 
+        } 
+    } else if (state.step === 'des-intro') { 
+        state.step = 'vignette'; 
+        showStep('step-vignette'); 
+        renderVignette(); 
+    } else if (state.step === 'des') { 
+        state.step = 'des-intro'; 
+        showStep('step-des-intro'); 
+    } else if (state.step === 'seq-intro') { 
+        state.step = 'des'; 
+        showStep('step-des'); 
+    } else if (state.step === 'seq') { 
+        state.step = 'seq-intro'; 
+        showStep('step-seq-intro'); 
+    } else if (state.step === 'crf-intro') { 
+        state.step = 'seq'; 
+        showStep('step-seq'); 
+    } else if (state.step === 'crf') { 
+        state.step = 'crf-intro'; 
+        showStep('step-crf-intro'); 
+    } else if (state.step === 'check') { 
+        state.step = 'crf'; 
+        showStep('step-crf'); 
+    } else if (state.step === 'debrief') { 
+        state.step = 'check'; 
+        showStep('step-check'); 
+        document.getElementById('main-btn').innerText = "다음"; 
+    }
 }
 function validateScreener() {
     const ageInput = document.getElementById('age');
