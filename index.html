@@ -20,7 +20,16 @@
 #step-vignette { width: 100%; height: 100%; position: relative; }
 #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
 #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; transition: none; }
+/* 동의서 단계일 때 하단 파란색 버튼 바를 숨김 */
+.content.consent-mode + .bottom-bar {
+    display: none !important;
+}
 
+/* 동의서 단계에서 컨텐츠 영역이 바닥까지 꽉 차도록 설정 */
+.content.consent-mode {
+    padding-bottom: 20px !important;
+    height: calc(100vh - 60px); 
+}
 /* 대화창 공통: transition을 추가해 색상 변화를 부드럽게 합니다 */
         /* padding: 위 좌 아래 우 */
 .vn-text-box { 
@@ -208,6 +217,29 @@ select.form-control.selected {
         border-bottom: 1px solid #f0f0f0;
     }
     .scale-group:last-child { border-bottom: none; }
+
+        /* 동의서 모드일 때 하단 파란색 버튼 바를 숨김 */
+.content.consent-mode + .bottom-bar {
+    display: none !important;
+}
+
+/* 동의서 페이지일 때 컨텐츠 영역이 화면 끝까지 쓰도록 패딩 조정 */
+.content.consent-mode {
+    padding-bottom: 20px !important;
+    height: 100vh; /* 전체 화면 높이 사용 */
+}
+
+/* 동의서 스크롤 박스 높이 최적화 (체크박스가 잘 보이도록) */
+#step-consent {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#consent-scroll-box {
+    flex: 1; /* 남는 공간 다 차지 */
+    overflow-y: auto;
+}
     </style>
 </head>
 <body>
@@ -245,22 +277,23 @@ select.form-control.selected {
                 <p>5. 나는 이 연구가 온라인 설문 형태로 진행되며, 연구자와 학교·생명윤리위원회가 연구의 적절한 수행 여부를 확인하기 위해 필요한 범위 안에서만 비식별 자료를 열람할 수 있음을 이해하고 이에 동의합니다.</p>
                 <p>6. 나는 이 동의가 종이 서명이 아닌 전자적 방식으로 이루어지며, 화면 하단의 “본인은 위 내용을 숙지하였으며 연구 참여에 동의합니다.” 항목에 체크하고 설문을 시작하는 것이 자필 서명을 대신한다는 점을 이해합니다.</p>
 </div>
-            <div class="consent-options">
-            <label style="cursor:pointer; display:flex; align-items:flex-start; margin-bottom:10px;">
-                <input type="radio" name="consent_choice" value="agree" style="margin-top:5px; margin-right:10px;">
-                <span style="font-weight:bold;">본인은 위 내용을 모두 읽고 이해했으며, 연구 참여에 동의합니다.</span>
-            </label>
-            <label style="cursor:pointer; display:flex; align-items:flex-start;">
-                <input type="radio" name="consent_choice" value="disagree" style="margin-top:5px; margin-right:10px;">
-                <span>본인은 위 내용을 모두 읽고 이해했으며, 연구 참여에 동의하지 않습니다.</span>
-            </label>
-        </div> </div>
+<div class="consent-options">
+        <label style="cursor:pointer; display:flex; align-items:center; margin-bottom:15px; padding:10px; background:#fff; border-radius:5px;">
+            <input type="radio" name="consent_choice" value="agree" style="width:20px; height:20px;">
+            <span style="font-weight:bold; margin-left:10px;">본인은 위 내용을 모두 읽고 이해했으며, 연구 참여에 동의합니다.</span>
+        </label>
+        <label style="cursor:pointer; display:flex; align-items:center; padding:10px; background:#fff; border-radius:5px;">
+            <input type="radio" name="consent_choice" value="disagree" style="width:20px; height:20px;">
+            <span style="margin-left:10px;">본인은 위 내용을 모두 읽고 이해했으며, 연구 참여에 동의하지 않습니다.</span>
+        </label>
+    </div>
+        </div>
         </div>
         <div id="step-screener" class="hidden">
         <h2>1. 인구통계학적 질문지</h2>
             <div class="form-group">
-                <label class="form-label">1. 귀하의 연령은?</label>
-                <input type="number" class="form-control" id="age" placeholder="숫자로 입력 (예: 25)" min="1" max="120">
+                <label class="form-label">1. 귀하의 연령은?</label>    
+                <input type="number" id="age" min="19" max="100" placeholder="숫자로 입력">
             </div>
             <div class="form-group">
                 <label class="form-label">2. 현재 거주하고 있는 곳은 어디입니까?</label>
@@ -406,100 +439,272 @@ select.form-control.selected {
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJ0ZubvcnniOvawHLoSmwMvsPocuzsWomP51BLBTJ9twQnwbdyPV0KRigK-HnMuEJx/exec";
+    /* --- 환경 설정 및 상태 관리 --- */
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1vnDuO_N5Hr9tBR_fRTE_oMChuClMi5Os7U5uDWVPFvuR2C93Jffuc_aWBWHf5sXs/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
     
-let state = { 
+    let state = { 
         step: 'consent', 
         condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
         vignetteIndex: 0,
         userId: null 
     };
 
-window.onload = function() {
-    // 1. 중복 참여 체크 (이미 제출한 경우 차단)
-    if (localStorage.getItem('survey_submitted') === 'true') {
-        alert("이미 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
-        window.location.href = "about:blank"; 
-        return;
-    }
-
-    // 2. 고유 ID 생성 및 방문 기록
-    let savedId = localStorage.getItem('survey_user_id');
-    if (savedId) {
-        state.userId = savedId;
-    } else {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit();
-    }
-
-    // 3. 초기 렌더링 함수 실행
-    renderDES(); renderSEQ(); renderCRF(); preloadImages();
-
-    // 4. 입력창 색상 변경 이벤트 연결
-    document.querySelectorAll('select, input').forEach(el => {
-        el.addEventListener('change', updateInputColor);
-        // input의 경우 실시간 반영을 위해 input 이벤트도 추가하면 좋습니다.
-        if(el.tagName === 'INPUT') el.addEventListener('input', updateInputColor);
-    });
-};
-    
-function recordInitialVisit() {
-    // 이미 전송된 기록이 있는지 한 번 더 로컬에서 체크 (이중 방어)
-    if (localStorage.getItem('initial_visit_recorded')) return;
-
-    const initialData = { 
-        method: 'initial', // 초기 접속임을 알림
-        id: state.userId, 
-        condition: state.condition 
-    };
-
-    fetch(GOOGLE_SCRIPT_URL, { 
-        method: "POST", 
-        mode: "no-cors", 
-        body: JSON.stringify(initialData) 
-    }).then(() => {
-        // 성공적으로 전송했다면 플래그 저장
-        localStorage.setItem('initial_visit_recorded', 'true');
-    });
-}
-
-    // 4. 입력창 색상 변경 함수
-    function updateInputColor(event) {
-        const el = event.target;
-        if (el.value && el.value.trim() !== "") {
-            el.classList.add('selected');
-            if(el.tagName === 'INPUT') el.style.backgroundColor = "#ffffff";
-        } else {
-            el.classList.remove('selected');
-            if(el.tagName === 'INPUT') el.style.backgroundColor = "#f0f0f0";
-        }
-    }
-
-    // 5. 페이지 초기화 (이벤트 연결 통합)
+    /* --- 초기 실행 로직 --- */
     window.onload = function() {
+        if (localStorage.getItem('survey_submitted') === 'true') {
+            alert("이미 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
+            window.location.href = "about:blank"; 
+            return;
+        }
+
+        let savedId = localStorage.getItem('survey_user_id');
+        if (savedId) {
+            state.userId = savedId;
+        } else {
+            state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('survey_user_id', state.userId);
+            recordInitialVisit();
+        }
+
         preloadImages();
         renderDES();
         renderSEQ();
         renderCRF();
 
-        // select 박스 이벤트 연결
-        const selects = document.querySelectorAll('#step-screener select');
-        selects.forEach(select => {
-            if(select.value !== "") select.classList.add('selected');
-            select.addEventListener('change', updateInputColor);
+        // 입력창 색상 변경 이벤트 등록
+        document.querySelectorAll('select, input').forEach(el => {
+            el.addEventListener('change', updateInputColor);
+            if(el.tagName === 'INPUT') el.addEventListener('input', updateInputColor);
         });
 
-        // input 박스 이벤트 연결
-        const inputs = document.querySelectorAll('#step-screener input');
-        inputs.forEach(input => {
-            if(input.id !== 'reward-phone') {
-            input.style.backgroundColor = "#f0f0f0"; 
-            input.addEventListener('input', updateInputColor);
-        }
+        // 동의 버튼 이벤트
+        const consentRadios = document.querySelectorAll('input[name="consent_choice"]');
+        consentRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'agree') {
+                    state.step = 'screener';
+                    showStep('step-screener');
+                } else if (this.value === 'disagree') {
+                    alert('연구에 동의하지 않으시면 참여하실 수 없습니다.');
+                    window.location.href = "about:blank";
+                }
+            });
         });
     };
+
+    /* --- 주요 기능 함수 --- */
+
+async function preloadImages() {
+        const images = Object.values(imgFiles);
+        const promises = images.map(src => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = src;
+                img.onload = resolve;
+                img.onerror = resolve; // 이미지 로드 실패 시에도 진행
+            });
+        });
+        await Promise.all(promises);
+    }
+
+    function renderVignette() {
+        const idx = state.vignetteIndex;
+        const current = vignettes[idx];
+        const imgEl = document.getElementById('stimulus-img');
+        const textBox = document.querySelector('.vn-text-box');
+        const btn = document.getElementById('main-btn');
+        const prevBtn = document.getElementById('prev-btn');
+
+        // 이전 버튼 관리
+        prevBtn.style.display = (idx > 0) ? 'block' : 'none';
+
+        // 이미지 부드러운 전환
+        const targetSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+        if (imgEl.src !== targetSrc) {
+            imgEl.style.transition = "opacity 0.3s";
+            imgEl.style.opacity = '0.3'; 
+            setTimeout(() => {
+                imgEl.src = targetSrc;
+                imgEl.style.opacity = '1';
+            }, 300);
+        }
+
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+
+        // 화자 스타일 적용
+        textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
+        if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
+        else if (current.speaker === "나") textBox.classList.add('speaker-me');
+        else textBox.classList.add('speaker-default');
+
+        const textContent = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+        
+        if (idx === 5) { // 상담실 진입 시 연출
+            textBox.style.opacity = '0'; 
+            btn.disabled = true; 
+            btn.innerText = "기다리는 중...";
+            setTimeout(() => {
+                textBox.style.opacity = '1';
+                document.getElementById('vignette-text').innerHTML = textContent;
+                startTimer();
+            }, 3000);
+        } else {
+            textBox.style.opacity = '1';
+            document.getElementById('vignette-text').innerHTML = textContent;
+            startTimer();
+        }
+    }
+
+    function handlePrev() {
+        if (state.step === 'vignette' && state.vignetteIndex > 0) {
+            state.vignetteIndex--;
+            renderVignette();
+        } else if (state.step === 'vignette' && state.vignetteIndex === 0) {
+            state.step = 'screener';
+            showStep('step-screener');
+        }
+    }
+
+    function handleExit() {
+        if(confirm("실험을 종료하시겠습니까? 데이터는 저장되지 않습니다.")) {
+            window.location.href = "about:blank";
+        }
+    }
+
+    /* --- 4. 유틸리티 함수 --- */
+
+    function showStep(id) {
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(id);
+        if (target) target.classList.remove('hidden');
+        
+        const contentArea = document.getElementById('content-area');
+        contentArea.classList.toggle('consent-mode', id === 'step-consent');
+        contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
+        contentArea.scrollTop = 0;
+        
+        const titles = { 'step-consent': '연구 참여 동의', 'step-screener': '인구통계학적 질문', 'step-vignette': '상담 장면 대화' };
+        if(titles[id]) document.getElementById('header-title').innerText = titles[id];
+    }
+
+    function validateScreener() {
+        const ageEl = document.getElementById('age');
+        const age = parseInt(ageEl.value.trim());
+        if (!age || isNaN(age) || age < 19 || age > 100) { alert('만 19세 이상의 성인만 참여 가능합니다.'); return false; }
+        const requiredIds = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
+        for (const id of requiredIds) {
+            const el = document.getElementById(id);
+            if (!el || !el.value || el.value.trim() === "") { alert('모든 항목을 입력해 주세요.'); return false; }
+        }
+        return true; 
+    }
+
+    function checkEligibility() {
+        const age = parseInt(document.getElementById('age').value);
+        const orient = document.getElementById('orientation').value;
+        const bSex = document.getElementById('birth_sex').value;
+        const cGen = document.getElementById('current_gender').value;
+
+        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
+            state.step = 'vignette'; showStep('step-vignette'); renderVignette();
+        } else {
+            alert("죄송합니다. 본 연구의 참여 대상자가 아닙니다.");
+            window.location.href = "about:blank";
+        }
+    }
+
+    async function handleNext() {
+        const btn = document.getElementById('main-btn');
+        if (state.step === 'screener') {
+            if (!validateScreener()) return;
+            checkEligibility();
+        } else if (state.step === 'vignette') {
+            if (state.vignetteIndex < vignettes.length - 1) {
+                state.vignetteIndex++; renderVignette();
+            } else {
+                state.step = 'des'; showStep('step-des');
+                document.getElementById('des-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
+                showModal('des');
+            }
+        } else if (['des', 'seq', 'crf'].includes(state.step)) {
+            const configs = { 'des': { q: 8, next: 'seq', img: 'seq-ref-img' }, 'seq': { q: 10, next: 'crf', img: 'crf-ref-img' }, 'crf': { q: 12, next: 'check', img: null } };
+            const cur = configs[state.step];
+            if (!validateScale(cur.q, state.step)) return;
+            state.step = cur.next; showStep('step-' + cur.next);
+            if (cur.img) {
+                document.getElementById(cur.img).src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
+                showModal(cur.next);
+            }
+        } else if (state.step === 'check') {
+            if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
+            state.step = 'debrief'; showStep('step-debrief'); btn.innerText = "제출하기";
+        } else if (state.step === 'debrief') {
+            btn.disabled = true; await sendData();
+        }
+    }
+
+    async function sendData() {
+        const btn = document.getElementById('main-btn');
+        btn.innerText = "제출 중...";
+        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+        let checkAns = checkOptEl.value === 'etc' ? "기타: " + document.getElementById('check-etc-input').value : checkOptEl.value;
+
+        const results = {
+            id: state.userId, condition: state.condition, age: document.getElementById('age').value,
+            residence: document.getElementById('residence').value, orientation: document.getElementById('orientation').value,
+            birth_sex: document.getElementById('birth_sex').value, current_gender: document.getElementById('current_gender').value,
+            religion: document.getElementById('religion').value, check_answer: checkAns, phone: document.getElementById('reward-phone').value || "",
+            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`)?.value).join(','),
+            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`)?.value).join(','),
+            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`)?.value).join(',')
+        };
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) });
+            localStorage.setItem('survey_submitted', 'true');
+            showStep('step-complete');
+            document.querySelector('.bottom-bar').style.display = 'none';
+        } catch (e) {
+            alert("전송 중 오류가 발생했습니다.");
+            btn.disabled = false;
+        }
+    }
+
+    function validateScale(count, prefix) {
+        for(let i=0; i<count; i++) {
+            if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) {
+                alert(`${i+1}번 문항에 응답해 주세요.`); return false;
+            }
+        }
+        return true;
+    }
+
+    function startTimer() {
+        const btn = document.getElementById('main-btn');
+        btn.disabled = true; btn.innerText = "읽는 중...";
+        setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 2000);
+    }
+
+    function showModal(type) {
+        document.getElementById('modal-title').innerText = guideMessages[type].title;
+        document.getElementById('modal-body').innerText = guideMessages[type].body;
+        document.getElementById('guide-modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
+    
+    function recordInitialVisit() {
+        if (localStorage.getItem('initial_visit_recorded')) return;
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ method: 'initial', id: state.userId, condition: state.condition }) }).then(() => localStorage.setItem('initial_visit_recorded', 'true'));
+    }
+
+    function updateInputColor(event) {
+        const el = event.target;
+        if (el.value && el.value.trim() !== "") el.classList.add('selected');
+        else el.classList.remove('selected');
+    }
+    
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -530,219 +735,40 @@ function recordInitialVisit() {
     const desQuestions = ["1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?", "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?", "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?", "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?", "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?", "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?", "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?", "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"];
     const seqPairs = [{L:"힘들었다", R:"쉬웠다"}, {L:"가치있었다", R:"가치없었다"}, {L:"피상적이었다", R:"깊이있었다"}, {L:"마음 편했다", R:"긴장되었다"}, {L:"언짢았다", R:"즐거웠다"}, {L:"가득찼다", R:"비었다"}, {L:"약했다", R:"강했다"}, {L:"특별했다", R:"보통이었다"}, {L:"거칠었다", R:"매끄러웠다"}, {L:"편안했다", R:"불편했다"}];
     const crfQuestions = ["경험이 많다", "믿음직스럽다", "사교적이다", "노련하다", "우호적이다", "전문적이다", "진실하다", "온화하다", "정직하다", "호감이 간다", "준비가 되어있다", "신뢰할 수 있다."];
-const guideMessages = {
-    'des': {
-        title: '자기개방 기대 척도',
-        body: '다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.'
-    },
-    'seq': {
-        title: '상담회기평가',
-        body: '다음 문항들은 귀하께서 이 상담자와 진행된 상담시간에 대해 어떻게 느끼고 있는지 알아보고자 하는 것입니다. 각 문항마다 대조되는 단어가 쌍으로 제시되어 있으며, 귀하께서는 앞서 본 상담시간에 대해 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.'
-    },
-    'crf': {
-        title: '상담자 평가',
-        body: '귀하께서 지금까지 상담자를 어떻게 보았는지, 그 정도를 가장 잘 나타내는 숫자에 표시하여 주십시오.'
-    }
+    const guideMessages = {
+        'des': { title: '자기개방 기대 척도', body: '다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.'},
+    'seq': { title: '상담회기평가', body: '다음 문항들은 귀하께서 이 상담자와 진행된 상담시간에 대해 어떻게 느끼고 있는지 알아보고자 하는 것입니다. 각 문항마다 대조되는 단어가 쌍으로 제시되어 있으며, 귀하께서는 앞서 본 상담시간에 대해 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.' },
+    'crf': { title: '상담자 평가', body: '귀하께서 지금까지 상담자를 어떻게 보았는지, 그 정도를 가장 잘 나타내는 숫자에 표시하여 주십시오.' }
 };
-function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
-
-    function renderDES() {
-    document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
-        <div class="scale-group">
-            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
-            <div class="scale-options">
-                ${[1, 2, 3, 4, 5].map(v => `
-                    <label class="scale-option">
-                        <input type="radio" name="des_q${i}" value="${v}">
-                        <span class="scale-number">${v}</span>
-                    </label>`).join('')}
-            </div>
-            <div class="scale-labels">
-                <span>전혀 그렇지 않다</span>
-                <span>보통이다</span>
-                <span>매우 그렇다</span>
-            </div>
-        </div>`).join('');
-}
-
-function renderSEQ() {
-    document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
-        <div class="scale-group">
-            <div class="scale-labels" style="margin-bottom: 8px; font-weight:bold; color:#222;">
-                <span style="text-align:left;">${p.L}</span>
-                <span style="text-align:right;">${p.R}</span>
-            </div>
-            <div class="scale-options">
-                ${[1, 2, 3, 4, 5, 6, 7].map(v => `
-                    <label class="scale-option">
-                        <input type="radio" name="seq_q${i}" value="${v}">
-                        <span class="scale-number">${v}</span>
-                    </label>`).join('')}
-            </div>
-            <div class="scale-labels">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>`).join('');
-}
-
-function renderCRF() {
-    document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
-        <div class="scale-group">
-            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
-            <div class="scale-options">
-                ${[1, 2, 3, 4, 5, 6, 7].map(v => `
-                    <label class="scale-option">
-                        <input type="radio" name="crf_q${i}" value="${v}">
-                        <span class="scale-number">${v}</span>
-                    </label>`).join('')}
-            </div>
-            <div class="scale-labels">
-                <span>전혀 그렇지 않다</span>
-                <span>보통이다</span>
-                <span>매우 그렇다</span>
-            </div>
-        </div>`).join('');
-}
-
-    function renderVignette() {
-        const idx = state.vignetteIndex;
-        const current = vignettes[idx];
-        const imgEl = document.getElementById('stimulus-img');
-        const textBox = document.querySelector('.vn-text-box');
-        const btn = document.getElementById('main-btn');
-
-        imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-
-        textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
-        if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
-        else if (current.speaker === "나") textBox.classList.add('speaker-me');
-        else textBox.classList.add('speaker-default');
-
-        if (idx === 5) {
-            textBox.style.opacity = '0'; btn.disabled = true; btn.innerText = "기다리는 중...";
-            setTimeout(() => {
-                textBox.style.opacity = '1';
-                document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-                startTimer();
-            }, 3000);
-        } else {
-            textBox.style.opacity = '1';
-            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-            startTimer();
-        }
+function renderDES() {
+        document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
+            <div class="scale-group">
+                <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
+                </div>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div>
+            </div>`).join('');
     }
 
-function handleNext() {
-        const btn = document.getElementById('main-btn');
-
-        if (state.step === 'consent') {
-            const c = document.querySelector('input[name="consent_choice"]:checked');
-            if (!c) return alert('동의 여부를 선택해 주세요.');
-            if (c.value === 'disagree') return alert('동의하지 않으시면 참여하실 수 없습니다.');
-            state.step = 'screener';
-            showStep('step-screener');
-        } 
-        else if (state.step === 'screener') {
-            if (!validateScreener()) return;
-            checkEligibility();
-        } 
-        else if (state.step === 'vignette') {
-            if (state.vignetteIndex < vignettes.length - 1) {
-                state.vignetteIndex++;
-                renderVignette();
-            } else {
-                state.step = 'des';
-                showStep('step-des');
-                document.getElementById('des-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
-                showModal('des'); // 가이드 팝업
-            }
-        } 
-        else if (state.step === 'des') {
-            if (!validateScale(8, 'des')) return;
-            state.step = 'seq';
-            showStep('step-seq');
-            document.getElementById('seq-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
-            showModal('seq'); // 가이드 팝업
-        } 
-        else if (state.step === 'seq') {
-            if (!validateScale(10, 'seq')) return;
-            state.step = 'crf';
-            showStep('step-crf');
-            document.getElementById('crf-ref-img').src = (state.condition === 'none') ? 'none.png' : state.condition + '.png';
-            showModal('crf'); // 가이드 팝업
-        } 
-        else if (state.step === 'crf') {
-            if (!validateScale(12, 'crf')) return;
-            state.step = 'check';
-            showStep('step-check');
-        } 
-        else if (state.step === 'check') {
-            if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
-            state.step = 'debrief';
-            showStep('step-debrief');
-            btn.innerText = "제출하기";
-        } 
-        else if (state.step === 'debrief') {
-            sendData();
-        }
+    function renderSEQ() {
+        document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
+            <div class="scale-group">
+                <div class="scale-labels" style="margin-bottom: 8px; font-weight:bold; color:#222;"><span style="text-align:left;">${p.L}</span><span style="text-align:right;">${p.R}</span></div>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
+                </div>
+            </div>`).join('');
     }
 
-    // [수정] 데이터 전송 완료 후 로컬 스토리지에 기록 보관
-    function sendData() {
-        const btn = document.getElementById('main-btn');
-        btn.disabled = true; btn.innerText = "제출 중";
-        
-        // 결과 객체 생성... (생략된 기존 로직)
-        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
-        let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-        if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
-
-        const results = {
-            id: state.userId, condition: state.condition,
-            age: document.getElementById('age').value,
-            residence: document.getElementById('residence').value,
-            orientation: document.getElementById('orientation').value,
-            birth_sex: document.getElementById('birth_sex').value,
-            current_gender: document.getElementById('current_gender').value,
-            religion: document.getElementById('religion').value,
-            check_answer: checkAns,
-            phone: document.getElementById('reward-phone').value || "",
-            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
-            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
-        };
-
-   fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-    .then(() => { 
-        // 성공 시 브라우저에 완료 기록을 남겨 중복 참여를 방지합니다.
-        localStorage.setItem('survey_submitted', 'true'); 
-        
-        showStep('step-complete'); 
-        document.querySelector('.bottom-bar').style.display = 'none'; 
-    })
-    .catch(() => { 
-        alert("오류가 발생했습니다."); 
-        btn.disabled = false; 
-        btn.innerText = "제출하기"; 
-    });
-    }
-
-    // 모달 닫기 기능 명시적 확인
-    function showModal(type) {
-        const modal = document.getElementById('guide-modal');
-        const title = document.getElementById('modal-title');
-        const body = document.getElementById('modal-body');
-        
-        title.innerText = guideMessages[type].title;
-        body.innerText = guideMessages[type].body;
-        
-        modal.style.display = 'flex'; // 보이게 설정
-    }
-
-    function closeModal() {
-        document.getElementById('guide-modal').style.display = 'none';
+    function renderCRF() {
+        document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
+            <div class="scale-group">
+                <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
+                <div class="scale-options">
+                    ${[1, 2, 3, 4, 5, 6, 7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
+                </div>
+                <div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div>
+            </div>`).join('');
     }
 </script>
