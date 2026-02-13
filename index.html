@@ -17,48 +17,45 @@
     }
 
     /* --- 2. 기본 레이아웃 --- */
-    html, body { height: 100%; margin: 0; padding: 0; background-color: var(--bg-color); }
-    body { font-family: 'Noto Sans KR', sans-serif; display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
-
-    .app-container { 
-        background-color: var(--card-bg); 
-        width: 100%; max-width: 500px; height: 100%; 
-        display: flex; flex-direction: column; 
-        box-shadow: 0 0 20px rgba(0,0,0,0.05); 
-        position: relative; 
-    }
-
-    header { 
-        background-color: var(--header-bg); color: white; 
-        padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; 
-        font-weight: 500; flex-shrink: 0; z-index: 200; 
-    }
-
-    .content { 
-        flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; 
-        position: relative; padding: 0 24px 150px 24px; /* 하단 바 가림 방지 여백 */
-        box-sizing: border-box;
-    }
-
-    /* --- 3. 동의서 & 특수 모드 제어 --- */
-    .hidden { display: none !important; }
-    .content.full-screen-mode { padding: 0; overflow: hidden; }
-
-/* 동의서 단계: 하단 바 강제 숨김 */
-.content.consent-mode ~ .bottom-bar { 
-    display: none !important; 
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+/* --- 기존 스타일 수정 --- */
+html, body { 
+    height: 100%; 
+    margin: 0; 
+    padding: 0; 
+    background-color: var(--bg-color); 
+    /* overflow: hidden; <- 이 부분을 제거하거나 아래처럼 수정하세요 */
 }
-    .content.consent-mode ~ .bottom-bar { display: none !important; }
 
-    #consent-scroll-box { 
-        flex: 1; overflow-y: auto !important; background: #ffffff; 
-        padding: 15px; border: 1px solid #ccc; border-radius: 5px; 
-        font-size: 14px; line-height: 1.6; margin-bottom: 15px; 
-    }
+body { 
+    font-family: 'Noto Sans KR', sans-serif; 
+    display: flex; 
+    justify-content: center; 
+    color: var(--text-main); 
+    overflow-x: hidden; /* 가로 스크롤만 방지 */
+}
 
+/* 동의서 스크롤 박스 (50% 높이 고정) */
+#consent-scroll-box { 
+    height: 50vh; /* 화면 높이의 50%로 고정 */
+    flex: none;   /* flex: 1 대신 고정 높이 사용 */
+    overflow-y: auto !important; 
+    background: #ffffff; 
+    padding: 15px; 
+    border: 1px solid #ccc; 
+    border-radius: 5px; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    margin-bottom: 15px;
+    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+}
+
+/* 동의서 모드일 때 컨텐츠 영역 설정 */
+.content.consent-mode { 
+    padding: 20px 24px !important; 
+    overflow-y: auto !important; /* 전체 페이지 스크롤 허용 */
+    height: auto !important;     /* 높이 제한 해제 */
+    display: block !important;   /* flex 대신 일반 블록 레이아웃 */
+}
     /* --- 4. 비주얼 노벨(Vignette) 스타일 --- */
     #step-vignette { width: 100%; height: 100%; position: relative; }
     #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
@@ -492,35 +489,39 @@ async function preloadImages() {
 
     /* --- 4. 유틸리티 함수 --- */
 function showStep(id) {
-    // 모든 단계 숨기기
-    document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-    
-    // 대상 단계 보이기
-    const target = document.getElementById(id);
-    if (target) target.classList.remove('hidden');
-    
-    const contentArea = document.getElementById('content-area');
-    const bottomBar = document.querySelector('.bottom-bar');
+    // 모든 단계 숨기기
+    document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+    
+    // 대상 단계 보이기
+    const target = document.getElementById(id);
+    if (target) target.classList.remove('hidden');
+    
+    const contentArea = document.getElementById('content-area');
+    const bottomBar = document.querySelector('.bottom-bar');
 
-    if (id === 'step-consent') {
-        // 첫 페이지: 동의서 모드 활성화 (CSS에 의해 하단바 숨겨짐)
-        contentArea.classList.add('consent-mode');
-    } else {
-        // 그 외 페이지: 동의서 모드 해제 및 하단바 표시
-        contentArea.classList.remove('consent-mode');
-        if (bottomBar) bottomBar.style.setProperty('display', 'flex', 'important');
+    // 동의서 단계 특화 로직
+    if (id === 'step-consent') {
+        contentArea.classList.add('consent-mode');
+        if (bottomBar) bottomBar.style.display = 'none'; // 하단바 물리적 제거
+    } else {
+        contentArea.classList.remove('consent-mode');
+        if (bottomBar) bottomBar.style.display = 'flex'; // 하단바 복구
+    }
 
+    // 비주얼 노벨 모드 (이미지 꽉 차는 화면)
+    contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
+    
+    // 페이지 전환 시 스크롤을 항상 맨 위로
+    contentArea.scrollTop = 0;
+    window.scrollTo(0, 0);
 
-    contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
-    contentArea.scrollTop = 0;
-
-    // 헤더 타이틀 업데이트
-    const titles = { 
-        'step-consent': '연구 참여 동의', 
-        'step-screener': '인구통계학적 질문', 
-        'step-vignette': '상담 장면 대화'
-    };
-    if(titles[id]) document.getElementById('header-title').innerText = titles[id];
+    // 헤더 타이틀 업데이트
+    const titles = { 
+        'step-consent': '연구 참여 동의', 
+        'step-screener': '인구통계학적 질문', 
+        'step-vignette': '상담 장면 대화'
+    };
+    if(titles[id]) document.getElementById('header-title').innerText = titles[id];
 }
 
     function checkEligibility() {
