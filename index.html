@@ -20,11 +20,13 @@
 #step-vignette { width: 100%; height: 100%; position: relative; }
 #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; }
 #stimulus-img { width: 115%; height: 100%; object-fit: cover; object-position: 70% 15%; transition: none; }
-/* 동의서 단계일 때 하단 바 자체를 강제 숨김 */
+/* hidden 클래스가 최우선적으로 적용되어야 함 */
+.hidden { display: none !important; }
+
+/* 동의서 모드일 때 하단 바 숨김 가이드 */
 .content.consent-mode ~ .bottom-bar {
     display: none !important;
 }
-
 /* 동의서 단계에서 컨텐츠 영역이 바닥까지 꽉 차도록 설정 */
 .content.consent-mode {
     padding-bottom: 20px !important;
@@ -319,7 +321,7 @@ select.form-control.selected {
     background-color: #f0f0f0;
     margin-top: 5px;
 }
-        /* 동의서 모드일 때 하단 버튼 바를 강제로 숨김 */
+        /* 동의서 단계일 때 하단 바를 절대 보이지 않게 강제함 */
 .content.consent-mode ~ .bottom-bar {
     display: none !important;
 }
@@ -578,19 +580,17 @@ document.querySelectorAll('#step-screener input, #step-screener select').forEach
 // 2. 동의 라디오 버튼 이벤트 등록
 const consentRadios = document.querySelectorAll('input[name="consent_choice"]');
 consentRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
+    radio.addEventListener('click', function() { // change 대신 click 사용으로 반응성 향상
         if (this.value === 'agree') {
-            // '동의' 선택 시 즉시 다음 단계로 이동
             state.step = 'screener';
+            // 즉시 실행
             showStep('step-screener');
         } else if (this.value === 'disagree') {
-            // '미동의' 선택 시 팝업 후 종료
             alert('연구에 동의하지 않으셨습니다. 실험을 종료합니다.');
             window.location.href = "about:blank";
         }
     });
 });
-
     /* --- 주요 기능 함수 --- */
 
 async function preloadImages() {
@@ -672,27 +672,33 @@ async function preloadImages() {
 
     /* --- 4. 유틸리티 함수 --- */
 function showStep(id) {
+    // 모든 단계 숨기기
     document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+    
+    // 대상 단계 보이기
     const target = document.getElementById(id);
-    if (target) target.classList.remove('hidden');
+    if (target) {
+        target.classList.remove('hidden');
+    }
     
     const contentArea = document.getElementById('content-area');
     const bottomBar = document.querySelector('.bottom-bar');
 
-    // 첫 페이지 '연구 참여 동의' 단계일 때 하단 바(다음/이전 버튼) 숨김
     if (id === 'step-consent') {
+        // 첫 페이지: 하단 바 완전 제거
         contentArea.classList.add('consent-mode');
         if (bottomBar) {
-            bottomBar.style.display = 'none'; // display flex 해제
+            bottomBar.style.display = 'none'; 
         }
     } else {
-        // 두 번째 페이지(screener)부터 하단 바 표시
+        // 그 외 페이지: 하단 바 표시
         contentArea.classList.remove('consent-mode');
         if (bottomBar) {
-            bottomBar.style.setProperty('display', 'flex', 'important');
+            bottomBar.style.display = 'flex'; // block 대신 flex로 원상복구
         }
     }
 
+    // 비네트 모드 등 추가 설정
     contentArea.classList.toggle('full-screen-mode', id === 'step-vignette');
     contentArea.scrollTop = 0;
 
@@ -700,10 +706,7 @@ function showStep(id) {
     const titles = { 
         'step-consent': '연구 참여 동의', 
         'step-screener': '인구통계학적 질문', 
-        'step-vignette': '상담 장면 대화',
-        'step-des': '자기개방 기대 척도',
-        'step-seq': '상담회기평가',
-        'step-crf': '상담자 평가'
+        'step-vignette': '상담 장면 대화'
     };
     if(titles[id]) document.getElementById('header-title').innerText = titles[id];
 }
@@ -721,7 +724,19 @@ function showStep(id) {
             window.location.href = "about:blank";
         }
     }
+function validateScreener() {
+    const age = document.getElementById('age').value;
+    const residence = document.getElementById('residence').value;
+    const orientation = document.getElementById('orientation').value;
+    const bSex = document.getElementById('birth_sex').value;
+    const cGen = document.getElementById('current_gender').value;
 
+    if (!age || !residence || !orientation || !bSex || !cGen) {
+        alert("모든 항목에 응답해 주세요.");
+        return false;
+    }
+    return true;
+}
     async function handleNext() {
         const btn = document.getElementById('main-btn');
         if (state.step === 'screener') {
