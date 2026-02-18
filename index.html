@@ -516,30 +516,71 @@ select.form-control.selected {
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCh1Jezvo7Wpj8Wrq5ueWPV6zNrYlZqPkn0T_SX5xUHiMHzIxPc74rytMGuYel_GCF/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4yJWnZIZvlZmvHUJg_0JstNrwRz5OkoehKmSVjfpnFPzY8VFxT7TRcMUFri2v2vfY/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
 
+/* 1. IP 수집 함수: 차단 방지를 위해 3곳의 백업 경로 사용 */
 async function getIP() {
-    // 여러 서비스를 대조하여 하나라도 성공하면 IP를 가져옵니다.
     const providers = [
         'https://api.ipify.org?format=json',
         'https://api.v-ip.com/info',
         'https://checkip.amazonaws.com'
     ];
-
     for (const url of providers) {
         try {
             const response = await fetch(url, { timeout: 3000 });
-            if (url.includes('json')) {
-                const data = await response.json();
-                return data.ip;
-            } else {
-                const data = await response.text();
-                return data.trim();
-            }
+            const data = await (url.includes('json') ? response.json() : response.text());
+            return typeof data === 'object' ? data.ip : data.trim();
         } catch (e) { continue; }
     }
-    return "IP_BLOCK_USER"; // 끝까지 실패할 경우
+    return "UNKNOWN_SECRET_MODE"; // 모든 경로 차단 시 (매우 드문 경우)
+}
+
+/* 2. 데이터 전송 함수 (async/await 적용) */
+async function sendData() {
+    const btn = document.getElementById('main-btn');
+    btn.disabled = true;
+    btn.innerText = "제출 중";
+
+    const userIP = await getIP(); // IP 가져오기 대기
+
+    const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+    let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+    if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
+
+    const results = {
+        id: state.userId,
+        ip: userIP, // IP 포함
+        condition: state.condition,
+        age: document.getElementById('age').value,
+        residence: document.getElementById('residence').value,
+        orientation: document.getElementById('orientation').value,
+        birth_sex: document.getElementById('birth_sex').value,
+        current_gender: document.getElementById('current_gender').value,
+        religion: document.getElementById('religion').value,
+        check_answer: checkAns,
+        phone: document.getElementById('reward-phone').value || "",
+        des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
+        seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
+        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors", // 차단 없이 무조건 전송
+        body: JSON.stringify(results)
+    })
+    .then(() => {
+        localStorage.setItem('survey_finished', 'true');
+        showStep('step-complete');
+        document.querySelector('.bottom-bar').style.display = 'none';
+    })
+    .catch(() => {
+        // no-cors 특성상 에러가 떠도 데이터는 전송됩니다.
+        localStorage.setItem('survey_finished', 'true');
+        showStep('step-complete');
+        document.querySelector('.bottom-bar').style.display = 'none';
+    });
 }
     
 // 1. 상태 변수 선언
