@@ -331,7 +331,8 @@ select.form-control.selected {
                 <p>연구를 통해 얻어진 결과가 학위논문, 학술지, 학회 발표 등의 형태로 공개될 수 있으나, 이 과정에서 귀하의 이름이나 연락처 등 개인을 직접 식별할 수 있는 정보는 일절 사용되지 않습니다. 다만 법령에서 요구하는 경우에는 관련 규정이 허용하는 범위 안에서 필요한 정보가 제공될 수 있으며, 이때에도 연구대상자의 비밀보장을 최대한 보호하기 위해 필요한 조치를 취합니다. 또한 생명윤리위원회 등 점검·모니터 기관은 연구 절차와 자료의 신뢰성 검증을 위해 연구 관련 자료의 열람을 요청할 수 있으나, 이 역시 관련 규정 범위 내에서 비밀보장을 침해하지 않는 선에서만 이루어집니다. 연구 종료 후 연구 관련 문서(위원회 심의결과, 동의 기록, 개인정보 수집·이용 현황 등)는 관련 법령이 정한 기간 동안 전자 데이터 형태로 보관한 뒤, 보관기간이 만료되면 복구가 불가능한 방식으로 완전 삭제될 예정입니다.</p>
                 <p>귀하는 본 연구에 참여하지 않을 자유가 있으며, 참여 여부는 전적으로 자발적인 결정에 따라 이루어집니다. 연구에 참여하지 않더라도 귀하에게는 어떠한 불이익도 발생하지 않습니다. 또한 연구에 참여하신 후라도 언제든지 이유를 밝히지 않고 참여를 중단하실 수 있으며, 이 경우에도 불이익은 전혀 없습니다. 만일 연구 참여를 그만두고 싶으시다면 안내문에 제시된 담당 연구원 또는 연구책임자에게 이메일이나 기타 연락 수단을 통해 중지 의사를 알려 주시면 됩니다. 참여 중지 시, 귀하의 응답 데이터는 연구 데이터베이스에서 즉시 분리되며, 식별 가능한 정보와 연계된 원자료는 전자 파일상에서 복구가 불가능한 방식으로 완전히 삭제됩니다. 이미 통계적으로 완전히 익명화되어 개인을 전혀 식별할 수 없는 집계 데이터만 남게 되며, 추가 분석에는 귀하의 개별 자료가 더 이상 사용되지 않습니다.</p>
                 <p>본 연구에 대해 질문이 있거나 연구 중간에 문제가 생길 시 다음 연구 담당자에게 언제든지 연락하십시오.</p>
-                <p style="padding-left: 10px;">연구담당자: 김윤서<br>긴급연락처: pape5344@daegu.ac.kr</p>
+                <p style="padding-left: 10px;">공동연구자: 김윤서<br>이메일: pape5344@daegu.ac.kr</p>
+                <p style="padding-left: 10px;">책임연구자: 남상희<br>이메일: baskya@daegu.ac.kr</p>
                 <p>만일 어느 때라도 연구대상자로서 귀하의 권리에 대한 질문이 있다면 다음의 대구대학교 생명윤리위원회에 연락하십시오.<br>대구대학교 생명윤리위원회 · 전화번호: 053-850-5140 · https://irb.daegu.ac.kr</p>
                 <hr>
                 <p>1. 나는 화면에 제시된 연구대상자 설명문을 읽었으며, 궁금한 점이 있을 경우 담당 연구원에게 문의하여 설명을 들을 수 있음을 이해하였습니다</p>
@@ -354,7 +355,7 @@ select.form-control.selected {
         <div id="step-screener" class="hidden">
         <h2>1. 인구통계학적 질문지</h2>
             <div class="form-group">
-                <label class="form-label">1. 귀하의 연령은?</label>
+                <label class="form-label">1. 귀하의 연령은? (만____세)</label>
                <input type="number" class="form-control" id="age" 
        placeholder="숫자로 입력하세요" 
        min="1" max="100" 
@@ -397,10 +398,6 @@ select.form-control.selected {
                     <option value="other">기타 (그 외 다른 정체성)</option>
                 </select>
             </div>
-<div class="form-group">
-    <label class="form-label">5. 귀하의 종교는 무엇입니까?</label>
-    <input type="text" id="religion" class="form-control" placeholder="무교, 기독교, 천주교, 불교 등">
-</div>
         </div>
 
         <div id="step-vignette" class="hidden">
@@ -410,7 +407,7 @@ select.form-control.selected {
         </div>
         <div id="step-des-intro" class="hidden">
     <div class="sticky-top-box"><img id="des-intro-ref-img" src=""></div>
-    <h2>6. 자기개방 기대 척도 (DES)</h2>
+    <h2>5. 자기개방 기대 척도 (DES)</h2>
     <div class="intro-box">
         <p class="intro-text">다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.<br>(1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
         <div id="des-questions-preview" class="preview-content"></div>
@@ -418,13 +415,13 @@ select.form-control.selected {
 </div>
 <div id="step-des" class="hidden">
     <div class="sticky-top-box"><img id="des-ref-img" src=""></div>
-    <h2>6. 자기개방 기대 척도 (DES)</h2>
+    <h2>5. 자기개방 기대 척도 (DES)</h2>
     <div id="des-container"></div>
 </div>
 
 <div id="step-seq-intro" class="hidden">
     <div class="sticky-top-box"><img id="seq-intro-ref-img" src=""></div>
-    <h2>7. 상담회기평가 질문지 (SEQ)</h2>
+    <h2>6. 상담회기평가 질문지 (SEQ)</h2>
     <div class="intro-box">
         <p class="intro-text">다음 문항들은 귀하께서 이 상담자와 진행된 상담시간에 대해 어떻게 느끼고 있는지 알아보고자 하는 것입니다. 각 문항마다 대조되는 단어가 쌍으로 제시되어 있으며, 귀하께서는 앞서 본 상담시간에 대해 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.<br>(1: 전혀 그렇지 않다 ~ 7: 매우 그렇다)
      </p>
@@ -433,14 +430,14 @@ select.form-control.selected {
 </div>
 <div id="step-seq" class="hidden">
     <div class="sticky-top-box"><img id="seq-ref-img" src=""></div>
-    <h2>7. 상담회기평가 질문지 (SEQ)</h2>
+    <h2>6. 상담회기평가 질문지 (SEQ)</h2>
      <p style="font-size:18px; color:#222; font-weight:bold; margin-bottom:20px; margin-top:10px;">앞서 본 상담 시간은, ___________했다.</p>
     <div id="seq-container"></div>
 </div>
 
 <div id="step-crf-intro" class="hidden">
     <div class="sticky-top-box"><img id="crf-intro-ref-img" src=""></div>
-    <h2>8. 상담자 평가 질문지 (CRF-S)</h2>
+    <h2>7. 상담자 평가 질문지 (CRF-S)</h2>
     <div class="intro-box">
         <p class="intro-text">귀하께서 지금까지 상담자를 어떻게 보았는지, 그 정도를 가장 잘 나타내는 숫자에 표시하여 주세요.<br>(1: 전혀 그렇지 않다 ~ 7: 매우 그렇다)</p>
         <div id="crf-questions-preview" class="preview-content"></div>
@@ -448,13 +445,13 @@ select.form-control.selected {
 </div>
 <div id="step-crf" class="hidden">
     <div class="sticky-top-box"><img id="crf-ref-img" src=""></div>
-    <h2>8. 상담자 평가 질문지 (CRF-S)</h2>
+    <h2>7. 상담자 평가 질문지 (CRF-S)</h2>
 <p style="font-size:18px; color:#222; font-weight:bold; margin-bottom:20px; margin-top:10px;">앞서 본 상담자는, __________했다.</p>
     <div id="crf-container"></div>
 </div>
 
         <div id="step-check" class="hidden">
-            <h2>9. 조작점검 문항</h2>
+            <h2>8. 조작점검 문항</h2>
             <p class="form-label">※ 지금 보신 상담실 장면을 떠올려 주세요. 상담실에서 기억에 남는 물건이나 표시가 있다면 선택해 주세요.</p>
             <div class="form-group" style="background:#fafafa; padding:20px; border-radius:8px;">
                 <label><input type="radio" name="check_opt" value="cross">십자가</label><br><br>
@@ -464,7 +461,22 @@ select.form-control.selected {
                 <input type="text" id="check-etc-input" class="form-control" style="margin-top:10px;" placeholder="내용을 입력하세요.">
             </div>
         </div>
-
+        
+<div id="step-religion-move" class="hidden">
+    <h2>9.종교 질문</h2>
+    <div class="form-group">
+        <label class="form-label">귀하의 종교는 무엇입니까?</label>
+        <select id="religion" class="form-control">
+            <option value="" disabled selected hidden>선택하세요</option>
+            <option value="가톨릭">가톨릭</option>
+            <option value="개신교">개신교</option>
+            <option value="불교">불교</option>
+            <option value="무교">무교</option>
+            <option value="기타">기타</option>
+        </select>
+    </div>
+</div>
+        
         <div id="step-debrief" class="hidden">
             <h2>10. 사후 설명 (Debriefing)</h2>
             <div id="debrief-scroll-box" style="background:#ffffff; height: 50vh; overflow-y: auto; padding:15px; border:1px solid #ccc; font-size:14px; line-height:1.7; color: #333; border-radius: 5px; margin-bottom: 20px;">
@@ -756,23 +768,31 @@ function handleNext() {
         document.getElementById('crf-ref-img').src = imgFiles[state.condition]; 
     } 
     // 9. CRF 질문지 -> 조작 점검
-    else if (state.step === 'crf') { 
+else if (state.step === 'crf') { 
         if (!validateScale(12, 'crf')) return; 
-        state.step = 'check'; 
-        showStep('step-check'); 
+        state.step = 'check'; showStep('step-check'); 
     } 
-    // 10. 조작 점검 -> 사후 설명
-    else if (state.step === 'check') { 
-        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.'); 
-        state.step = 'debrief'; 
-        showStep('step-debrief'); 
-        btn.innerText = "제출하기"; 
-    } 
-    // 11. 최종 제출
+else if (state.step === 'check') { 
+    if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목을 선택해 주세요.');
+    
+    // 종교 질문 단계로 이동
+    state.step = 'religion-move'; 
+    showStep('step-religion-move'); 
+} 
+else if (state.step === 'religion-move') {
+    // 객관식 선택 여부 확인
+    if (!document.getElementById('religion').value) return alert('종교를 선택해 주세요.');
+    
+    state.step = 'debrief'; 
+    showStep('step-debrief'); 
+    btn.innerText = "제출하기"; 
+}
     else if (state.step === 'debrief') { 
         sendData(); 
     }
 }
+
+    
     function handlePrev() {
     if (state.step === 'screener') { 
         state.step = 'consent'; 
@@ -807,51 +827,51 @@ function handleNext() {
     } else if (state.step === 'check') { 
         state.step = 'crf'; 
         showStep('step-crf'); 
-    } else if (state.step === 'debrief') { 
+    } else if (state.step === 'religion-move') { 
         state.step = 'check'; 
         showStep('step-check'); 
+    } else if (state.step === 'debrief') { 
+        state.step = 'religion-move'; 
+        showStep('step-religion-move'); 
         document.getElementById('main-btn').innerText = "다음"; 
-    }
+}
 }
 function validateScreener() {
     const ageInput = document.getElementById('age');
     const age = parseInt(ageInput.value);
+    if (isNaN(age) || age < 10 || age > 100) { alert('나이를 정확히 입력해주세요.'); return false; }
 
-    // 1. 나이 유효성 검사 (1~100세 제한)
-    if (isNaN(age) || age < 10 || age > 100) { 
-        alert('나이를 정확히 입력해주세요.'); 
-        ageInput.focus(); // 잘못된 입력칸으로 바로 이동
-        return false; 
-    }
-
-    // 2. 나머지 필수 항목 입력 여부 검사
-    const ids = ['residence', 'orientation', 'birth_sex', 'current_gender', 'religion'];
-    for(let id of ids) { 
+    // 'religion'을 목록에서 제거함
+    const ids = ['residence', 'orientation', 'birth_sex', 'current_gender']; 
+    for(let id of ids) {
         const el = document.getElementById(id);
-        if(!el.value.trim()) { 
-            alert('모든 질문에 답해 주세요.'); 
-            el.focus();
-            return false; 
-        } 
+        if(!el.value.trim()) { alert('모든 질문에 답해 주세요.'); el.focus(); return false; }
     }
     return true;
 }
+
+    // 초기 방문 기록 함수 (누락된 부분 추가)
+function recordInitialVisit() {
+    if (localStorage.getItem('initial_visit_recorded')) return;
+    const initialData = { method: 'initial', id: state.userId, condition: state.condition };
+    fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) })
+    .then(() => localStorage.setItem('initial_visit_recorded', 'true'));
+}
+    
+// 자격 확인 함수 (중복 제거 및 통합)
 function checkEligibility() {
     const age = parseInt(document.getElementById('age').value);
     const orient = document.getElementById('orientation').value;
     const bSex = document.getElementById('birth_sex').value;
     const cGen = document.getElementById('current_gender').value;
 
-    // 1. 만 19세 이상 
-    // 2. 이성애자('hetero') 및 모름('dontknow') 제외 
-    // 3. 출생 성별과 정체성이 같은 시스젠더(bSex === cGen)
     if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
         state.step = 'vignette'; 
         showStep('step-vignette'); 
-        renderVignette(); // 비네트 화면 렌더링
+        renderVignette();
     } else {
-        alert("참여 대상자에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
-        window.location.href = "about:blank"; // 부적격자 차단
+        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
+        window.location.href = "about:blank";
     }
 }
 
