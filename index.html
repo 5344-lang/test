@@ -409,7 +409,7 @@ select.form-control.selected {
     <div class="sticky-top-box"><img id="des-intro-ref-img" src=""></div>
     <h2>5. 자기개방 기대 척도 (DES)</h2>
     <div class="intro-box">
-        <p class="intro-text">다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 예상하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.<br>(1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
+        <p class="intro-text">다음 문항들은 앞서 보신 상담의 상담자에게 당신의 고민을 털어놓는 것에 대해 어떻게 기대하고 계신지를 묻는 질문입니다. 귀하께서는 어떻게 느끼셨는지, 그 정도를 나타내는 숫자에 표시해주십시오.<br>(1: 전혀 그렇지 않다 ~ 5: 매우 그렇다)</p>
         <div id="des-questions-preview" class="preview-content"></div>
     </div>
 </div>
@@ -516,9 +516,20 @@ select.form-control.selected {
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4y2BAlm8dUCrNsM8DlUPPkRCEkSiX-tc6kWwCf3tQSaT08IkZkKSVZDeyMHxW5184/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0TxiZwFFgZHMdJsnfYNwAoXKUOfUxGzmuP3Nu20PK9CezRALJO_o7meI_A9mPoOb/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-
+/* 1. 파일 상단 GOOGLE_SCRIPT_URL 아래에 추가 */
+async function getIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (e) { 
+        console.error("IP 로드 실패:", e);
+        return "unknown"; 
+    }
+}
+    
 // 1. 상태 변수 선언
 let state = { 
     step: 'consent', 
@@ -920,45 +931,50 @@ function showStep(id) {
 
     function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
 
-    function sendData() {
-        const btn = document.getElementById('main-btn');
-        btn.disabled = true; btn.innerText = "제출 중";
-        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
-        let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-        if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
+    /* 2. 기존 sendData 함수를 이것으로 교체 */
+async function sendData() { // async 키워드 확인!
+    const btn = document.getElementById('main-btn');
+    btn.disabled = true; 
+    btn.innerText = "제출 중";
+    
+    // IP 주소 가져오기 대기
+    const userIP = await getIP();
 
-        const results = {
-            id: state.userId, condition: state.condition,
-            age: document.getElementById('age').value,
-            residence: document.getElementById('residence').value,
-            orientation: document.getElementById('orientation').value,
-            birth_sex: document.getElementById('birth_sex').value,
-            current_gender: document.getElementById('current_gender').value,
-            religion: document.getElementById('religion').value,
-            check_answer: checkAns,
-            phone: document.getElementById('reward-phone').value || "",
-            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
-            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
-        };
-    fetch(GOOGLE_SCRIPT_URL, { 
-        method: "POST", 
-        mode: "no-cors", 
-        body: JSON.stringify(results) 
+    const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+    let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+    if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
+
+    const results = {
+        id: state.userId,
+        ip: userIP, // 여기에 IP 주소 포함
+        condition: state.condition,
+        age: document.getElementById('age').value,
+        residence: document.getElementById('residence').value,
+        orientation: document.getElementById('orientation').value,
+        birth_sex: document.getElementById('birth_sex').value,
+        current_gender: document.getElementById('current_gender').value,
+        religion: document.getElementById('religion').value,
+        check_answer: checkAns,
+        phone: document.getElementById('reward-phone').value || "",
+        des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
+        seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
+        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify(results)
     })
-    .then(() => { 
-        // 1. 서버 전송 성공 시 브라우저에 완료 기록 저장 (중복 참여 차단용)
-        localStorage.setItem('survey_finished', 'true'); 
-        
-        // 2. 완료 화면 표시 및 하단 바 제거
-        showStep('step-complete'); 
-        document.querySelector('.bottom-bar').style.display = 'none'; 
+    .then(() => {
+        localStorage.setItem('survey_finished', 'true');
+        showStep('step-complete');
+        document.querySelector('.bottom-bar').style.display = 'none';
     })
-    .catch(() => { 
-        // 전송 실패 시 버튼을 다시 활성화하여 재시도 가능하게 함
-        alert("오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요."); 
-        btn.disabled = false; 
-        btn.innerText = "제출하기"; 
+    .catch((err) => {
+        alert("오류 발생. 다시 시도해주세요.");
+        btn.disabled = false;
+        btn.innerText = "제출하기";
     });
 }
 </script>
