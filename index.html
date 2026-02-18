@@ -746,12 +746,12 @@ function renderCRF() {
         else textBox.classList.add('speaker-default');
 
         if (idx === 5) {
-            textBox.style.opacity = '0'; btn.disabled = true; btn.innerText = "기다리는 중...";
+            textBox.style.opacity = '0'; btn.disabled = true; btn.innerText = "10초 후 상담이 시작됩니다";
             setTimeout(() => {
                 textBox.style.opacity = '1';
                 document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
                 startTimer();
-            }, 3000);
+            }, 10000); //5000은 5초, 7000은 7초
         } else {
             textBox.style.opacity = '1';
             document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
