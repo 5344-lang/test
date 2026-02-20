@@ -5,133 +5,318 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-   <style>
-    /* --- [기존] 디자인 시스템 및 루트 설정 --- */
-    :root { 
-        --primary-color: #5bc2e7; 
-        --header-bg: #343a40; 
-        --bg-color: #f5f5f5; 
-        --card-bg: #ffffff; 
-        --text-main: #333333; 
-    }
-    
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body { 
-        font-family: 'Noto Sans KR', sans-serif; 
-        background-color: var(--bg-color); 
-        display: flex; 
-        justify-content: center; 
-        overflow: hidden; /* 전체 스크롤 방지 (내부 스크롤 사용) */
-        color: var(--text-main); 
-    }
+    <style>
+        /* --- 디자인 시스템 --- */
+        :root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
+        html, body { height: 100%; margin: 0; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
+/* --- [수정] 앱 컨테이너: PC에서는 넓게, 모바일은 꽉 차게 --- */
+.app-container { 
+    background-color: var(--card-bg); 
+    width: 100%; 
+    height: 100%; 
+    /* PC 가로 너비를 800px로 늘려 전체 이미지가 보이게 합니다 */
+    max-width: 800px; 
+    display: flex; 
+    flex-direction: column; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+    position: relative; 
+}
 
-    /* [반응형 최적화] PC에선 500px 고정, 모바일에선 꽉 차게 */
-    .app-container { 
-        background-color: var(--card-bg); 
-        width: 100%; 
-        max-width: 500px; 
-        height: 100%; 
-        display: flex; 
-        flex-direction: column; 
-        box-shadow: 0 0 20px rgba(0,0,0,0.05); 
-        position: relative; 
-    }
+header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
+.close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
+.content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 120px 24px; }
 
-    header { 
-        background-color: var(--header-bg); 
-        color: white; 
-        padding: 15px 20px; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        font-weight: 500; 
-        flex-shrink: 0; 
-        z-index: 200; 
-    }
-    
-    .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
-    
-    /* [기존 여백 유지] */
-    .content { 
-        flex: 1; 
-        overflow-y: auto; 
-        -webkit-overflow-scrolling: touch; 
-        position: relative; 
-        padding: 0 24px 80px 24px !important; 
-    }
+/* 비네트(실험) 단계 전체화면 설정 */
+.content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
 
-    /* --- [유지] 비네트(실험) 단계 특수 스타일 --- */
-    .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
+/* 이미지 컨테이너 */
+#step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
 
-    #step-vignette, #image-container-vig { 
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; 
-    }
+/* --- [핵심] 이미지 반응형 로직 (PC는 전체, 모바일은 140% 크롭) --- */
 
-    /* [기존 이미지 위치 사수] */
+/* 1. 기본 설정 (PC/태블릿용: 이미지 전체 노출) */
+#stimulus-img { 
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: contain !important; /* 이미지 전체를 찌그러짐 없이 보여줌 */
+    object-position: center !important; 
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+}
+
+/* 2. [반응형] 모바일 화면(너비 600px 이하) 설정 */
+@media (max-width: 600px) {
+    .app-container { max-width: 100%; } /* 모바일은 가로 100% 꽉 차게 */
+
     #stimulus-img { 
+        /* 사용자님의 의도: 140% 확대 + 65% 위치 사수 */
         width: 140% !important; 
         height: 100% !important; 
         object-fit: cover !important; 
         object-position: 65% center !important; 
-        position: absolute; 
+        
+        /* 중앙 정렬 유지 로직 */
+        position: absolute;
         left: 50%; 
         transform: translateX(-50%); 
-        display: block; 
     }
+}
+/* 대화창: 이미지 위에 뜨도록 절대 위치 고정 */
+.vn-text-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* 아래 패딩을 70px 정도로 줄여 대사가 화면 아래쪽에 더 붙게 합니다 */
+    padding: 30px 30px 85px 30px; 
+    box-sizing: border-box;
+    z-index: 10;
+    transition: opacity 0.5s ease-in-out, background 0.3s ease;
+    word-break: keep-all;
+    /* 대사창 자체가 너무 높게 올라오지 않도록 최소 높이 제거 */
+    min-height: auto; 
+}
 
-    /* --- [유지] 대화창 색상 그라데이션 --- */
-    .vn-text-box {
-        position: absolute; bottom: 0; left: 0; width: 100%;
-        padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10;
-        transition: opacity 0.5s ease-in-out, background 0.3s ease;
-        word-break: keep-all; min-height: auto; 
-    }
-    .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
-    .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
-    .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
-    .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
-    .speaker { font-weight: 700; color: #ffffff; margin-right: 8px; font-size: 17px; display: block; margin-bottom: 5px; }
+/* 상담자일 때 배경 (파란색 계열) */
+.vn-text-box.speaker-counselor {
+    background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%);
+}
 
-    /* --- [유지] 하단 버튼 바 및 비율 --- */
-    .bottom-bar { 
-        position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; 
-        margin: 0 auto; background: white; border-top: 1px solid #eee; 
-        display: flex; z-index: 300; 
-    }
-    #prev-btn { flex: 2; background-color: #a0a0a0; border-right: 1px solid #ddd; }
-    #main-btn { flex: 8; }
-    .footer-btn { 
-        background-color: var(--primary-color); color: white; border: none; 
-        padding: 18px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; 
-    }
-    .footer-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+/* 나일 때 배경 (초록색 계열) */
+.vn-text-box.speaker-me {
+    background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%);
+}
 
-    /* --- [유지] 리커트 척도 스타일 --- */
-    .scale-group { margin-bottom: 45px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-    .scale-options { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
-    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; cursor: pointer; transition: background 0.2s; }
-    .scale-option:last-child { border-right: none; }
-    .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
-    .scale-number { display: block; padding: 15px 0; text-align: center; font-size: 16px; font-weight: 500; color: #333; }
-    .scale-option:has(input:checked) { background-color: var(--primary-color); }
-    .scale-option:has(input:checked) .scale-number { color: #fff; font-weight: bold; }
-    .scale-labels { display: flex; justify-content: space-between; margin-top: 5px; padding: 0 2px; }
-    .scale-labels span { font-size: 12px; color: #666; flex: 1; }
+/* 해설/기본 배경 (기존 검정색) */
+.vn-text-box.speaker-default {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%);
+}
 
-    /* 공통 요소 */
-    .hidden { display: none !important; }
-    h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
-    .form-group { margin-bottom: 25px; }
-    .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-    select.form-control.selected { background-color: #ffffff !important; color: #333; }
 
-    /* [반응형 대응] 작은 모바일 화면에서 글자 크기 조정 */
-    @media (max-width: 380px) {
-        .vn-text-box p { font-size: 15px; }
-        .footer-btn { padding: 15px; font-size: 15px; }
-        .scale-number { padding: 12px 0; }
-    }
-</style>
+/* 유효한 값이 선택되었을 때 입혀질 클래스 (흰색 배경) */
+select.form-control.selected {
+    background-color: #ffffff !important; /* 흰색 배경 */
+    color: #333; /* 글자색 진하게 */
+}
+.vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); margin: 0; }
+
+/* 이름 표시: 노란색(#ffeb3b)에서 흰색(#ffffff)으로 수정 */
+.speaker { font-weight: 700; color: #ffffff; margin-right: 8px; font-size: 17px; display: block; margin-bottom: 5px; }
+
+#page-counter { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; z-index: 20; }
+        /* --- 설문 공통 스타일 --- */
+        .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 15px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px; text-align: center; }
+        .sticky-top-box img { max-height: 20vh; max-width: 100%; object-fit: contain; }
+        h2 { font-size: 18px; margin-bottom: 15px; color: #222; margin-top: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        .hidden { display: none !important; }
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+        
+/* 하단 버튼 바 레이아웃 비율 조정 */
+.bottom-bar { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    max-width: 500px; 
+    margin: 0 auto; 
+    background: white; 
+    border-top: 1px solid #eee; 
+    display: flex; 
+    z-index: 300; 
+}
+
+/* 이전 버튼 (20%) */
+#prev-btn { 
+    flex: 2; /* 비율 2 */
+    background-color: #a0a0a0; 
+    border-right: 1px solid #ddd; 
+    display: block; /* 항상 노출 */
+}
+
+/* 다음 버튼 (80%) */
+#main-btn { 
+    flex: 8; /* 비율 8 */
+}
+
+.footer-btn { 
+    background-color: var(--primary-color); 
+    color: white; 
+    border: none; 
+    padding: 18px; 
+    font-size: 16px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    text-align: center; 
+    transition: opacity 0.2s;
+}
+
+.footer-btn:disabled { 
+    background-color: #ccc; 
+    cursor: not-allowed; 
+}
+
+/* 리커트 척도 숫자 버튼 스타일 */
+.scale-options {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #ccc; /* 바깥 테두리 */
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 15px 0 8px 0;
+}
+
+.scale-option {
+    flex: 1;
+    position: relative;
+    border-right: 1px solid #ccc; /* 숫자 사이 구분선 */
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.scale-option:last-child { border-right: none; }
+
+/* 라디오 버튼 숨기기 */
+.scale-option input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* 숫자 표시 */
+.scale-number {
+    display: block;
+    padding: 15px 0;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* 선택되었을 때 배경색 변경 (파란색) */
+.scale-option:has(input:checked) {
+    background-color: var(--primary-color);
+}
+
+/* 선택된 숫자는 하얗게 */
+.scale-option:has(input:checked) .scale-number {
+    color: #fff;
+    font-weight: bold;
+}
+
+/* 하단 라벨 정렬 교정 */
+.scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    padding: 0 2px;
+}
+
+.scale-labels span {
+    font-size: 12px;
+    color: #666;
+    flex: 1;
+}
+
+/* 1번 밑으로 */
+.scale-labels span:first-child { text-align: left; }
+/* 중간 */
+.scale-labels span:nth-child(2) { text-align: center; }
+/* 7번 밑으로 */
+.scale-labels span:last-child { text-align: right; }
+
+/* 전체 컨테이너 패딩: 하단 여백을 버튼 높이(약 80px)만큼만 잡습니다 */
+.content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    padding: 0 24px 80px 24px !important; /* 기존 120px에서 80px로 수정 */
+}
+
+/* 스크롤 박스 높이 고정 및 레이아웃 충돌 방지 */
+#consent-scroll-box {
+    height: 40vh;
+    min-height: 200px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background: #ffffff;
+    overflow-y: auto;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+    display: block; /* 영역 확보 확인 */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 동의 옵션 박스 위치 확실히 확보 */
+.consent-options {
+    margin-top: 10px;
+    margin-bottom: 30px; /* 다음 버튼과의 간격 확보 */
+    padding: 15px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    position: relative;
+    z-index: 10;
+}
+/* 문단 간격 조정 */
+#consent-scroll-box p {
+    margin-bottom: 15px;
+}
+
+/* 동의 라디오 버튼 박스 */
+.consent-options {
+    flex-shrink: 0; /* 높이가 줄어들지 않도록 고정 */
+    padding: 15px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    margin-bottom: 5px; /* 하단 버튼과의 미세 간격 */
+}
+        /* 1. 팝업 배경 딤 처리 강화 (배경을 더 어둡게) */
+#guide-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* 배경 투명도를 0.85로 높여 더 어둡게 */
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px); /* 배경을 살짝 흐리게 처리 */
+}
+
+/* 2. 척도 문항 간 간격 추가 및 구분선 */
+.scale-group {
+    margin-bottom: 45px; /* 문항 사이 간격을 넉넉히 벌림 */
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee; /* 문항 사이 흐린 구분선 추가 */
+}
+
+.scale-group:last-child {
+    border-bottom: none; /* 마지막 문항 아래 선은 제거 */
+}
+
+/* 문항 제목(질문) 스타일 보완 */
+.scale-question {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 15px !important;
+    display: block;
+    word-break: keep-all;
+}
+    </style>
 </head>
 <body>
 
