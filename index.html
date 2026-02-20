@@ -1041,16 +1041,34 @@ function checkEligibility() {
     const bSex = document.getElementById('birth_sex').value;
     const cGen = document.getElementById('current_gender').value;
 
+    // 1. 자격 확인 (만 19세 이상, 시스젠더 LGB 여부)
     if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
+        
+        // 2. [기존 함수에 추가] 자격 확인이 되면 즉시 인적사항 데이터를 서버로 보냅니다.
+        // 이렇게 하면 설문 마지막이 아니라, 이 단계에서 시트에 나이, 거주지 등이 바로 찍힙니다.
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({
+                id: state.userId,
+                condition: state.condition,
+                age: document.getElementById('age').value,
+                residence: document.getElementById('residence').value,
+                orientation: document.getElementById('orientation').value,
+                birth_sex: bSex,
+                current_gender: cGen
+            })
+        });
+
+        // 3. 다음 실험 단계로 이동
         state.step = 'vignette'; 
         showStep('step-vignette'); 
         renderVignette();
     } else {
-        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
+        alert("본 연구의 참여 대상자에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
         window.location.href = "about:blank";
     }
 }
-
 
     function validateScale(count, prefix) {
         for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } }
