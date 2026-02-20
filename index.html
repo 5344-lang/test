@@ -500,29 +500,93 @@ function showStep(id) {
     }
 }
 
-    function handleNext(event) {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-        if (state.step === 'consent') {
-            const c = document.querySelector('input[name="consent_choice"]:checked');
-            if (!c) return alert('동의 여부를 선택해 주세요.');
-            showStep('step-screener');
-        } else if (state.step === 'screener') {
-            if (!validateScreener()) return;
-            checkEligibility();
-        } else if (state.step === 'vignette') {
-            if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); }
-            else { localStorage.removeItem('current_vignette_idx'); showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
-        } else if (state.step === 'des-intro') { showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'des') { if (!validateScale(8, 'des')) return; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
-        else if (state.step === 'seq-intro') { showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
-        else if (state.step === 'crf-intro') { showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; showStep('step-check'); }
-        else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목 선택'); showStep('step-religion-move'); }
-        else if (state.step === 'religion-move') { if (!document.getElementById('religion').value) return alert('종교 선택'); showStep('step-debrief'); }
-        else if (state.step === 'debrief') { sendData(); }
+function handleNext(event) {
+    // 1. 이벤트 중복 발생 및 기본 동작 방지
+    if (event) { 
+        event.preventDefault(); 
+        event.stopPropagation(); 
     }
+    
+    const btn = document.getElementById('main-btn');
+    // 읽는 중(타이머)이거나 제출 중일 때는 클릭 무시
+    if (btn.disabled) return;
 
+    console.log("현재 단계 진행:", state.step); // 디버깅 로그
+
+    // 2. 단계별 조건 분기
+    // [단계 1] 연구 참여 동의
+    if (state.step === 'consent') {
+        const consentEl = document.querySelector('input[name="consent_choice"]:checked');
+        if (!consentEl) return alert('연구 참여 동의 여부를 선택해 주세요.');
+        if (consentEl.value === 'disagree') return alert('연구 설명 및 동의서 내용에 동의하셔야 참여가 가능합니다.');
+        
+        showStep('step-screener');
+        startImagePreload(); // 인적사항 적는 동안 이미지 미리 로딩
+    } 
+    // [단계 2] 인구통계학적 질문 (자격 확인)
+    else if (state.step === 'screener') {
+        if (!validateScreener()) return;
+        checkEligibility(); // 이 함수 안에서 showStep('step-vignette')이 실행됩니다.
+    } 
+    // [단계 3] 비네트 (실험 장면)
+    else if (state.step === 'vignette') {
+        if (state.vignetteIndex < vignettes.length - 1) { 
+            state.vignetteIndex++; 
+            renderVignette(); 
+        } else { 
+            // 비네트가 끝나면 저장된 인덱스 삭제 후 다음 설문 안내로
+            localStorage.removeItem('current_vignette_idx');
+            showStep('step-des-intro'); 
+            document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; 
+            showModal('des'); 
+        }
+    }
+    // [단계 4] DES 안내 -> 질문지
+    else if (state.step === 'des-intro') { 
+        showStep('step-des'); 
+        document.getElementById('des-ref-img').src = imgFiles[state.condition]; 
+    }
+    else if (state.step === 'des') { 
+        if (!validateScale(8, 'des')) return; 
+        showStep('step-seq-intro'); 
+        document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; 
+        showModal('seq'); 
+    }
+    // [단계 5] SEQ 안내 -> 질문지
+    else if (state.step === 'seq-intro') { 
+        showStep('step-seq'); 
+        document.getElementById('seq-ref-img').src = imgFiles[state.condition]; 
+    }
+    else if (state.step === 'seq') { 
+        if (!validateScale(10, 'seq')) return; 
+        showStep('step-crf-intro'); 
+        document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; 
+        showModal('crf'); 
+    }
+    // [단계 6] CRF 안내 -> 질문지
+    else if (state.step === 'crf-intro') { 
+        showStep('step-crf'); 
+        document.getElementById('crf-ref-img').src = imgFiles[state.condition]; 
+    }
+    else if (state.step === 'crf') { 
+        if (!validateScale(12, 'crf')) return; 
+        showStep('step-check'); 
+    }
+    // [단계 7] 조작 점검 질문
+    else if (state.step === 'check') { 
+        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('질문에 대한 항목을 선택해 주세요.');
+        showStep('step-religion-move'); 
+    }
+    // [단계 8] 종교 질문
+    else if (state.step === 'religion-move') { 
+        if (!document.getElementById('religion').value) return alert('귀하의 종교를 선택해 주세요.');
+        showStep('step-debrief'); 
+    }
+    // [단계 9] 사후 설명 및 최종 제출
+    else if (state.step === 'debrief') { 
+        sendData(); // 서버 전송 및 완료 화면 이동
+    }
+}
     function handlePrev(event) {
         if (event) { event.preventDefault(); event.stopPropagation(); }
         const prevMap = { 'screener':'step-consent', 'des-intro':'step-vignette', 'des':'step-des-intro', 'seq-intro':'step-des', 'seq':'step-seq-intro', 'crf-intro':'step-seq', 'crf':'step-crf-intro', 'check':'step-crf', 'religion-move':'step-check', 'debrief':'step-religion-move' };
