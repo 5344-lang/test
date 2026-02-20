@@ -330,153 +330,139 @@
 <script>
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyTV5GbGjqAqse3Hqtis1P_JeS95ja110m1QDipbZOGO3Q2xDTxrTG-ed88nWDSfnh/exec";
-    const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-/* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
-let state = { 
-    step: 'consent', 
-    condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
-    vignetteIndex: 0,
-    userId: null,
-    startTime: null, // 시작 시간을 담을 그릇 추가
-    animationPlayed: false // [추가] 애니메이션 실행 여부 기록용
-};
+const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
 
-    /* [강화 1] 이미지 미리 로딩 함수 */
-function startImagePreload() {
-    console.log("배경에서 이미지 로딩을 시작합니다...");
-    Object.values(imgFiles).forEach(src => {
-        const img = new Image();
-        img.src = src; 
-    });
-}
-
-async function getIP() {
-    const providers = [
-        'https://api64.ipify.org?format=json',
-        'https://ipv4.icanhazip.com',
-        'https://checkip.amazonaws.com'
-    ];
-    for (const url of providers) {
-        try {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), 5000); // 5초로 연장
-            
-            const response = await fetch(url, { signal: controller.signal });
-            clearTimeout(id);
-            
-            const data = await (url.includes('json') ? response.json() : response.text());
-            let ip = (typeof data === 'object' ? data.ip : data).trim();
-            
-            if (ip) {
-                console.log("IP 수집 성공:", ip);
-                return ip;
-            }
-        } catch (e) {
-            console.warn("IP 수집 시도 실패:", url);
-            continue; 
-        }
-    }
-    return null; 
-}
-    
-/* 2. 데이터 전송 함수 (async/await 적용) */
-
-async function sendData() {
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true;
-    btn.innerText = "제출 중";
-// [추가] 소요 시간 계산 (현재 시간 - 시작 시간) / 1000 = 초 단위
-    const timeSpent = Math.floor((Date.now() - state.startTime) / 1000);
-    
-    const userIP = await getIP(); // IP 가져오기 대기
-    const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
-    let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-    if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
-    const results = {
-        id: state.userId,
-        ip: userIP, // IP 포함
-        condition: state.condition,
-        age: document.getElementById('age').value,
-        residence: document.getElementById('residence').value,
-        orientation: document.getElementById('orientation').value,
-        birth_sex: document.getElementById('birth_sex').value,
-        current_gender: document.getElementById('current_gender').value,
-        religion: document.getElementById('religion').value,
-        check_answer: checkAns,
-        phone: document.getElementById('reward-phone').value || "",
-        des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
-        seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(','),
-        duration: timeSpent,// [추가] 계산된 소요 시간(초)을 데이터에 포함
+    let state = { 
+        step: 'consent', 
+        condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
+        vignetteIndex: 0,
+        userId: null,
+        startTime: null,
+        animationPlayed: false 
     };
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors", // 차단 없이 무조건 전송
-        body: JSON.stringify(results)
-    })
-    .then(() => {
-        localStorage.setItem('survey_finished', 'true');
-        showStep('step-complete');
-        document.querySelector('.bottom-bar').style.display = 'none';
-    })
-    .catch(() => {
-       // no-cors 특성상 에러가 떠도 데이터는 전송됩니다.
-       localStorage.setItem('survey_finished', 'true');
-        showStep('step-complete');
-        document.querySelector('.bottom-bar').style.display = 'none';
-    });
-}
-    
-window.onload = async function() {
-    state.startTime = Date.now(); 
-    
-    // [할당 로직] 서버로부터 조건 가져오기
-    try {
-        const response = await fetch(GOOGLE_SCRIPT_URL);
-        const assignedCondition = await response.text();
-        if (assignedCondition) state.condition = assignedCondition.trim();
-    } catch (e) { console.warn("서버 할당 실패, 기본 랜덤 사용"); }
 
-    const currentIP = await getIP(); 
-
-    // 중복 참여 체크
-    if (localStorage.getItem('survey_finished') === 'true') {
-        alert("이미 본 연구에 참여하셨습니다.");
-        window.location.href = "about:blank";
-        return;
+    // [강화] 이미지 미리 로딩
+    function startImagePreload() {
+        Object.values(imgFiles).forEach(src => { const img = new Image(); img.src = src; });
     }
 
-    // ID 생성 및 초기 방문 기록
-    state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('survey_user_id', state.userId);
-    if (!localStorage.getItem('initial_visit_recorded')) { recordInitialVisit(currentIP); }
-
-    renderDES(); renderSEQ(); renderCRF();
-
-    // [핵심 수정] 모든 입력창 및 선택창에서 튕김 현상 방지
-document.querySelectorAll('input, select').forEach(el => {
-    // 1. 엔터 키 방어: 엔터를 누르면 입력을 끝내고(blur) 키보드를 닫음
-    el.addEventListener('keydown', e => { 
-        if (e.key === 'Enter') {
-            e.preventDefault(); 
-            el.blur(); // 포커스 해제하여 유령 클릭 방지
+    async function getIP() {
+        const providers = ['https://api64.ipify.org?format=json', 'https://ipv4.icanhazip.com'];
+        for (const url of providers) {
+            try {
+                const response = await fetch(url, { signal: AbortController.timeout(3000) });
+                const data = await (url.includes('json') ? response.json() : response.text());
+                return (typeof data === 'object' ? data.ip : data).trim();
+            } catch (e) { continue; }
         }
-    });
+        return "UNKNOWN";
+    }
 
-    // 2. 드롭다운(select) 방어: 항목을 고르면 0.1초 뒤에 즉시 포커스 해제
-    if (el.tagName === 'SELECT') {
-        el.addEventListener('change', () => {
-            // 약간의 지연(100ms)을 주어야 선택된 값이 안전하게 기록된 후 키보드가 닫힙니다.
-            setTimeout(() => {
-                el.blur(); 
-                console.log("포커스 강제 해제 완료");
-            }, 100);
+    async function sendData() {
+        const btn = document.getElementById('main-btn');
+        btn.disabled = true;
+        btn.innerText = "제출 중";
+        const timeSpent = Math.floor((Date.now() - state.startTime) / 1000);
+        const userIP = await getIP();
+        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+        let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+        if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
+
+        const results = {
+            id: state.userId,
+            ip: userIP,
+            condition: state.condition,
+            age: document.getElementById('age').value,
+            residence: document.getElementById('residence').value,
+            orientation: document.getElementById('orientation').value,
+            birth_sex: document.getElementById('birth_sex').value,
+            current_gender: document.getElementById('current_gender').value,
+            religion: document.getElementById('religion').value,
+            check_answer: checkAns,
+            phone: document.getElementById('reward-phone').value || "",
+            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
+            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
+            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(','),
+            duration: timeSpent,
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
+        .then(() => {
+            localStorage.setItem('survey_finished', 'true');
+            localStorage.removeItem('current_step_id'); // 완료 시 기록 삭제
+            showStep('step-complete');
+            document.querySelector('.bottom-bar').style.display = 'none';
         });
     }
-});
 
-    showStep('step-consent');
-};
+    // [중요 수정] 초기화 로직
+    window.onload = async function() {
+        state.startTime = Date.now(); 
+
+        // 1. 뒤로가기 방지 트랩
+        window.history.pushState(null, null, window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, null, window.location.href);
+            alert("실험 중에는 브라우저 뒤로가기를 사용할 수 없습니다.");
+        };
+
+        // 2. [핵심] 현재 진행중인 단계 복구 (튕김 방지)
+        const savedStep = localStorage.getItem('current_step_id');
+        if (savedStep && savedStep !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
+            state.step = savedStep.replace('step-', '');
+            showStep(savedStep);
+        } else {
+            showStep('step-consent');
+        }
+
+        // 3. 배경 비동기 작업 (UI 이동을 방해하지 않음)
+        getIP().then(ip => { localStorage.setItem('user_ip', ip); });
+        fetch(GOOGLE_SCRIPT_URL).then(r => r.text()).then(cond => {
+            if (cond && !localStorage.getItem('current_step_id')) { // 시작 전일때만 조건 할당
+                state.condition = cond.trim();
+            }
+        });
+
+        if (localStorage.getItem('survey_finished') === 'true') {
+            alert("이미 본 연구에 참여하셨습니다.");
+            window.location.href = "about:blank";
+            return;
+        }
+
+        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+
+        renderDES(); renderSEQ(); renderCRF();
+
+        // 입력창 튕김 방지 설정
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+            if (el.tagName === 'SELECT') {
+                el.addEventListener('change', () => { setTimeout(() => { el.blur(); }, 100); });
+            }
+        });
+    };
+
+function showStep(id) {
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        localStorage.setItem('current_step_id', id);
+
+        const area = document.getElementById('content-area');
+        const bottomBar = document.querySelector('.bottom-bar');
+        const mainBtn = document.getElementById('main-btn');
+
+        const isVignette = (id === 'step-vignette');
+        area.classList.toggle('full-screen-mode', isVignette);
+        area.scrollTop = 0;
+
+        if (bottomBar) bottomBar.style.display = 'flex';
+        if (!isVignette) {
+            mainBtn.disabled = false;
+            mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음";
+        }
+        document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+    }
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.<br>사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -649,7 +635,8 @@ function renderVignette() {
         el.classList.remove('selected');
     }
 }
-function handleNext() {
+function handleNext(event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
 console.log("다음 버튼 클릭됨, 현재 단계:", state.step); // 브라우저 콘솔에서 확인용
     
     const btn = document.getElementById('main-btn');
@@ -743,6 +730,7 @@ else if (state.step === 'religion-move') {
 
     
 function handlePrev(event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
     // 1. 디버깅 로그: 실제로 버튼이 눌린 건지, 유령 클릭인지 확인용
     console.log("이전 버튼 실행됨, 현재 단계:", state.step);
 
