@@ -502,8 +502,8 @@ select.form-control.selected {
     </div>
 
     <div class="bottom-bar">
-        <button id="prev-btn" class="footer-btn" onclick="handlePrev()">이전</button>
-        <button id="main-btn" class="footer-btn" onclick="handleNext()">다음</button>
+<button type="button" id="prev-btn" class="footer-btn" onclick="handlePrev()">이전</button>
+<button type="button" id="main-btn" class="footer-btn" onclick="handleNext()">다음</button>
     </div>
 </div>
 
@@ -690,6 +690,19 @@ window.onload = async function() {
         el.addEventListener('change', updateInputColor);
         el.addEventListener('input', updateInputColor);
     });
+    // [추가] 모든 입력창(input) 및 선택창(select)에서 엔터 키 방지
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 기본 동작(버튼 클릭) 차단
+                return false;
+            }
+        });
+    });
+
+    // 첫 화면 표시 (기존 코드)
+    showStep('step-consent');
+};
     showStep('step-consent');
 };
 
