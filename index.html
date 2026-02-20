@@ -341,8 +341,15 @@ function startImagePreload() {
     });
 }
     /* --- [2] 핵심 로직 (순서 조정 완료) --- */
- window.onload = function() {
-    state.startTime = Date.now(); 
+window.onload = function() {
+    // [추가] 중복 참여 체크 로직
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
+        showStep('step-complete'); // 완료 페이지로 강제 이동
+        return; // 아래의 나머지 로직(ID 생성 등)이 실행되지 않도록 즉시 종료
+    }
+
+    state.startTime = Date.now();
 
     // 뒤로가기 방지 및 기본 설정
     window.history.pushState(null, null, window.location.href);
