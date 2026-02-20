@@ -63,7 +63,16 @@
         /* 동의서 스크롤 박스 반응형 */
         #consent-scroll-box { height: 50vh; max-height: 400px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
         @media (max-height: 700px) { #consent-scroll-box { height: 25vh; } }
+        
+/* 상담자 등장 효과: 4초간 서서히 밝아짐 */
+.counselor-fade-in {
+    animation: fadeInFromBlack 4s ease-in-out forwards;
+}
 
+@keyframes fadeInFromBlack {
+    0% { filter: brightness(0); }
+    100% { filter: brightness(1); }
+}
         /* 기타 스타일 유지 */
         .hidden { display: none !important; }
         h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
@@ -299,7 +308,8 @@ let state = {
     condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
     vignetteIndex: 0,
     userId: null,
-    startTime: null // 시작 시간을 담을 그릇 추가
+    startTime: null, // 시작 시간을 담을 그릇 추가
+    animationPlayed: false // [추가] 애니메이션 실행 여부 기록용
 };
 
     /* [강화 1] 이미지 미리 로딩 함수 */
@@ -551,6 +561,7 @@ function renderVignette() {
     const current = vignettes[idx];
     const imgEl = document.getElementById('stimulus-img');
     const textBox = document.querySelector('.vn-text-box');
+    const bottomBar = document.querySelector('.bottom-bar');
     const btn = document.getElementById('main-btn');
 
     const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
@@ -566,25 +577,40 @@ function renderVignette() {
         else textBox.classList.add('speaker-default');
 
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+        
+        // 버튼 바 무조건 노출 (애니메이션 종료 후나 재방문 시)
+        bottomBar.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerText = "다음";
+        btn.style.backgroundColor = "";
     };
 
-    if (idx === 5) {
-        textBox.style.opacity = '0'; 
-        btn.disabled = true;
-        btn.innerText = "곧 상담이 시작됩니다";
+    // [수정] 상담자 등장 장면이면서 + 아직 애니메이션을 안 봤을 때만 발동
+    if (idx === 5 && !state.animationPlayed) {
+        state.animationPlayed = true; // 본 것으로 기록
+
+        textBox.style.opacity = '0';
+        bottomBar.style.display = 'none'; 
+        
+        imgEl.classList.remove('counselor-fade-in'); 
+        void imgEl.offsetWidth;                     
+        imgEl.classList.add('counselor-fade-in');
         imgEl.src = nextImgSrc;
 
         setTimeout(() => {
             updateUI();
-            // [수정] 조건 없이 바로 활성화
-            btn.disabled = false;
-            btn.innerText = "다음";
-            btn.style.backgroundColor = "";
-        }, 10000); 
+        }, 8000); 
+
     } else {
+        // 일반 페이지거나, 이미 본 적이 있는 6페이지일 때
+        imgEl.classList.remove('counselor-fade-in');
         imgEl.src = nextImgSrc;
         updateUI(); 
-        startTimer();
+
+        // 처음 온 것이 아닌 일반 비네트에서만 2초 타이머 작동
+        if (idx !== 5) {
+            startTimer();
+        }
     }
 }
     
