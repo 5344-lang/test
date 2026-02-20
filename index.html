@@ -356,11 +356,39 @@ function startImagePreload() {
         });
     };
 
-    /* --- [3] IP 수집 및 자격 확인 (지능형 대기 통합) --- */
-    async function getIP() {
-        try { const r = await fetch('https://api64.ipify.org?format=json'); const d = await r.json(); return d.ip; } 
-        catch (e) { return "UNKNOWN"; }
+  /* --- [수정] 4중 백업 IP 수집 함수 --- */
+async function getIP() {
+    // 하나가 막히면 다음으로 넘어가는 예비 명단입니다.
+    const providers = [
+        'https://api64.ipify.org?format=json',
+        'https://ipv4.icanhazip.com',
+        'https://checkip.amazonaws.com',
+        'https://api.ip.sb/ip'
+    ];
+
+    for (const url of providers) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5초 안에 응답 없으면 다음으로
+            
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            // 데이터 형태(JSON 또는 일반 텍스트)에 따라 다르게 처리
+            const data = await (url.includes('json') ? response.json() : response.text());
+            let ip = (typeof data === 'object' ? data.ip : data).trim();
+            
+            if (ip && ip.length > 0) {
+                localStorage.setItem('user_ip', ip);
+                return ip;
+            }
+        } catch (e) {
+            console.warn(`IP 제공자 차단됨: ${url}`);
+            continue; // 에러 나면 다음 제공자 시도
+        }
     }
+    return "FINAL_FAIL"; // 모든 시도가 실패할 경우
+}
 
     async function checkEligibility() {
         const age = parseInt(document.getElementById('age').value);
