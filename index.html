@@ -15,10 +15,10 @@
             background-color: var(--card-bg); 
             width: 100%; 
             height: 100%; 
-            max-width: 800px; 
+            max-width: none; 
             display: flex; 
             flex-direction: column; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            box-shadow: none; 
             position: relative; 
         }
 
@@ -61,14 +61,14 @@
         .footer-btn:disabled { background-color: #ccc !important; }
 
         /* 동의서 스크롤 박스 반응형 */
-        #consent-scroll-box { height: 35vh; max-height: 400px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
+        #consent-scroll-box { height: 50vh; max-height: 400px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
         @media (max-height: 700px) { #consent-scroll-box { height: 25vh; } }
 
         /* 기타 스타일 유지 */
         .hidden { display: none !important; }
         h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
         .form-group { margin-bottom: 25px; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important;  color: #333;}
         .scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
         .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; }
         .scale-option:last-child { border-right: none; }
