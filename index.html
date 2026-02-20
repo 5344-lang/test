@@ -395,74 +395,85 @@ const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'bu
         });
     }
 
-    // [중요 수정] 초기화 로직
-    window.onload = async function() {
-        state.startTime = Date.now(); 
+/* --- [수정] 튕김 방지 및 상태 복구 로직 --- */
 
-        // 1. 뒤로가기 방지 트랩
+window.onload = async function() {
+    state.startTime = Date.now(); 
+
+    // 1. [안전장치] 브라우저 뒤로가기 버튼 비활성화 (트랩)
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
         window.history.pushState(null, null, window.location.href);
-        window.onpopstate = function() {
-            window.history.pushState(null, null, window.location.href);
-            alert("실험 중에는 브라우저 뒤로가기를 사용할 수 없습니다.");
-        };
-
-        // 2. [핵심] 현재 진행중인 단계 복구 (튕김 방지)
-        const savedStep = localStorage.getItem('current_step_id');
-        if (savedStep && savedStep !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
-            state.step = savedStep.replace('step-', '');
-            showStep(savedStep);
-        } else {
-            showStep('step-consent');
-        }
-
-        // 3. 배경 비동기 작업 (UI 이동을 방해하지 않음)
-        getIP().then(ip => { localStorage.setItem('user_ip', ip); });
-        fetch(GOOGLE_SCRIPT_URL).then(r => r.text()).then(cond => {
-            if (cond && !localStorage.getItem('current_step_id')) { // 시작 전일때만 조건 할당
-                state.condition = cond.trim();
-            }
-        });
-
-        if (localStorage.getItem('survey_finished') === 'true') {
-            alert("이미 본 연구에 참여하셨습니다.");
-            window.location.href = "about:blank";
-            return;
-        }
-
-        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-
-        renderDES(); renderSEQ(); renderCRF();
-
-        // 입력창 튕김 방지 설정
-        document.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
-            if (el.tagName === 'SELECT') {
-                el.addEventListener('change', () => { setTimeout(() => { el.blur(); }, 100); });
-            }
-        });
+        alert("실험 중에는 브라우저 뒤로가기를 사용할 수 없습니다. 화면 내 '이전' 버튼을 이용해 주세요.");
     };
 
-function showStep(id) {
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        localStorage.setItem('current_step_id', id);
-
-        const area = document.getElementById('content-area');
-        const bottomBar = document.querySelector('.bottom-bar');
-        const mainBtn = document.getElementById('main-btn');
-
-        const isVignette = (id === 'step-vignette');
-        area.classList.toggle('full-screen-mode', isVignette);
-        area.scrollTop = 0;
-
-        if (bottomBar) bottomBar.style.display = 'flex';
-        if (!isVignette) {
-            mainBtn.disabled = false;
-            mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음";
-        }
-        document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+    // 2. [핵심] 진행 단계 복구 (튕겨도 제자리 유지)
+    const savedStep = localStorage.getItem('current_step_id');
+    // 이미 완료했거나 중복 참여인 경우 제외하고, 하던 단계가 있다면 복구
+    if (savedStep && savedStep !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
+        state.step = savedStep.replace('step-', '');
+        showStep(savedStep);
+    } else {
+        // 하던 게 없으면 처음으로 이동
+        showStep('step-consent');
     }
+
+    // 3. [개선] 배경 비동기 작업 (페이지 이동을 방해하지 않음)
+    // IP 수집과 서버 조건 할당을 배경에서 따로 돌립니다.
+    getIP().then(ip => { localStorage.setItem('user_ip', ip); });
+    
+    // 조건 할당은 처음에만 실행 (이미 진행 중이면 바꾸지 않음)
+    if (!savedStep || savedStep === 'step-consent') {
+        fetch(GOOGLE_SCRIPT_URL)
+            .then(r => r.text())
+            .then(cond => { if (cond) state.condition = cond.trim(); });
+    }
+
+    // 4. 나머지 데이터 초기화
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다.");
+        window.location.href = "about:blank";
+        return;
+    }
+
+    state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('survey_user_id', state.userId);
+
+    renderDES(); renderSEQ(); renderCRF();
+
+    // 입력창 튕김 방지 설정 (기존 el.blur 로직)
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+        if (el.tagName === 'SELECT') {
+            el.addEventListener('change', () => { setTimeout(() => { el.blur(); }, 100); });
+        }
+    });
+};
+
+function showStep(id) {
+    document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if (target) target.classList.remove('hidden');
+
+    // [중요] 현재 페이지 정보를 브라우저에 저장
+    localStorage.setItem('current_step_id', id);
+
+    const area = document.getElementById('content-area');
+    const bottomBar = document.querySelector('.bottom-bar');
+    const mainBtn = document.getElementById('main-btn');
+
+    area.classList.toggle('full-screen-mode', id === 'step-vignette');
+    area.scrollTop = 0;
+
+    if (bottomBar) bottomBar.style.display = 'flex';
+    if (id !== 'step-vignette') {
+        mainBtn.disabled = false;
+        mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음";
+        mainBtn.style.backgroundColor = "";
+    }
+    document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+}
+    
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.<br>사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
