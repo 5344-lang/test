@@ -517,7 +517,7 @@ select.form-control.selected {
 
 <script>
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfcRoQeVapXR-6506UqEuGun6gNsLNQV-SUK35vrhJr1WiefBb8pTtZmhI3x-YffA/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydkoRKAJSUeW5TzQTJBarqFEcul8LqsAsuxb6sKFONMhgCyUpVuTeSu6pdcKLbUOHj/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
 /* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
 let state = { 
@@ -525,6 +525,7 @@ let state = {
     condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
     vignetteIndex: 0,
     userId: null,
+    startTime: null // 시작 시간을 담을 그릇 추가
 };
 
     /* [강화 1] 이미지 미리 로딩 함수 */
@@ -571,7 +572,9 @@ async function sendData() {
     const btn = document.getElementById('main-btn');
     btn.disabled = true;
     btn.innerText = "제출 중";
-
+// [추가] 소요 시간 계산 (현재 시간 - 시작 시간) / 1000 = 초 단위
+    const timeSpent = Math.floor((Date.now() - state.startTime) / 1000);
+    
     const userIP = await getIP(); // IP 가져오기 대기
     const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
     let checkAns = checkOptEl ? checkOptEl.value : "미응답";
@@ -590,7 +593,8 @@ async function sendData() {
         phone: document.getElementById('reward-phone').value || "",
         des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
         seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
+        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(','),
+        duration: timeSpent,// [추가] 계산된 소요 시간(초)을 데이터에 포함
     };
     fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
@@ -611,6 +615,7 @@ async function sendData() {
 }
     
 window.onload = async function() {
+    state.startTime = Date.now(); // [추가] 접속 시점의 시간을 밀리초 단위로 기록
     // [수정] 시크릿 모드 체크 삭제, IP 수집부터 시작
     const currentIP = await getIP(); 
 
