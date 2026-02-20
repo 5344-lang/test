@@ -322,39 +322,57 @@ function startImagePreload() {
     });
 }
     /* --- [2] 핵심 로직 (순서 조정 완료) --- */
-    window.onload = function() {
-        state.startTime = Date.now();
-        // [추가] 접속 즉시 이미지 프리로딩 시작
-    startImagePreload();
-        window.history.pushState(null, null, window.location.href);
-        window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
+ window.onload = function() {
+    state.startTime = Date.now(); 
 
-        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        
-        renderDES(); renderSEQ(); renderCRF();
+    // 뒤로가기 방지 및 기본 설정
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
+    state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('survey_user_id', state.userId);
+    renderDES(); renderSEQ(); renderCRF();
 
-      const savedStepId = localStorage.getItem('current_step_id');
-    const savedVigIdx = localStorage.getItem('current_vignette_idx');
-
-    // 단계 복구 로직 (이전 답변 유지)
+    // 1. 단계 복구 로직 (기존 유지)
+    const savedStepId = localStorage.getItem('current_step_id');
     if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
-        if (savedVigIdx) state.vignetteIndex = parseInt(savedVigIdx);
         showStep(savedStepId);
-        if (savedStepId === 'step-vignette') renderVignette();
     } else {
         showStep('step-consent');
     }
 
-        // 서버 통신 배경 작업
-        getIP().then(ip => { localStorage.setItem('user_ip', ip); recordInitialVisit(ip); });
-        fetch(GOOGLE_SCRIPT_URL).then(r => r.text()).then(cond => { if (cond && cond.length < 20) state.condition = cond.trim(); });
+    /* --- [핵심] 33% 균형 할당 동기화 로직 --- */
+    
+    // 1단계: IP를 먼저 가져옵니다.
+    getIP().then(ip => {
+        localStorage.setItem('user_ip', ip);
+        
+        // 2단계: IP를 성공적으로 가져오면, 서버(GAS)에 "어떤 조건이 부족한가요?"라고 물어봅니다.
+        return fetch(GOOGLE_SCRIPT_URL);
+    })
+    .then(response => response.text())
+    .then(assignedCondition => {
+        // 3단계: 서버가 알려준 "인원이 가장 적은 조건"을 state에 저장합니다.
+        if (assignedCondition && assignedCondition.length < 20) {
+            state.condition = assignedCondition.trim();
+            console.log("서버가 할당한 균형 조건:", state.condition);
+            
+            // 4단계: 서버 조건이 확정된 "이 시점"에서만 초기 방문을 기록합니다.
+            // 그래야 시트의 Condition(D열) 개수가 정확히 카운트되어 다음 사람에게 영향을 줍니다.
+            recordInitialVisit(localStorage.getItem('user_ip'));
+        }
+    })
+    .catch(e => {
+        console.warn("서버 할당 실패, 로컬 랜덤 유지:", state.condition);
+        // 서버가 죽었을 경우를 대비해 초기 방문 기록은 남깁니다.
+        recordInitialVisit(localStorage.getItem('user_ip'));
+    });
 
-        document.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
-            if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
-        });
-    };
+    // 입력창 설정 (기존 유지)
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+        if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
+    });
+};
 
   /* --- [수정] 4중 백업 IP 수집 함수 --- */
 async function getIP() {
