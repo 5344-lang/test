@@ -592,22 +592,63 @@ let state = {
 };
 
 // [추가] 시크릿 모드 감지 함수 정의
+/* 1. 최신 브라우저 대응 시크릿 모드 감지 함수 */
 async function checkIncognito() {
-    const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-    if (!fs) return;
+    let isIncognito = false;
 
-    fs(window.TEMPORARY, 100, () => {
-        // 일반 모드: 아무 작업 안 함
-    }, () => {
-        // 시크릿 모드일 때
-        alert("본 연구는 중복 참여 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
+    try {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const { quota } = await navigator.storage.estimate();
+            // 일반 모드에서는 할당량이 매우 크지만, 시크릿 모드에서는 보통 120MB 미만입니다.
+            if (quota < 120000000) isIncognito = true;
+        } else {
+            // 구형 브라우저 및 기타 브라우저 체크
+            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+            if (fs) {
+                await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(false), () => { isIncognito = true; resolve(true); }));
+            }
+        }
+    } catch (e) {
+        console.error("Incognito check error:", e);
+    }
+
+    if (isIncognito) {
+        state.isLocked = true; // 전역 상태에 차단 기록
+        alert("본 연구는 중복 참여 방지를 위해 시크릿 모드(사생활 보호 모드)에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
+        
         const mainBtn = document.getElementById('main-btn');
         if (mainBtn) {
             mainBtn.disabled = true;
             mainBtn.innerText = "접속 제한됨 (일반 모드로 접속하세요)";
             mainBtn.style.backgroundColor = "#ff4d4d";
         }
-    });
+    }
+}
+
+/* 2. 상태 변수 추가 (isLocked 추가) */
+let state = { 
+    step: 'consent', 
+    condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
+    vignetteIndex: 0,
+    userId: null,
+    isLocked: false // 시크릿 모드 차단 여부 저장
+};
+
+/* 3. 타이머 함수 수정 (차단 상태일 경우 버튼을 활성화하지 않음) */
+function startTimer() {
+    const btn = document.getElementById('main-btn');
+    btn.disabled = true; 
+    btn.innerText = "읽는 중";
+    
+    setTimeout(() => {
+        // 시크릿 모드로 차단된 상태가 아닐 때만 버튼 활성화
+        if (!state.isLocked) {
+            btn.disabled = false;
+            btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
+        } else {
+            btn.innerText = "접속 제한됨";
+        }
+    }, 2000);
 }
 
 window.onload = function() {
