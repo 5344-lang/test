@@ -537,33 +537,44 @@ function startImagePreload() {
     });
 }
 
-/* [통합 및 최적화] 시크릿 모드 감지 */
+/* [최종 보완] 시크릿 모드 감지: IndexedDB 및 Quota 복합 체크 */
 async function checkIncognito() {
+    let isPrivate = false;
+
     try {
-        // 1. Storage Quota 방식 (크롬, 엣지 등 최신)
+        // 1. 크롬 등 최신 브라우저용 (Quota 체크)
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             const { quota } = await navigator.storage.estimate();
-            if (quota < 120000000) state.isLocked = true;
-        } 
-        // 2. FileSystem API 방식 (사파리, 구형 브라우저)
-        const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-        if (fs && !state.isLocked) {
-            await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(), () => { 
-                state.isLocked = true; 
-                resolve(); 
-            }));
+            // 할당량이 120MB(크롬) 또는 특정 기준 이하일 때 의심
+            if (quota < 120000000) isPrivate = true;
         }
-    } catch (e) { console.error("감지 오류:", e); }
 
-    // 차단 상태일 경우 즉시 UI 업데이트
-    if (state.isLocked) {
+        // 2. 사파리 및 구형 브라우저용 (IndexedDB 체크)
+        // 시크릿 모드에서 IndexedDB 생성 시도 시 에러가 발생하는 특성을 이용
+        if (!isPrivate) {
+            isPrivate = await new Promise((resolve) => {
+                const db = indexedDB.open("test");
+                db.onerror = () => resolve(true); // 에러 발생 시 시크릿 모드로 간주
+                db.onsuccess = () => resolve(false);
+            });
+        }
+    } catch (e) {
+        console.error("감지 과정 오류:", e);
+    }
+
+    // 결과 반영
+    if (isPrivate) {
+        state.isLocked = true;
+        console.warn("시크릿 모드 감지됨");
+        
+        // UI 즉시 업데이트
         const mainBtn = document.getElementById('main-btn');
-        alert("본 연구는 데이터 중복 지원 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 창으로 접속해 주세요.");
         if (mainBtn) {
             mainBtn.disabled = true;
-            mainBtn.innerText = "접속 제한됨 (일반 모드 권장)";
+            mainBtn.innerText = "접속 제한됨 (일반 창 권장)";
             mainBtn.style.backgroundColor = "#ff4d4d";
         }
+        alert("본 연구는 데이터 중복 지원 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
     }
 }
 
@@ -1046,7 +1057,7 @@ async function checkEligibility() {
         showStep('step-vignette'); 
         renderVignette();
     } else {
-        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다."); 
+        alert("본 연구의 참여 대상자에 해당하지 않아 설문을 종료합니다."); 
         window.location.href = "about:blank";
     }
 }
