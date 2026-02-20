@@ -806,45 +806,58 @@ function renderVignette() {
     const textBox = document.querySelector('.vn-text-box');
     const btn = document.getElementById('main-btn');
 
-    // 1. 표시할 이미지 경로 결정
     const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
 
+    // [함수 내부 도우미] 스피커에 따른 배경색 클래스 적용 로직
+    const updateSpeakerStyle = (speaker) => {
+        textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
+        if (speaker === "상담자") {
+            textBox.classList.add('speaker-counselor'); // 파란색
+        } else if (speaker === "나") {
+            textBox.classList.add('speaker-me');        // 초록색
+        } else {
+            textBox.classList.add('speaker-default');   // 검정색 (해설 등)
+        }
+    };
+
     if (idx === 5) {
-        // [중요 수정] 상담 시작 단계: 이미지 로딩과 타이머를 분리합니다.
-        textBox.style.opacity = '0'; 
+        // --- 1. 상담 시작 단계 (10초 대기) ---
+        textBox.style.opacity = '0'; // 대사창 일시 숨김
         btn.disabled = true;
         btn.innerText = "곧 상담이 시작됩니다";
         
-        // 일단 이미지를 교체 (캐시되어 있으면 즉시 바뀜)
         imgEl.src = nextImgSrc;
 
-        // 이미지 로딩 성공 여부와 상관없이 10초 타이머를 무조건 실행합니다.
         setTimeout(() => {
+            // 10초 후 대사와 배경색을 동시에 노출
             textBox.style.opacity = '1';
             document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
             
-            // 시크릿 모드가 아닐 때만 버튼 활성화
+            // [추가] 10초 뒤에 배경색도 업데이트합니다.
+            updateSpeakerStyle(current.speaker);
+            
             if (!state.isLocked) {
                 btn.disabled = false;
                 btn.innerText = "다음";
             } else {
                 btn.innerText = "접속 제한됨";
             }
-            // 페이지 번호 업데이트
             document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-            console.log("10초 대기 완료: 상담 시작");
         }, 10000); 
 
     } else {
-        // 일반적인 비네트 슬라이드 로직
+        // --- 2. 일반적인 슬라이드 로직 ---
         imgEl.src = nextImgSrc;
         textBox.style.opacity = '1';
         document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
         
-        // 일반 슬라이드는 기존 2초 타이머(startTimer) 사용
-        startTimer(); 
+        // [추가] 즉시 배경색 업데이트
+        updateSpeakerStyle(current.speaker);
+
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+        startTimer(); // 일반 슬라이드는 2초 타이머
     }
+}
 
     // 스피커 배경색 처리 (기존 유지)
     textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
