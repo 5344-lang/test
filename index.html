@@ -874,8 +874,15 @@ function renderVignette() {
     }
 }
 function handleNext() {
+console.log("다음 버튼 클릭됨, 현재 단계:", state.step); // 브라우저 콘솔에서 확인용
+    
     const btn = document.getElementById('main-btn');
     
+    // 만약 시크릿 모드로 잠긴 상태라면 진행 차단
+    if (state.isLocked) {
+        alert("시크릿 모드에서는 진행할 수 없습니다. 일반 브라우저를 사용해 주세요.");
+        return;
+    }
     // 1. 동의 단계
     if (state.step === 'consent') {
         const c = document.querySelector('input[name="consent_choice"]:checked');
