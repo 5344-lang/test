@@ -583,58 +583,47 @@ async function sendData() {
     });
 }
     
-// 1. 상태 변수 선언
-let state = { 
-    step: 'consent', 
-    condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
-    vignetteIndex: 0,
-    userId: null 
-};
-
-// [추가] 시크릿 모드 감지 함수 정의
-/* 1. 최신 브라우저 대응 시크릿 모드 감지 함수 */
-async function checkIncognito() {
-    let isIncognito = false;
-
-    try {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            const { quota } = await navigator.storage.estimate();
-            // 일반 모드에서는 할당량이 매우 크지만, 시크릿 모드에서는 보통 120MB 미만입니다.
-            if (quota < 120000000) isIncognito = true;
-        } else {
-            // 구형 브라우저 및 기타 브라우저 체크
-            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-            if (fs) {
-                await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(false), () => { isIncognito = true; resolve(true); }));
-            }
-        }
-    } catch (e) {
-        console.error("Incognito check error:", e);
-    }
-
-    if (isIncognito) {
-        state.isLocked = true; // 전역 상태에 차단 기록
-        alert("본 연구는 중복 참여 방지를 위해 시크릿 모드(사생활 보호 모드)에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
-        
-        const mainBtn = document.getElementById('main-btn');
-        if (mainBtn) {
-            mainBtn.disabled = true;
-            mainBtn.innerText = "접속 제한됨 (일반 모드로 접속하세요)";
-            mainBtn.style.backgroundColor = "#ff4d4d";
-        }
-    }
-}
-
-/* 2. 상태 변수 추가 (isLocked 추가) */
+/* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
 let state = { 
     step: 'consent', 
     condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
     vignetteIndex: 0,
     userId: null,
-    isLocked: false // 시크릿 모드 차단 여부 저장
+    isLocked: false // 시크릿 모드 차단 여부
 };
 
-/* 3. 타이머 함수 수정 (차단 상태일 경우 버튼을 활성화하지 않음) */
+/* 2. 안전한 시크릿 모드 감지 함수 */
+async function checkIncognito() {
+    try {
+        // 크롬 등 최신 브라우저 대응
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const { quota } = await navigator.storage.estimate();
+            // 할당량이 극단적으로 적은 경우(약 10MB 미만)에만 의심 (기준 하향 조정)
+            if (quota < 10000000) state.isLocked = true; 
+        } 
+        
+        // 사파리 등 기타 브라우저 대응 (FileSystem API 방식)
+        const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+        if (fs) {
+            fs(window.TEMPORARY, 100, () => {}, () => { state.isLocked = true; });
+        }
+    } catch (e) {
+        console.warn("감지 로직 실행 불가: ", e);
+    }
+
+    // 시크릿 모드로 판명되었을 때만 UI 차단 실행
+    if (state.isLocked) {
+        const mainBtn = document.getElementById('main-btn');
+        if (mainBtn) {
+            mainBtn.disabled = true;
+            mainBtn.innerText = "접속 제한됨 (일반 창 이용 권장)";
+            mainBtn.style.backgroundColor = "#ff4d4d";
+            alert("본 연구는 데이터 중복 방지를 위해 시크릿 모드에서의 접속을 권장하지 않습니다. 일반 브라우저 창으로 참여해 주세요.");
+        }
+    }
+}
+
+/* 3. 타이머 함수 (isLocked 상태를 고려하여 버튼 활성화 제어) */
 function startTimer() {
     const btn = document.getElementById('main-btn');
     btn.disabled = true; 
@@ -644,51 +633,49 @@ function startTimer() {
         // 시크릿 모드로 차단된 상태가 아닐 때만 버튼 활성화
         if (!state.isLocked) {
             btn.disabled = false;
-            btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
+            btn.innerText = "다음";
         } else {
             btn.innerText = "접속 제한됨";
         }
     }, 2000);
 }
 
+/* 4. 페이지 초기화 로직 통합 */
 window.onload = function() {
-    // [0] 시크릿 모드 체크 실행
+    // 시크릿 모드 체크 (오류 방지를 위해 비동기로 실행)
     checkIncognito();
 
-    // [1] 중복 참여 체크 (이미 완료한 사람)
+    // 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
         return;
     }
 
-    // [2] ID 설정 및 초기 접속 기록
+    // ID 설정 및 초기 접속 기록
     let savedId = localStorage.getItem('survey_user_id');
     if (!savedId) {
         state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(); // 첫 방문 시에만 서버에 기록
+        recordInitialVisit(); 
     } else {
         state.userId = savedId;
     }
 
-    // [3] 모든 척도 렌더링 및 이미지 로드
+    // 척도 렌더링 및 이미지 로드
     preloadImages();
     renderDES();
     renderSEQ();
     renderCRF();
 
-    // [4] 입력창 색상 및 이벤트 연결 (Screener 등)
+    // 입력창 이벤트 연결
     document.querySelectorAll('.form-control').forEach(el => {
-        // 초기 값이 있는 경우 selected 클래스 추가
-        if (el.value && el.value.trim() !== "") {
-            el.classList.add('selected');
-        }
+        if (el.value && el.value.trim() !== "") el.classList.add('selected');
         el.addEventListener('change', updateInputColor);
         el.addEventListener('input', updateInputColor);
     });
 
-    // [5] 첫 화면 표시
+    // 첫 화면 표시 (동의 페이지)
     showStep('step-consent');
 };
     /* --- 비네트 대본 (수정 불가) --- */
