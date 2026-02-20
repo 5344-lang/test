@@ -569,7 +569,6 @@ async function checkIncognito() {
 
     
 
-/* [최종본] IP 수집 함수 - 이 버전으로 완전히 교체하세요 */
 async function getIP() {
     const providers = [
         'https://api64.ipify.org?format=json',
@@ -579,7 +578,7 @@ async function getIP() {
     for (const url of providers) {
         try {
             const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), 3500); // 3.5초 응답 대기
+            const id = setTimeout(() => controller.abort(), 5000); // 5초로 연장
             
             const response = await fetch(url, { signal: controller.signal });
             clearTimeout(id);
@@ -587,14 +586,18 @@ async function getIP() {
             const data = await (url.includes('json') ? response.json() : response.text());
             let ip = (typeof data === 'object' ? data.ip : data).trim();
             
-            if (ip) return ip; // IP를 성공적으로 가져오면 즉시 반환
+            if (ip) {
+                console.log("IP 수집 성공:", ip);
+                return ip;
+            }
         } catch (e) {
-            console.warn(url + " 실패, 다음 경로 시도 중...");
+            console.warn("IP 수집 시도 실패:", url);
             continue; 
         }
     }
-    return null; // 모든 시도 실패 시 null 반환 (서버 덮어쓰기 방지 핵심)
+    return null; 
 }
+    
 /* 2. 데이터 전송 함수 (async/await 적용) */
 
 async function sendData() {
@@ -640,63 +643,42 @@ async function sendData() {
     });
 }
     
-/* [최적화] 타이머 종료 후 차단 상태 재확인 */
-function startTimer() {
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true; 
-    btn.innerText = "읽는 중";
-   setTimeout(() => {
-        // 타이머가 끝났을 때 시크릿 모드 여부에 따라 활성화 결정
-        if (state.isLocked) {
-            btn.disabled = true; 
-            btn.innerText = "접속 제한됨";
-            btn.style.backgroundColor = "#ff4d4d";
-        } else {
-            btn.disabled = false;
-            btn.innerText = "다음";
-            btn.style.backgroundColor = ""; // 원래 색상으로 복구
-        }
-    }, 2000); // 비네트 등에 따라 시간 조절 가능
-}
-    
-
-// [수정] async 키워드를 추가하여 비동기 처리가 가능하게 합니다.
 window.onload = async function() {
-    // 1. 시크릿 모드부터 가장 먼저 체크 (await 필수)
+    // [1] IP 주소부터 가장 먼저 가져오기 (브라우저가 바빠지기 전 최우선 수행)
+    const currentIP = await getIP();
+
+    // [2] 그 다음 시크릿 모드 체크 (alert 창이 떠서 스크립트가 멈춰도 이미 IP는 확보된 상태)
     await checkIncognito(); 
-    // 2. 완료 여부 확인
+
+    // [3] 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
         return;
     }
-    // 3. ID 설정 및 첫 접속 IP 기록 (시크릿 모드가 아닐 때만)
-    if (!state.isLocked) {
-        let savedId = localStorage.getItem('survey_user_id');
-        if (!savedId) {
-            state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('survey_user_id', state.userId);
-            const currentIP = await getIP(); 
-            recordInitialVisit(currentIP); 
-        } else {
-            state.userId = savedId;
-        }
+
+    // [4] ID 설정 및 초기 접속 기록
+    let savedId = localStorage.getItem('survey_user_id');
+    if (!savedId) {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        
+        // 위에서 미리 받아둔 currentIP를 사용함
+        recordInitialVisit(currentIP); 
+    } else {
+        state.userId = savedId;
     }
 
-    // [3] 모든 척도 렌더링 및 이미지 로드
+    // [5] 나머지 렌더링 로직 (기존 유지)
     preloadImages();
     renderDES();
     renderSEQ();
     renderCRF();
-
-    // [4] 입력창 이벤트 연결 (기존 코드 유지)
     document.querySelectorAll('.form-control').forEach(el => {
         if (el.value && el.value.trim() !== "") el.classList.add('selected');
         el.addEventListener('change', updateInputColor);
         el.addEventListener('input', updateInputColor);
     });
-
-    // [5] 첫 화면 표시
     showStep('step-consent');
 };
 
