@@ -116,50 +116,47 @@ select.form-control.selected {
         .form-label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 15px; line-height: 1.4; }
         .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
         
-/* 하단 버튼 바 레이아웃 비율 조정 */
+/* --- 하단 버튼 바: 부모 너비에 맞춰 꽉 채우기 --- */
 .bottom-bar { 
-    position: fixed; 
+    position: absolute; /* fixed 대신 absolute를 써야 부모(.app-container) 가로폭에 딱 맞습니다 */
     bottom: 0; 
     left: 0; 
-    right: 0; 
-    max-width: 500px; 
-    margin: 0 auto; 
+    width: 100%; /* 좌우로 100% 꽉 채움 */
+    display: flex; 
     background: white; 
     border-top: 1px solid #eee; 
-    display: flex; 
     z-index: 300; 
+    box-sizing: border-box; /* 패딩이 너비에 영향을 주지 않도록 설정 */
 }
 
-/* 이전 버튼 (20%) */
+/* 이전 버튼 (약 30% 차지) */
 #prev-btn { 
-    flex: 2; /* 비율 2 */
+    flex: 3; 
     background-color: #a0a0a0; 
-    border-right: 1px solid #ddd; 
-    display: block; /* 항상 노출 */
+    border: none;
+    margin: 0; /* 혹시 모를 외부 여백 제거 */
 }
 
-/* 다음 버튼 (80%) */
+/* 다음 버튼 (약 70% 차지) */
 #main-btn { 
-    flex: 8; /* 비율 8 */
+    flex: 7; 
+    background-color: var(--primary-color);
+    border: none;
+    margin: 0;
 }
 
 .footer-btn { 
-    background-color: var(--primary-color); 
-    color: white; 
-    border: none; 
-    padding: 18px; 
+    padding: 20px 0; /* 버튼 높이를 조금 더 키워 터치하기 편하게 만듦 */
     font-size: 16px; 
     font-weight: bold; 
     cursor: pointer; 
+    color: white; 
     text-align: center; 
-    transition: opacity 0.2s;
+    border-radius: 0; /* 모서리를 각지게 해야 양 끝이 빈틈없이 붙습니다 */
 }
 
-.footer-btn:disabled { 
-    background-color: #ccc; 
-    cursor: not-allowed; 
-}
-
+.footer-btn:disabled { background-color: #ccc !important; }
+        
 /* 리커트 척도 숫자 버튼 스타일 */
 .scale-options {
     display: flex;
