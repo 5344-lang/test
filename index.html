@@ -516,222 +516,396 @@ select.form-control.selected {
 </div>
 
 <script>
+
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOMCKJ-DHKrbntGkeY-XX39E4sfCuWtifr-JrjiRDwUMoHudQONEEl0cKzQgC1W5vA/exec";
+
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
+
 /* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
+
 let state = { 
+
     step: 'consent', 
+
     condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
+
     vignetteIndex: 0,
+
     userId: null,
-    isLocked: false // 추가: 시크릿 모드 접속 시 버튼을 잠그기 위한 변수
+
+    isLocked: false // 시크릿 모드 판정 시 true로 변경됨
+
 };
 
+
+
     /* [강화 1] 이미지 미리 로딩 함수 */
+
 function startImagePreload() {
+
     console.log("배경에서 이미지 로딩을 시작합니다...");
+
     Object.values(imgFiles).forEach(src => {
+
         const img = new Image();
+
         img.src = src; 
+
     });
+
 }
 
-/* [강화 2] 시크릿 모드 감지 함수 (최신 브라우저 대응) */
+
+
+/* [통합 및 최적화] 시크릿 모드 감지 */
+
 async function checkIncognito() {
-    let isIncognito = false;
-    try {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            const { quota } = await navigator.storage.estimate();
-            // 할당량이 120MB 미만이면 시크릿 모드로 판단 (최신 크롬 기준)
-            if (quota < 120000000) isIncognito = true;
-        } else {
-            // FileSystem API를 이용한 구형 감지 방식
-            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-            if (fs) {
-                await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(false), () => { isIncognito = true; resolve(true); }));
-            }
-        }
-    } catch (e) { console.error(e); }
 
-    if (isIncognito) {
-        state.isLocked = true; // 버튼 잠금 활성화
-        alert("본 연구는 데이터 중복 방지를 위해 시크릿 모드(사생활 보호 모드)에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
-        
-        const mainBtn = document.getElementById('main-btn');
-        if (mainBtn) {
-            mainBtn.disabled = true;
-            mainBtn.innerText = "접속 제한됨 (일반 모드로 접속하세요)";
-            mainBtn.style.backgroundColor = "#ff4d4d";
+    try {
+
+        // 1. Storage Quota 방식 (크롬, 엣지 등 최신)
+
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+
+            const { quota } = await navigator.storage.estimate();
+
+            if (quota < 120000000) state.isLocked = true;
+
+        } 
+
+        // 2. FileSystem API 방식 (사파리, 구형 브라우저)
+
+        const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+
+        if (fs && !state.isLocked) {
+
+            await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(), () => { 
+
+                state.isLocked = true; 
+
+                resolve(); 
+
+            }));
+
         }
+
+    } catch (e) { console.error("감지 오류:", e); }
+
+
+
+    // 차단 상태일 경우 즉시 UI 업데이트
+
+    if (state.isLocked) {
+
+        const mainBtn = document.getElementById('main-btn');
+
+        alert("본 연구는 데이터 중복 지원 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 창으로 접속해 주세요.");
+
+        if (mainBtn) {
+
+            mainBtn.disabled = true;
+
+            mainBtn.innerText = "접속 제한됨 (일반 모드 권장)";
+
+            mainBtn.style.backgroundColor = "#ff4d4d";
+
+        }
+
     }
+
 }
+
     
+
 /* [수정본] 더 안정적인 IP 수집 함수 */
+
 async function getIP() {
+
     const providers = [
+
         'https://api64.ipify.org?format=json', // IPv6/IPv4 모두 지원
+
         'https://api.ip.pb.io/json',           // 차단 확률이 낮은 대체 경로
+
         'https://checkip.amazonaws.com'        // 아마존 제공 (텍스트 방식)
+
     ];
 
+
+
     for (const url of providers) {
+
         // 타임아웃 처리를 위한 컨트롤러 설정
+
         const controller = new AbortController();
+
         const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5초 대기
 
+
+
         try {
+
             const response = await fetch(url, { signal: controller.signal });
+
             clearTimeout(timeoutId);
+
             
+
             if (url.includes('json')) {
+
                 const data = await response.json();
+
                 // 서비스마다 결과 필드명이 다를 수 있어 두 가지 모두 체크
+
                 return data.ip || data.address; 
+
             } else {
+
                 const text = await response.text();
+
                 return text.trim();
+
             }
+
         } catch (e) {
+
             console.warn(`${url} 접속 실패: `, e.name);
+
             // 에러 발생 시 다음 provider로 자동 이동
+
             continue; 
+
         }
+
     }
+
     // 모든 경로가 막혔을 때 (광고 차단기 등이 매우 강력한 경우)
+
     return "FAILED_TO_CAPTURE"; 
+
 }
+
 /* 2. 데이터 전송 함수 (async/await 적용) */
+
 async function sendData() {
+
     const btn = document.getElementById('main-btn');
+
     btn.disabled = true;
+
     btn.innerText = "제출 중";
+
+
 
     const userIP = await getIP(); // IP 가져오기 대기
 
+
+
     const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+
     let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+
     if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
 
+
+
     const results = {
+
         id: state.userId,
+
         ip: userIP, // IP 포함
+
         condition: state.condition,
+
         age: document.getElementById('age').value,
+
         residence: document.getElementById('residence').value,
+
         orientation: document.getElementById('orientation').value,
+
         birth_sex: document.getElementById('birth_sex').value,
+
         current_gender: document.getElementById('current_gender').value,
+
         religion: document.getElementById('religion').value,
+
         check_answer: checkAns,
+
         phone: document.getElementById('reward-phone').value || "",
+
         des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
+
         seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
+
         crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
+
     };
 
+
+
     fetch(GOOGLE_SCRIPT_URL, {
+
         method: "POST",
+
         mode: "no-cors", // 차단 없이 무조건 전송
+
         body: JSON.stringify(results)
+
     })
+
     .then(() => {
+
         localStorage.setItem('survey_finished', 'true');
+
         showStep('step-complete');
+
         document.querySelector('.bottom-bar').style.display = 'none';
+
     })
+
     .catch(() => {
+
         // no-cors 특성상 에러가 떠도 데이터는 전송됩니다.
+
         localStorage.setItem('survey_finished', 'true');
+
         showStep('step-complete');
+
         document.querySelector('.bottom-bar').style.display = 'none';
+
     });
+
 }
+
     
 
 
-/* 2. 안전한 시크릿 모드 감지 함수 */
-async function checkIncognito() {
-    try {
-        // 크롬 등 최신 브라우저 대응
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            const { quota } = await navigator.storage.estimate();
-            // 할당량이 극단적으로 적은 경우(약 10MB 미만)에만 의심 (기준 하향 조정)
-            if (quota < 10000000) state.isLocked = true; 
-        } 
-        
-        // 사파리 등 기타 브라우저 대응 (FileSystem API 방식)
-        const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-        if (fs) {
-            fs(window.TEMPORARY, 100, () => {}, () => { state.isLocked = true; });
-        }
-    } catch (e) {
-        console.warn("감지 로직 실행 불가: ", e);
-    }
 
-    // 시크릿 모드로 판명되었을 때만 UI 차단 실행
-    if (state.isLocked) {
-        const mainBtn = document.getElementById('main-btn');
-        if (mainBtn) {
-            mainBtn.disabled = true;
-            mainBtn.innerText = "접속 제한됨 (일반 창 이용 권장)";
-            mainBtn.style.backgroundColor = "#ff4d4d";
-            alert("본 연구는 데이터 중복 방지를 위해 시크릿 모드에서의 접속을 권장하지 않습니다. 일반 브라우저 창으로 참여해 주세요.");
+
+
+/* [최적화] 타이머 종료 후 차단 상태 재확인 */
+
+function startTimer() {
+
+    const btn = document.getElementById('main-btn');
+
+    btn.disabled = true; 
+
+    btn.innerText = "읽는 중";
+
+
+
+    setTimeout(() => {
+
+        // 타이머가 끝났을 때 시크릿 모드 여부에 따라 활성화 결정
+
+        if (state.isLocked) {
+
+            btn.disabled = true; 
+
+            btn.innerText = "접속 제한됨";
+
+            btn.style.backgroundColor = "#ff4d4d";
+
+        } else {
+
+            btn.disabled = false;
+
+            btn.innerText = "다음";
+
+            btn.style.backgroundColor = ""; // 원래 색상으로 복구
+
         }
-    }
+
+    }, 2000); // 비네트 등에 따라 시간 조절 가능
+
 }
 
-/* 3. 타이머 함수 (isLocked 상태를 고려하여 버튼 활성화 제어) */
-function startTimer() {
-        const btn = document.getElementById('main-btn');
-        btn.disabled = true; 
-        btn.innerText = "읽는 중";
-        setTimeout(() => {
-            // 시크릿 모드로 잠긴 상태가 아닐 때만 버튼 활성화
-            if (!state.isLocked) {
-                btn.disabled = false;
-                btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
-            } else {
-                btn.innerText = "접속 제한됨";
-            }
-        }, 2000);
-    }
-/* 4. 페이지 초기화 로직 통합 */
-window.onload = function() {
-    checkIncognito(); // 시크릿 모드 체크 실행
+    
 
-    // 기존 중복 참여 체크 로직 유지
+// [수정] async 키워드를 추가하여 비동기 처리가 가능하게 합니다.
+
+window.onload = async function() {
+
+    // 1. 시크릿 모드부터 가장 먼저 체크 (await 필수)
+
+    await checkIncognito(); 
+
+
+
+    // 2. 완료 여부 확인
+
     if (localStorage.getItem('survey_finished') === 'true') {
+
         alert("이미 본 연구에 참여하셨습니다.");
+
         window.location.href = "about:blank";
+
         return;
+
     }
 
-    // ID 설정 및 초기 접속 기록
-    let savedId = localStorage.getItem('survey_user_id');
-    if (!savedId) {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(); 
-    } else {
-        state.userId = savedId;
+
+
+    // 3. ID 설정 및 첫 접속 IP 기록 (시크릿 모드가 아닐 때만)
+
+    if (!state.isLocked) {
+
+        let savedId = localStorage.getItem('survey_user_id');
+
+        if (!savedId) {
+
+            state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            localStorage.setItem('survey_user_id', state.userId);
+
+            const currentIP = await getIP(); 
+
+            recordInitialVisit(currentIP); 
+
+        } else {
+
+            state.userId = savedId;
+
+        }
+
     }
 
-    // 척도 렌더링 및 이미지 로드
+
+
+    // [3] 모든 척도 렌더링 및 이미지 로드
+
     preloadImages();
+
     renderDES();
+
     renderSEQ();
+
     renderCRF();
 
-    // 입력창 이벤트 연결
+
+
+    // [4] 입력창 이벤트 연결 (기존 코드 유지)
+
     document.querySelectorAll('.form-control').forEach(el => {
+
         if (el.value && el.value.trim() !== "") el.classList.add('selected');
+
         el.addEventListener('change', updateInputColor);
+
         el.addEventListener('input', updateInputColor);
+
     });
 
-    // 첫 화면 표시 (동의 페이지)
+
+
+    // [5] 첫 화면 표시
+
     showStep('step-consent');
+
 };
+
+
     /* --- 비네트 대본 (수정 불가) --- */
     const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -1044,15 +1218,21 @@ function validateScreener() {
 }
 
     // 초기 방문 기록 함수 (누락된 부분 추가)
-function recordInitialVisit() {
+// [수정] IP를 매개변수로 받는 함수 정의
+function recordInitialVisit(userIP) {
     if (localStorage.getItem('initial_visit_recorded')) return;
-    const initialData = { method: 'initial', id: state.userId, condition: state.condition };
+    const initialData = { 
+        method: 'initial', 
+        id: state.userId, 
+        ip: userIP, // 받아온 IP를 여기에 넣습니다.
+        condition: state.condition 
+    };
     fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) })
     .then(() => localStorage.setItem('initial_visit_recorded', 'true'));
 }
     
 // 자격 확인 함수 (중복 제거 및 통합)
-function checkEligibility() {
+async function checkEligibility() {
     const ageValue = document.getElementById('age').value;
     const age = parseInt(ageValue);
     const orient = document.getElementById('orientation').value;
@@ -1060,13 +1240,16 @@ function checkEligibility() {
     const cGen = document.getElementById('current_gender').value;
     const res = document.getElementById('residence').value;
 
-    // 1. 자격 확인 (만 19세 이상, 시스젠더 LGB 여부)
+    // 1. 자격 확인
     if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
         
-        // 2. [데이터 즉시 전송] 
-        // 서버로 보낼 데이터를 객체로 구성합니다. (변수명이 정확해야 기록됩니다)
+        // 2. [핵심] IP 주소 먼저 가져오기
+        const userIP = await getIP(); 
+
+        // 3. 데이터를 객체로 구성 (ip 추가)
         const demographicData = {
             id: state.userId,
+            ip: userIP, // 이 줄이 있어야 unknown이 안 뜹니다.
             condition: state.condition,
             age: ageValue,
             residence: res,
@@ -1075,19 +1258,19 @@ function checkEligibility() {
             current_gender: cGen
         };
 
-        // fetch를 통해 구글 시트로 즉시 전송합니다.
+        // 4. 구글 시트로 전송
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors", // CORS 오류 방지
+            mode: "no-cors",
             body: JSON.stringify(demographicData)
         });
 
-        // 3. 다음 단계(비네트)로 이동
+        // 5. 다음 단계로 이동
         state.step = 'vignette'; 
         showStep('step-vignette'); 
         renderVignette();
     } else {
-        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다."); 
+        alert("본 연구의 참여 대상자(만 19세 이상 시스젠더 LGB)에 해당하지 않아 설문을 종료합니다."); 
         window.location.href = "about:blank";
     }
 }
@@ -1096,14 +1279,6 @@ function checkEligibility() {
         return true;
     }
 
-    function startTimer() {
-        const btn = document.getElementById('main-btn');
-        btn.disabled = true; btn.innerText = "읽는 중";
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerText = (state.step === 'vignette' && state.vignetteIndex === vignettes.length - 1) ? "다음" : "다음";
-        }, 2000);
-    }
 
 // showStep 함수 수정 (이전 버튼 노출 조건 완화)
 function showStep(id) {
