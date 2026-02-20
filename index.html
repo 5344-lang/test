@@ -517,84 +517,45 @@ select.form-control.selected {
 
 <script>
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOMCKJ-DHKrbntGkeY-XX39E4sfCuWtifr-JrjiRDwUMoHudQONEEl0cKzQgC1W5vA/exec";
-
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfcRoQeVapXR-6506UqEuGun6gNsLNQV-SUK35vrhJr1WiefBb8pTtZmhI3x-YffA/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-
 /* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
-
 let state = { 
-
     step: 'consent', 
-
     condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
-
     vignetteIndex: 0,
-
     userId: null,
-
     isLocked: false // 시크릿 모드 판정 시 true로 변경됨
-
 };
 
-
-
     /* [강화 1] 이미지 미리 로딩 함수 */
-
 function startImagePreload() {
-
     console.log("배경에서 이미지 로딩을 시작합니다...");
-
     Object.values(imgFiles).forEach(src => {
-
         const img = new Image();
-
         img.src = src; 
-
     });
-
 }
 
-
-
 /* [통합 및 최적화] 시크릿 모드 감지 */
-
 async function checkIncognito() {
-
     try {
-
         // 1. Storage Quota 방식 (크롬, 엣지 등 최신)
-
         if ('storage' in navigator && 'estimate' in navigator.storage) {
-
             const { quota } = await navigator.storage.estimate();
-
             if (quota < 120000000) state.isLocked = true;
-
         } 
-
         // 2. FileSystem API 방식 (사파리, 구형 브라우저)
-
         const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-
         if (fs && !state.isLocked) {
-
             await new Promise(resolve => fs(window.TEMPORARY, 100, () => resolve(), () => { 
-
                 state.isLocked = true; 
-
                 resolve(); 
-
             }));
-
         }
-
     } catch (e) { console.error("감지 오류:", e); }
 
-
-
     // 차단 상태일 경우 즉시 UI 업데이트
-
     if (state.isLocked) {
         const mainBtn = document.getElementById('main-btn');
         alert("본 연구는 데이터 중복 지원 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 창으로 접속해 주세요.");
