@@ -327,7 +327,13 @@
     const desQuestions = ["1. 이 상담자에게 당신의 사적인 이야기를 하는 것은 위험할까요?", "2. 당신이 지금까지 아무에게도 말한 적이 없는 매우 사적인 일을 이 상담자에게 말한다면 불안하게 느껴질까요?", "3. 당신에게 슬프거나 괴로운 일이 생긴다면, 문제와 관련된 당신의 개인정보를 이 상담자에게 드러내는 것이 도움이 될까요?", "4. 당신의 숨겨둔 감정을 이 상담자에게 드러내는 것이 위험할까요?", "5. 당신이 이 상담자를 찾아가 속 이야기를 한다면 주변 사람들이 어떻게 생각할지 걱정되나요?", "6. 이 상담자에게 자신의 속마음을 말하는 것은 도움이 될까요?", "7. 만약 당신이 슬픔이나 불안 같은 감정을 드러낸다면 기분이 더 나아질까요?", "8. 만약 당신이 고민 중인 문제를 이 상담자에게 터놓는다면 실질적인 도움을 받을 것 같나요?"];
     const seqPairs = [{L:"힘들었다", R:"쉬웠다"}, {L:"가치있었다", R:"가치없었다"}, {L:"피상적이었다", R:"깊이있었다"}, {L:"마음 편했다", R:"긴장되었다"}, {L:"언짢았다", R:"즐거웠다"}, {L:"가득찼다", R:"비었다"}, {L:"약했다", R:"강했다"}, {L:"특별했다", R:"보통이었다"}, {L:"거칠었다", R:"매끄러웠다"}, {L:"편안했다", R:"불편했다"}];
     const crfQuestions = ["경험이 많다", "믿음직스럽다", "사교적이다", "노련하다", "우호적이다", "전문적이다", "진실하다", "온화하다", "정직하다", "호감이 간다", "준비가 되어있다", "신뢰할 수 있다."];
-function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
+const guideMessages = {
+        'des': { title: '자기개방 기대 척도', body: '다음 문항들에 대해 귀하께서 느끼신 정도를 표시해 주십시오.' },
+        'seq': { title: '상담회기평가', body: '앞서 보신 상담 시간에 대해 느끼신 정도를 표시해 주십시오.' },
+        'crf': { title: '상담자 평가', body: '상담자를 어떻게 보셨는지 표시해 주십시오.' }
+    };
+    
+    function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
 let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false };
 function startImagePreload() {
     console.log("실험 자산 프리로딩 시작...");
@@ -538,7 +544,7 @@ function showStep(id) {
         else { imgEl.className = ''; imgEl.src = nextImgSrc; updateUI(); }
     }
     function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => <div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => <label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}\</span\>\</label\>).join('')}).join(''); }\
+function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
     function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
     function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
