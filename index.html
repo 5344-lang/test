@@ -591,32 +591,58 @@ let state = {
     userId: null 
 };
 
+// [추가] 시크릿 모드 감지 함수 정의
+async function checkIncognito() {
+    const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+    if (!fs) return;
+
+    fs(window.TEMPORARY, 100, () => {
+        // 일반 모드: 아무 작업 안 함
+    }, () => {
+        // 시크릿 모드일 때
+        alert("본 연구는 중복 참여 방지를 위해 시크릿 모드에서의 접속을 제한하고 있습니다. 일반 브라우저 창으로 접속해 주시기 바랍니다.");
+        const mainBtn = document.getElementById('main-btn');
+        if (mainBtn) {
+            mainBtn.disabled = true;
+            mainBtn.innerText = "접속 제한됨 (일반 모드로 접속하세요)";
+            mainBtn.style.backgroundColor = "#ff4d4d";
+        }
+    });
+}
+
 window.onload = function() {
-    // [1] 중복 참여 체크
+    // [0] 시크릿 모드 체크 실행
+    checkIncognito();
+
+    // [1] 중복 참여 체크 (이미 완료한 사람)
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
         return;
     }
 
-    // [2] ID 설정
-    if (!localStorage.getItem('survey_user_id')) {
+    // [2] ID 설정 및 초기 접속 기록
+    let savedId = localStorage.getItem('survey_user_id');
+    if (!savedId) {
         state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit();
+        recordInitialVisit(); // 첫 방문 시에만 서버에 기록
     } else {
-        state.userId = localStorage.getItem('survey_user_id');
+        state.userId = savedId;
     }
 
-    // [3] 모든 척도 렌더링 (이게 실행되어야 화면에 나옵니다)
+    // [3] 모든 척도 렌더링 및 이미지 로드
     preloadImages();
     renderDES();
     renderSEQ();
     renderCRF();
 
-    // [4] 입력창 색상 변경 이벤트 연결
+    // [4] 입력창 색상 및 이벤트 연결 (Screener 등)
     document.querySelectorAll('.form-control').forEach(el => {
-        if (el.value) el.classList.add('selected');
+        // 초기 값이 있는 경우 selected 클래스 추가
+        if (el.value && el.value.trim() !== "") {
+            el.classList.add('selected');
+        }
         el.addEventListener('change', updateInputColor);
         el.addEventListener('input', updateInputColor);
     });
@@ -730,33 +756,53 @@ function renderCRF() {
         </div>`).join('');
 }
 
-    function renderVignette() {
+function renderVignette() {
         const idx = state.vignetteIndex;
         const current = vignettes[idx];
         const imgEl = document.getElementById('stimulus-img');
         const textBox = document.querySelector('.vn-text-box');
         const btn = document.getElementById('main-btn');
 
-        imgEl.src = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+        // 1. 표시할 이미지 경로 결정
+        const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
 
+        // 2. 상담 시작(idx 5) 시 로딩 지연 방지 로직
+        if (idx === 5) {
+            textBox.style.opacity = '0'; // 일단 대사창 숨김
+            btn.disabled = true;
+            btn.innerText = "상담실 입장 중...";
+
+            // 가상 객체로 이미지를 먼저 로드
+            const tempImg = new Image();
+            tempImg.src = nextImgSrc;
+            tempImg.onload = function() {
+                // 로딩이 완료되면 실제 화면에 이미지 교체
+                imgEl.src = nextImgSrc;
+                btn.innerText = "10초 후 상담이 시작됩니다";
+                
+                // 로딩 완료 후 10초 대기 시작
+                setTimeout(() => {
+                    textBox.style.opacity = '1';
+                    document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+                    startTimer();
+                }, 10000);
+            };
+        } else {
+            // 일반적인 슬라이드 전환
+            imgEl.src = nextImgSrc;
+            textBox.style.opacity = '1';
+            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+            startTimer();
+        }
+
+        // 공통: 스피커 배경색 처리
         textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
         if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
         else if (current.speaker === "나") textBox.classList.add('speaker-me');
         else textBox.classList.add('speaker-default');
-
-        if (idx === 5) {
-            textBox.style.opacity = '0'; btn.disabled = true; btn.innerText = "10초 후 상담이 시작됩니다";
-            setTimeout(() => {
-                textBox.style.opacity = '1';
-                document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-                startTimer();
-            }, 10000); //5000은 5초, 7000은 7초
-        } else {
-            textBox.style.opacity = '1';
-            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-            startTimer();
-        }
+        
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
     }
     function updateInputColor(event) {
     const el = event.target;
