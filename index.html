@@ -615,39 +615,58 @@ async function sendData() {
 }
     
 window.onload = async function() {
-    state.startTime = Date.now(); // [추가] 접속 시점의 시간을 밀리초 단위로 기록
-    // [수정] 시크릿 모드 체크 삭제, IP 수집부터 시작
-    const currentIP = await getIP(); 
+        state.startTime = Date.now(); // 시작 시간 기록
+        const currentIP = await getIP(); 
 
-    if (localStorage.getItem('survey_finished') === 'true') {
-        alert("이미 본 연구에 참여하셨습니다.");
-        window.location.href = "about:blank";
-        return;
-    }
-
-    let savedId = localStorage.getItem('survey_user_id');
-    if (!savedId) {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(currentIP); 
-    } else {
-        state.userId = savedId;
-    }
-
-    renderDES(); renderSEQ(); renderCRF();
-    
-    // 엔터 키 방지 및 입력창 이벤트 연결
-    document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-        if (el.classList.contains('form-control')) {
-            el.addEventListener('change', updateInputColor);
-            el.addEventListener('input', updateInputColor);
+        if (localStorage.getItem('survey_finished') === 'true') {
+            alert("이미 본 연구에 참여하셨습니다.");
+            window.location.href = "about:blank";
+            return;
         }
-    });
 
-    showStep('step-consent');
-};
+        let savedId = localStorage.getItem('survey_user_id');
+        if (!savedId) {
+            state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('survey_user_id', state.userId);
+            recordInitialVisit(currentIP); 
+        } else {
+            state.userId = savedId;
+        }
 
+        renderDES(); renderSEQ(); renderCRF();
+
+        // [중요] 선택창 튕김 및 엔터 방지 로직
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+            if (el.classList.contains('form-control')) {
+                el.addEventListener('change', updateInputColor);
+                el.addEventListener('input', updateInputColor);
+            }
+        });
+
+        showStep('step-consent');
+    };
+
+    function showStep(id) {
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        const area = document.getElementById('content-area');
+        area.classList.toggle('full-screen-mode', id === 'step-vignette');
+        area.scrollTop = 0;
+
+        const prevBtn = document.getElementById('prev-btn');
+        const mainBtn = document.getElementById('main-btn');
+
+        // 1페이지(consent)일 때만 이전 버튼 숨김
+        prevBtn.style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+
+        // 질문지 및 안내 단계에서 버튼 즉시 활성화 (먹통 방지)
+        if (id !== 'step-vignette') {
+            mainBtn.disabled = false;
+            mainBtn.innerText = (state.step === 'debrief') ? "제출하기" : "다음";
+            mainBtn.style.backgroundColor = "";
+        }
+    }
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다. 사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다. 당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -1047,52 +1066,7 @@ function showStep(id) {
 
     function handleExit() { if(confirm("실험을 중단하시겠습니까?")) window.close(); }
 
-    /* 2. 기존 sendData 함수를 이것으로 교체 */
-async function sendData() { // async 키워드 확인!
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true; 
-    btn.innerText = "제출 중";
-    
-    // IP 주소 가져오기 대기
-    const userIP = await getIP();
 
-    const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
-    let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-    if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
-
-    const results = {
-        id: state.userId,
-        ip: userIP, // 여기에 IP 주소 포함
-        condition: state.condition,
-        age: document.getElementById('age').value,
-        residence: document.getElementById('residence').value,
-        orientation: document.getElementById('orientation').value,
-        birth_sex: document.getElementById('birth_sex').value,
-        current_gender: document.getElementById('current_gender').value,
-        religion: document.getElementById('religion').value,
-        check_answer: checkAns,
-        phone: document.getElementById('reward-phone').value || "",
-        des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','),
-        seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','),
-        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',')
-    };
-
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify(results)
-    })
-    .then(() => {
-        localStorage.setItem('survey_finished', 'true');
-        showStep('step-complete');
-        document.querySelector('.bottom-bar').style.display = 'none';
-    })
-    .catch((err) => {
-        alert("오류 발생. 다시 시도해주세요.");
-        btn.disabled = false;
-        btn.innerText = "제출하기";
-    });
-}
 /* --- [최종] 2초 딜레이 타이머 (시크릿 모드 로직 제거 버전) --- */
 function startTimer() {
     const btn = document.getElementById('main-btn');
