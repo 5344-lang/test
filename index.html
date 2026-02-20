@@ -806,42 +806,44 @@ function renderVignette() {
     const textBox = document.querySelector('.vn-text-box');
     const btn = document.getElementById('main-btn');
 
+    // 1. 표시할 이미지 경로 결정
     const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
 
     if (idx === 5) {
-        // [수정] 상담 시작 단계: 10초간 버튼을 굳히고 텍스트를 고정합니다.
+        // [중요 수정] 상담 시작 단계: 이미지 로딩과 타이머를 분리합니다.
         textBox.style.opacity = '0'; 
         btn.disabled = true;
-        btn.innerText = "10초 후 상담이 시작됩니다";
+        btn.innerText = "곧 상담이 시작됩니다";
+        
+        // 일단 이미지를 교체 (캐시되어 있으면 즉시 바뀜)
+        imgEl.src = nextImgSrc;
 
-        const tempImg = new Image();
-        tempImg.onload = function() {
-            imgEl.src = nextImgSrc;
+        // 이미지 로딩 성공 여부와 상관없이 10초 타이머를 무조건 실행합니다.
+        setTimeout(() => {
+            textBox.style.opacity = '1';
+            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
             
-            setTimeout(() => {
-                // 10초 대기 완료 후 실행되는 로직
-                textBox.style.opacity = '1';
-                document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-                
-                // [핵심] 10초를 이미 기다렸으므로 startTimer()를 거치지 않고 바로 활성화합니다.
-                if (!state.isLocked) {
-                    btn.disabled = false;
-                    btn.innerText = "다음";
-                } else {
-                    btn.innerText = "접속 제한됨";
-                }
-                // 페이지 번호 업데이트를 타이머 종료 시점으로 이동하여 싱크를 맞춤
-                document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-            }, 10000);
-        };
-        tempImg.src = nextImgSrc;
+            // 시크릿 모드가 아닐 때만 버튼 활성화
+            if (!state.isLocked) {
+                btn.disabled = false;
+                btn.innerText = "다음";
+            } else {
+                btn.innerText = "접속 제한됨";
+            }
+            // 페이지 번호 업데이트
+            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+            console.log("10초 대기 완료: 상담 시작");
+        }, 10000); 
+
     } else {
-        // 일반적인 비네트 슬라이드
+        // 일반적인 비네트 슬라이드 로직
         imgEl.src = nextImgSrc;
         textBox.style.opacity = '1';
         document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
         document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-        startTimer(); // 일반 슬라이드는 2초 타이머 적용
+        
+        // 일반 슬라이드는 기존 2초 타이머(startTimer) 사용
+        startTimer(); 
     }
 
     // 스피커 배경색 처리 (기존 유지)
@@ -850,7 +852,6 @@ function renderVignette() {
     else if (current.speaker === "나") textBox.classList.add('speaker-me');
     else textBox.classList.add('speaker-default');
 }
-    
 
     function updateInputColor(event) {
     const el = event.target;
