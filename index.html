@@ -827,7 +827,7 @@ async function checkEligibility() {
     const res = document.getElementById('residence').value;
 
     // 1. 자격 확인
-    if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen) {
+    if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen && res === 'korea') {
         
         // 2. [핵심] IP 주소 먼저 가져오기
         const userIP = await getIP(); 
