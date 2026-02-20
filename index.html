@@ -309,10 +309,22 @@
     const crfQuestions = ["경험이 많다", "믿음직스럽다", "사교적이다", "노련하다", "우호적이다", "전문적이다", "진실하다", "온화하다", "정직하다", "호감이 간다", "준비가 되어있다", "신뢰할 수 있다."];
 function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
 let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false };
-
+function startImagePreload() {
+    console.log("실험 자산 프리로딩 시작...");
+    const imagesToPreload = Object.values(imgFiles);
+    
+    imagesToPreload.forEach(src => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => console.log(`로드 완료: ${src}`);
+        img.onerror = () => console.error(`로드 실패: ${src}`);
+    });
+}
     /* --- [2] 핵심 로직 (순서 조정 완료) --- */
     window.onload = function() {
         state.startTime = Date.now();
+        // [추가] 접속 즉시 이미지 프리로딩 시작
+    startImagePreload();
         window.history.pushState(null, null, window.location.href);
         window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
 
@@ -321,19 +333,14 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
         
         renderDES(); renderSEQ(); renderCRF();
 
-        const savedStepId = localStorage.getItem('current_step_id');
+      const savedStepId = localStorage.getItem('current_step_id');
     const savedVigIdx = localStorage.getItem('current_vignette_idx');
 
+    // 단계 복구 로직 (이전 답변 유지)
     if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
-        // [추가] 비네트 번호 복구
         if (savedVigIdx) state.vignetteIndex = parseInt(savedVigIdx);
-        
         showStep(savedStepId);
-
-        // [핵심 추가] 비네트 단계라면 화면을 즉시 다시 그려라!
-        if (savedStepId === 'step-vignette') {
-            renderVignette();
-        }
+        if (savedStepId === 'step-vignette') renderVignette();
     } else {
         showStep('step-consent');
     }
