@@ -5,133 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- 디자인 시스템 --- */
-        :root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
-        html, body { height: 100%; margin: 0; }
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
-/* [반응형] 앱 컨테이너: PC는 800px, 모바일은 100% */
-        .app-container { 
-            background-color: var(--card-bg); 
-            width: 100%; 
-            height: 100%; 
-            max-width: none; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: none; 
-            position: relative; 
-        }
+<style>
+    /* --- 디자인 시스템 --- */
+    :root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
 
-        header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
-        .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
-        .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 80px 24px; box-sizing: border-box; }
-
-        /* 비네트 단계 전체화면 */
-        .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
-        #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
-
-        /* --- [핵심] 이미지 반응형 로직 (PC 전체 노출 / 모바일 140% 크롭) --- */
-        #stimulus-img { 
-            width: 100% !important; height: 100% !important; 
-            object-fit: contain !important; object-position: center !important; 
-            position: absolute; left: 0; top: 0; display: block; 
-        }
-
-        @media (max-width: 600px) {
-            .app-container { max-width: 100%; }
-            #stimulus-img { 
-                width: 140% !important; height: 100% !important; 
-                object-fit: cover !important; object-position: 65% center !important; 
-                left: 50%; transform: translateX(-50%); 
-            }
-        }
-/* 대화창 스타일 */
-        .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
-        .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
-        .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        .speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
-
-        /* 하단 버튼 바: 좌우 꽉 채우기 */
-        .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
-        #prev-btn { flex: 3; background-color: #a0a0a0; }
-        #main-btn { flex: 7; background-color: var(--primary-color); }
-        .footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; }
-        .footer-btn:disabled { background-color: #ccc !important; }
-
-        /* 동의서 스크롤 박스 반응형 */
-        #consent-scroll-box { height: 50vh; max-height: 800px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
-        @media (max-height: 700px) { #consent-scroll-box { height: 25vh; } }
-        
-/* 상담자 등장 효과: 4초간 서서히 밝아짐 */
-.counselor-fade-in {
-    animation: fadeInFromBlack 4s ease-in-out forwards;
-}
-
-@keyframes fadeInFromBlack {
-    0% { filter: brightness(0); }
-    100% { filter: brightness(1); }
-}
-        /* 기타 스타일 유지 */
-        .hidden { display: none !important; }
-        h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
-        .form-group { margin-bottom: 25px; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important;  color: #333;}
-        .scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
-        .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; }
-        .scale-option:last-child { border-right: none; }
-        .scale-option input { position: absolute; opacity: 0; }
-        .scale-number { display: block; padding: 15px 0; font-size: 16px; }
-        .scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
-        .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
-
-/* --- [수정] PC 대화면 전용 가독성 강화 (1024px 이상) --- */
-@media (min-width: 1024px) {
-    /* 1. 전체 기본 글자 크기 증가 */
-    body { font-size: 18px; }
-
-    /* 2. 비네트 대사창: 글자 확대 및 하단 버튼과의 간격(약 20px 이상) 확보 */
-    .vn-text-box { 
-        padding-bottom: 120px !important; /* 버튼 높이(약 100px) + 여백 20px */
+    /* [반응형] 앱 컨테이너: 가로 제한 없이 전체 화면 사용 */
+    .app-container { 
+        background-color: var(--card-bg); 
+        width: 100%; 
+        height: 100%; 
+        max-width: none; 
+        display: flex; 
+        flex-direction: column; 
+        box-shadow: none; 
+        position: relative; 
     }
-    .vn-text-box p { 
-        font-size: 20px; 
-        line-height: 1.8; 
-        max-width: 900px; 
-        margin: 0 auto; 
-    }
-    .speaker { font-size: 22px; }
 
-    /* 3. 질문지 문항 및 제목 확대 */
-    h2 { font-size: 24px; margin-top: 30px; }
-    .form-label { font-size: 18px; margin-bottom: 15px; }
-    .form-control { font-size: 18px; padding: 15px; }
+    header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
+    .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
 
-    /* 4. 리커트 척도 숫자 및 라벨 확대 */
-    .scale-number { font-size: 20px; padding: 20px 0; }
-    .scale-labels span { font-size: 15px; }
-
-    /* 5. 하단 버튼 확대 및 높이 조정 */
-    .footer-btn { 
-        font-size: 20px; 
-        padding: 25px 0; /* 버튼 자체를 시원하게 키움 */
-    }
-    
-    /* 6. 설문 본문 전체 하단 여백 (버튼에 가려지지 않게) */
+    /* 본문 영역: 하단 버튼바와 겹치지 않게 충분한 여백 확보 */
     .content { 
-        padding-bottom: 130px !important; 
+        flex: 1; 
+        overflow-y: auto; 
+        -webkit-overflow-scrolling: touch; 
+        position: relative; 
+        padding: 0 24px 100px 24px; 
+        box-sizing: border-box; 
     }
 
-    /* 7. 동의 항목 하단 여백 추가 (버튼과 달라붙는 느낌 제거) */
-    .consent-options {
-        margin-bottom: 40px; 
+    /* 비네트 단계 전체화면 설정 */
+    .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
+    #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
+
+    /* --- [핵심] 비네트 이미지 반응형 로직 --- */
+    #stimulus-img { 
+        width: 100% !important; height: 100% !important; 
+        object-fit: contain !important; object-position: center !important; 
+        position: absolute; left: 0; top: 0; display: block; 
     }
 
-    /* 8. 동의서 스크롤 박스 글자 확대 */
-    #consent-scroll-box { font-size: 16px; line-height: 1.8; }
-}
-    </style>
+    @media (max-width: 600px) {
+        #stimulus-img { 
+            width: 140% !important; height: 100% !important; 
+            object-fit: cover !important; object-position: 65% center !important; 
+            left: 50%; transform: translateX(-50%); 
+        }
+    }
+
+    /* --- [수정] 설문 화면 깨짐 방지: 상단 참조 이미지 크기 제한 --- */
+    .sticky-top-box { 
+        position: sticky; top: 0; z-index: 100; 
+        background-color: var(--card-bg); padding: 10px 0; 
+        border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; 
+    }
+    .sticky-top-box img { 
+        width: 100%; max-width: 100%; height: auto; 
+        max-height: 25vh; /* 화면 높이의 25%만 차지하여 질문이 가려지지 않게 함 */
+        object-fit: contain; display: block; margin: 0 auto;
+    }
+
+    /* 대화창 스타일 */
+    .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
+    .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
+    .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
+    .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
+    .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+    .speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
+
+    /* 하단 버튼 바 */
+    .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
+    #prev-btn { flex: 3; background-color: #a0a0a0; }
+    #main-btn { flex: 7; background-color: var(--primary-color); }
+    .footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; }
+    .footer-btn:disabled { background-color: #ccc !important; }
+
+    /* 동의서 스크롤 박스 */
+    #consent-scroll-box { height: 50vh; max-height: 800px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
+    @media (max-height: 700px) { #consent-scroll-box { height: 35vh; } }
+
+    /* 상담자 등장 효과 (4초 페이드인) */
+    .counselor-fade-in { animation: fadeInFromBlack 4s ease-in-out forwards; }
+    @keyframes fadeInFromBlack { 0% { filter: brightness(0); } 100% { filter: brightness(1); } }
+
+    /* 공통 요소 */
+    .hidden { display: none !important; }
+    h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+    .form-group { margin-bottom: 25px; }
+    
+    /* [수정] 입력창: 회색 필터 제거 및 흰색 고정 */
+    .form-control { 
+        width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; 
+        font-size: 16px; box-sizing: border-box; background-color: #ffffff !important; color: #333;
+        -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    }
+
+    /* 리커트 척도 스타일 */
+    .scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
+    .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; }
+    .scale-option:last-child { border-right: none; }
+    .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .scale-number { display: block; padding: 15px 0; font-size: 16px; }
+    .scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
+    .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+
+    /* --- [수정] PC 대화면 가독성 및 여백 강화 (1024px 이상) --- */
+    @media (min-width: 1024px) {
+        body { font-size: 18px; }
+        
+        /* 대사창: 하단 버튼과 20px 이상의 여백 확보 */
+        .vn-text-box { padding-bottom: 120px !important; } 
+        .vn-text-box p { font-size: 20px; line-height: 1.8; max-width: 900px; margin: 0 auto; }
+        .speaker { font-size: 22px; }
+
+        h2 { font-size: 24px; margin-top: 30px; }
+        .form-label { font-size: 18px; margin-bottom: 15px; }
+        .form-control { font-size: 18px; padding: 15px; }
+
+        .scale-number { font-size: 20px; padding: 20px 0; }
+        .scale-labels span { font-size: 15px; }
+
+        /* 버튼 확대 및 전체 본문 하단 여백 20px 유지 */
+        .footer-btn { font-size: 20px; padding: 25px 0; }
+        .content { padding-bottom: 130px !important; } /* 버튼 높이 + 약 20px 여백 */
+        .consent-options { margin-bottom: 40px; }
+        #consent-scroll-box { font-size: 16px; line-height: 1.8; }
+    }
+</style>
 </head>
 <body>
 
@@ -312,7 +314,7 @@
 <div class="bottom-bar">
     <button type="button" style="position:absolute; width:0; height:0; opacity:0; border:none; padding:0; pointer-events:none;"></button>
 
-    <button type="button" id="prev-btn" class="footer-btn" onclick="handlePrev()">이전</button>
+    <button type="button" id="prev-btn" class="footer-btn" onclick="handlePrev()" tabindex="-1">이전</button>
     <button type="button" id="main-btn" class="footer-btn" onclick="handleNext()">다음</button>
 </div>
 </div>
@@ -426,43 +428,50 @@ async function sendData() {
 }
     
 window.onload = async function() {
-    state.startTime = Date.now(); // 시작 시간 기록
+    state.startTime = Date.now(); 
     
-    // [추가] 서버로부터 균형 잡힌 조건 가져오기
+    // [할당 로직] 서버로부터 조건 가져오기
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const assignedCondition = await response.text();
-        // 서버 응답이 유효한 경우에만 교체, 실패 시 기존 랜덤값 유지(보험)
-        if (assignedCondition) {
-            state.condition = assignedCondition.trim();
-            console.log("서버 할당 조건:", state.condition);
-        }
-    } catch (e) {
-        console.warn("서버 할당 실패, 기본 랜덤 사용:", state.condition);
-    }
+        if (assignedCondition) state.condition = assignedCondition.trim();
+    } catch (e) { console.warn("서버 할당 실패, 기본 랜덤 사용"); }
 
     const currentIP = await getIP(); 
 
+    // 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다.");
         window.location.href = "about:blank";
         return;
     }
 
-    let savedId = localStorage.getItem('survey_user_id');
-    if (!savedId) {
-        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        recordInitialVisit(currentIP); 
-    } else {
-        state.userId = savedId;
-    }
+    // ID 생성 및 초기 방문 기록
+    state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('survey_user_id', state.userId);
+    if (!localStorage.getItem('initial_visit_recorded')) { recordInitialVisit(currentIP); }
 
     renderDES(); renderSEQ(); renderCRF();
 
-    // 선택창 튕김 및 엔터 방지 로직 (수정하신대로 유지)
+    // [핵심 수정] 모든 입력창 및 선택창에서 튕김 현상 방지
     document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        // 1. 엔터 키가 다음/이전 버튼을 누르는 것 방지
+        el.addEventListener('keydown', e => { 
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                el.blur(); // 키보드 닫기
+            }
+        });
+
+        // 2. [가장 중요] 대한민국 등 항목 선택 시 즉시 포커스 해제
+        // 이 코드가 있어야 '완료' 버튼이 '이전' 버튼을 건드리지 못합니다.
+        if (el.tagName === 'SELECT') {
+            el.addEventListener('change', () => {
+                setTimeout(() => {
+                    el.blur(); // 선택 즉시 포커스 해제
+                }, 100);
+            });
+        }
     });
 
     showStep('step-consent');
@@ -854,20 +863,36 @@ async function checkEligibility() {
 
 // showStep 함수 수정 (이전 버튼 노출 조건 완화)
 function showStep(id) {
+    // 1. 모든 단계 숨기기 및 타겟 단계 보이기
     document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    
+    const targetStep = document.getElementById(id);
+    if (targetStep) targetStep.classList.remove('hidden');
+
     const area = document.getElementById('content-area');
-    area.classList.toggle('full-screen-mode', id === 'step-vignette');
+    const bottomBar = document.querySelector('.bottom-bar');
+    const mainBtn = document.getElementById('main-btn');
+
+    // 2. 비네트 모드 전용 클래스 토글
+    const isVignette = (id === 'step-vignette');
+    area.classList.toggle('full-screen-mode', isVignette);
+    
+    // 3. 페이지 전환 시 스크롤을 항상 맨 위로
     area.scrollTop = 0;
 
-    // 첫 페이지(consent)가 아니면 이전 버튼을 보여줌
-    const prevBtn = document.getElementById('prev-btn');
-    if (state.step === 'consent') {
-        prevBtn.style.visibility = 'hidden';
-    } else {
-        prevBtn.style.visibility = 'visible';
+    // 4. 하단 버튼 바 관리 (애니메이션 중이 아닐 때는 항상 보이게)
+    if (bottomBar) {
+        bottomBar.style.display = 'flex'; 
     }
+
+    // 5. 버튼 상태 리셋
+    if (!isVignette) {
+        mainBtn.disabled = false;
+        mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음";
+        mainBtn.style.backgroundColor = "";
+    }
+
+    // 6. 이전 버튼 노출 여부
+    document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
 }
 
     function showModal(type) {
