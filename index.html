@@ -314,7 +314,7 @@
 <div class="bottom-bar">
     <button type="button" style="position:absolute; width:0; height:0; opacity:0; border:none; padding:0; pointer-events:none;"></button>
 
-    <button type="button" id="prev-btn" class="footer-btn" onclick="handlePrev()" tabindex="-1">이전</button>
+<button type="button" id="prev-btn" class="footer-btn" onclick="handlePrev(event)">이전</button>
     <button type="button" id="main-btn" class="footer-btn" onclick="handleNext()">다음</button>
 </div>
 </div>
@@ -454,25 +454,26 @@ window.onload = async function() {
     renderDES(); renderSEQ(); renderCRF();
 
     // [핵심 수정] 모든 입력창 및 선택창에서 튕김 현상 방지
-    document.querySelectorAll('input, select').forEach(el => {
-        // 1. 엔터 키가 다음/이전 버튼을 누르는 것 방지
-        el.addEventListener('keydown', e => { 
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                el.blur(); // 키보드 닫기
-            }
-        });
-
-        // 2. [가장 중요] 대한민국 등 항목 선택 시 즉시 포커스 해제
-        // 이 코드가 있어야 '완료' 버튼이 '이전' 버튼을 건드리지 못합니다.
-        if (el.tagName === 'SELECT') {
-            el.addEventListener('change', () => {
-                setTimeout(() => {
-                    el.blur(); // 선택 즉시 포커스 해제
-                }, 100);
-            });
+document.querySelectorAll('input, select').forEach(el => {
+    // 1. 엔터 키 방어: 엔터를 누르면 입력을 끝내고(blur) 키보드를 닫음
+    el.addEventListener('keydown', e => { 
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+            el.blur(); // 포커스 해제하여 유령 클릭 방지
         }
     });
+
+    // 2. 드롭다운(select) 방어: 항목을 고르면 0.1초 뒤에 즉시 포커스 해제
+    if (el.tagName === 'SELECT') {
+        el.addEventListener('change', () => {
+            // 약간의 지연(100ms)을 주어야 선택된 값이 안전하게 기록된 후 키보드가 닫힙니다.
+            setTimeout(() => {
+                el.blur(); 
+                console.log("포커스 강제 해제 완료");
+            }, 100);
+        });
+    }
+});
 
     showStep('step-consent');
 };
@@ -741,7 +742,17 @@ else if (state.step === 'religion-move') {
 }
 
     
-    function handlePrev() {
+function handlePrev(event) {
+    // 1. 디버깅 로그: 실제로 버튼이 눌린 건지, 유령 클릭인지 확인용
+    console.log("이전 버튼 실행됨, 현재 단계:", state.step);
+
+    // 2. [핵심] 이벤트 전파 및 기본 동작 차단 (포커스 혼선 방지)
+    if (event) {
+        event.preventDefault();  // 브라우저 기본 동작 방지
+        event.stopPropagation(); // 부모 요소로 이벤트 전달 차단
+    }
+
+    // 3. 각 단계별 이전 가기 로직
     if (state.step === 'screener') { 
         state.step = 'consent'; 
         showStep('step-consent'); 
@@ -782,7 +793,7 @@ else if (state.step === 'religion-move') {
         state.step = 'religion-move'; 
         showStep('step-religion-move'); 
         document.getElementById('main-btn').innerText = "다음"; 
-}
+    }
 }
 function validateScreener() {
     const ageInput = document.getElementById('age');
