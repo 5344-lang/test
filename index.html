@@ -798,7 +798,26 @@ function renderCRF() {
             </div>
         </div>`).join('');
 }
+/* 1. 타이머 함수: 일반적인 슬라이드에서 버튼을 2초 후 활성화 */    
+function startTimer() {
+    const btn = document.getElementById('main-btn');
+    if (!btn) return;
 
+    btn.disabled = true; 
+    btn.innerText = "읽는 중";
+
+    setTimeout(() => {
+        // 시크릿 모드가 아닐 때만 버튼을 다시 살림
+        if (!state.isLocked) {
+            btn.disabled = false;
+            btn.innerText = "다음";
+        } else {
+            btn.innerText = "접속 제한됨";
+        }
+    }, 2000); 
+}
+    
+/* 2. 비네트 렌더링 함수: 10초 대기와 배경색 처리를 통합 */
 function renderVignette() {
     const idx = state.vignetteIndex;
     const current = vignettes[idx];
@@ -808,57 +827,45 @@ function renderVignette() {
 
     const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
 
-    // [함수 내부 도우미] 스피커에 따른 배경색 클래스 적용 로직
-    const updateSpeakerStyle = (speaker) => {
+    // [도우미] 배경색 및 텍스트 업데이트 함수
+    const updateContent = () => {
+        textBox.style.opacity = '1';
+        document.getElementById('vignette-text').innerHTML = 
+            `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+        
+        // 배경색 적용
         textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
-        if (speaker === "상담자") {
-            textBox.classList.add('speaker-counselor'); // 파란색
-        } else if (speaker === "나") {
-            textBox.classList.add('speaker-me');        // 초록색
-        } else {
-            textBox.classList.add('speaker-default');   // 검정색 (해설 등)
-        }
+        if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
+        else if (current.speaker === "나") textBox.classList.add('speaker-me');
+        else textBox.classList.add('speaker-default');
+
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
     };
 
     if (idx === 5) {
-        // --- 1. 상담 시작 단계 (10초 대기) ---
-        textBox.style.opacity = '0'; // 대사창 일시 숨김
+        // --- [상담 시작: 10초 대기 모드] ---
+        textBox.style.opacity = '0'; 
         btn.disabled = true;
         btn.innerText = "곧 상담이 시작됩니다";
-        
         imgEl.src = nextImgSrc;
 
         setTimeout(() => {
-            // 10초 후 대사와 배경색을 동시에 노출
-            textBox.style.opacity = '1';
-            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+            updateContent(); // 10초 후 내용 표시
             
-            // [추가] 10초 뒤에 배경색도 업데이트합니다.
-            updateSpeakerStyle(current.speaker);
-            
+            // [핵심] 10초 후 버튼 강제 활성화
             if (!state.isLocked) {
                 btn.disabled = false;
                 btn.innerText = "다음";
-            } else {
-                btn.innerText = "접속 제한됨";
             }
-            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
         }, 10000); 
 
     } else {
-        // --- 2. 일반적인 슬라이드 로직 ---
+        // --- [일반 슬라이드 모드] ---
         imgEl.src = nextImgSrc;
-        textBox.style.opacity = '1';
-        document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-        
-        // [추가] 즉시 배경색 업데이트
-        updateSpeakerStyle(current.speaker);
-
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-        startTimer(); // 일반 슬라이드는 2초 타이머
+        updateContent(); // 즉시 내용 표시
+        startTimer();    // 2초 타이머 실행
     }
 }
-
     // 스피커 배경색 처리 (기존 유지)
     textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
     if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
