@@ -327,7 +327,7 @@
 
 <script>
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydkoRKAJSUeW5TzQTJBarqFEcul8LqsAsuxb6sKFONMhgCyUpVuTeSu6pdcKLbUOHj/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyTV5GbGjqAqse3Hqtis1P_JeS95ja110m1QDipbZOGO3Q2xDTxrTG-ed88nWDSfnh/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
 /* 1. 상태 변수 선언 (가장 먼저 선언하여 참조 오류 방지) */
 let state = { 
@@ -426,58 +426,47 @@ async function sendData() {
 }
     
 window.onload = async function() {
-        state.startTime = Date.now(); // 시작 시간 기록
-        const currentIP = await getIP(); 
-
-        if (localStorage.getItem('survey_finished') === 'true') {
-            alert("이미 본 연구에 참여하셨습니다.");
-            window.location.href = "about:blank";
-            return;
+    state.startTime = Date.now(); // 시작 시간 기록
+    
+    // [추가] 서버로부터 균형 잡힌 조건 가져오기
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const assignedCondition = await response.text();
+        // 서버 응답이 유효한 경우에만 교체, 실패 시 기존 랜덤값 유지(보험)
+        if (assignedCondition) {
+            state.condition = assignedCondition.trim();
+            console.log("서버 할당 조건:", state.condition);
         }
-
-        let savedId = localStorage.getItem('survey_user_id');
-        if (!savedId) {
-            state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('survey_user_id', state.userId);
-            recordInitialVisit(currentIP); 
-        } else {
-            state.userId = savedId;
-        }
-
-        renderDES(); renderSEQ(); renderCRF();
-
-        // [중요] 선택창 튕김 및 엔터 방지 로직
-        document.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-            if (el.classList.contains('form-control')) {
-                el.addEventListener('change', updateInputColor);
-                el.addEventListener('input', updateInputColor);
-            }
-        });
-
-        showStep('step-consent');
-    };
-
-    function showStep(id) {
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        const area = document.getElementById('content-area');
-        area.classList.toggle('full-screen-mode', id === 'step-vignette');
-        area.scrollTop = 0;
-
-        const prevBtn = document.getElementById('prev-btn');
-        const mainBtn = document.getElementById('main-btn');
-
-        // 1페이지(consent)일 때만 이전 버튼 숨김
-        prevBtn.style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
-
-        // 질문지 및 안내 단계에서 버튼 즉시 활성화 (먹통 방지)
-        if (id !== 'step-vignette') {
-            mainBtn.disabled = false;
-            mainBtn.innerText = (state.step === 'debrief') ? "제출하기" : "다음";
-            mainBtn.style.backgroundColor = "";
-        }
+    } catch (e) {
+        console.warn("서버 할당 실패, 기본 랜덤 사용:", state.condition);
     }
+
+    const currentIP = await getIP(); 
+
+    if (localStorage.getItem('survey_finished') === 'true') {
+        alert("이미 본 연구에 참여하셨습니다.");
+        window.location.href = "about:blank";
+        return;
+    }
+
+    let savedId = localStorage.getItem('survey_user_id');
+    if (!savedId) {
+        state.userId = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        recordInitialVisit(currentIP); 
+    } else {
+        state.userId = savedId;
+    }
+
+    renderDES(); renderSEQ(); renderCRF();
+
+    // 선택창 튕김 및 엔터 방지 로직 (수정하신대로 유지)
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    });
+
+    showStep('step-consent');
+};
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.<br>사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
