@@ -14,6 +14,35 @@
         header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 100px 24px; box-sizing: border-box; }
+        /* --- [추가] 동의서 및 사후 설명 스크롤 박스 --- */
+#consent-scroll-box, #debrief-scroll-box {
+    height: 50vh;           /* 화면 높이의 절반 차지 */
+    max-height: 800px;      /* 너무 커지지 않게 제한 */
+    min-height: 180px;      /* 최소 높이 확보 */
+    overflow-y: auto;       /* 내용이 길어지면 스크롤 생성 */
+    border: 1px solid #ddd; /* 테두리 */
+    padding: 15px;
+    font-size: 14px;
+    line-height: 1.7;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: #fff;       /* 배경은 깔끔한 흰색 */
+    word-break: keep-all;   /* 단어 단위 줄바꿈으로 가독성 향상 */
+}
+
+/* 모바일 화면 높이가 낮을 경우 박스 크기 자동 조정 */
+@media (max-height: 700px) {
+    #consent-scroll-box, #debrief-scroll-box { 
+        height: 35vh; 
+    }
+}
+
+/* PC 대화면에서 글자 크기 보강 */
+@media (min-width: 1024px) {
+    #consent-scroll-box, #debrief-scroll-box {
+        font-size: 16px;
+    }
+}
         .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
         #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
         #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; position: absolute; left: 0; top: 0; display: block; }
@@ -293,11 +322,21 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
         renderDES(); renderSEQ(); renderCRF();
 
         const savedStepId = localStorage.getItem('current_step_id');
-        if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
-            showStep(savedStepId);
-        } else {
-            showStep('step-consent');
+    const savedVigIdx = localStorage.getItem('current_vignette_idx');
+
+    if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
+        // [추가] 비네트 번호 복구
+        if (savedVigIdx) state.vignetteIndex = parseInt(savedVigIdx);
+        
+        showStep(savedStepId);
+
+        // [핵심 추가] 비네트 단계라면 화면을 즉시 다시 그려라!
+        if (savedStepId === 'step-vignette') {
+            renderVignette();
         }
+    } else {
+        showStep('step-consent');
+    }
 
         // 서버 통신 배경 작업
         getIP().then(ip => { localStorage.setItem('user_ip', ip); recordInitialVisit(ip); });
@@ -362,7 +401,7 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
             checkEligibility();
         } else if (state.step === 'vignette') {
             if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); }
-            else { showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
+            else { localStorage.removeItem('current_vignette_idx'); showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
         } else if (state.step === 'des-intro') { showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
         else if (state.step === 'des') { if (!validateScale(8, 'des')) return; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
         else if (state.step === 'seq-intro') { showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
@@ -388,7 +427,7 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
 
     /* --- [5] 보조 함수들 --- */
     function renderVignette() {
-        const idx = state.vignetteIndex; const current = vignettes[idx]; const imgEl = document.getElementById('stimulus-img'); const textBox = document.querySelector('.vn-text-box'); const btn = document.getElementById('main-btn'); const bottomBar = document.querySelector('.bottom-bar');
+        const idx = state.vignetteIndex; localStorage.setItem('current_vignette_idx', idx); const current = vignettes[idx]; const imgEl = document.getElementById('stimulus-img'); const textBox = document.querySelector('.vn-text-box'); const btn = document.getElementById('main-btn'); const bottomBar = document.querySelector('.bottom-bar');
         const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
         const updateUI = () => { textBox.style.opacity = '1'; bottomBar.style.display = 'flex'; document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`; textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default')); document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`; startTimer(); };
         if (idx === 5 && !state.animationPlayed) { state.animationPlayed = true; textBox.style.opacity = '0'; bottomBar.style.display = 'none'; imgEl.className = 'counselor-fade-in'; imgEl.src = nextImgSrc; setTimeout(updateUI, 8000); }
