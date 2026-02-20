@@ -64,6 +64,24 @@
         @keyframes fadeInFromBlack { 0% { filter: brightness(0); } 100% { filter: brightness(1); } }
         .hidden { display: none !important; }
         h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        /* SEQ 전용 상단 단어 스타일 (질문 수준으로 키움) */
+.seq-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 18px;    /* 다른 질문지(DES) 수준의 크기 */
+    font-weight: 700;   /* 볼드 처리 */
+    color: #222;        /* 진한 색상 */
+    padding: 0 5px;
+}
+
+/* PC 대화면에서는 더 크게 보이도록 조정 */
+@media (min-width: 1024px) {
+    .seq-header {
+        font-size: 22px; 
+        margin-bottom: 18px;
+    }
+}
         .form-label {display: block; margin-bottom: 3px; font-weight: 500;}
         .form-group { margin-bottom: 25px; }
         .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important; color: #333; -webkit-appearance: none; appearance: none; }
@@ -81,6 +99,7 @@
             h2 { font-size: 24px; }
             .footer-btn { font-size: 20px; padding: 25px 0; }
             .content { padding-bottom: 130px !important; }
+        
         }
     </style>
 </head>
@@ -512,7 +531,7 @@ function showStep(id) {
         else { imgEl.className = ''; imgEl.src = nextImgSrc; updateUI(); }
     }
     function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-    function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group"><div class="scale-labels" style="margin-bottom: 8px; font-weight:bold;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => <div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => <label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}\</span\>\</label\>).join('')}).join(''); }\
     function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
     function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
