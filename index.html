@@ -1147,4 +1147,26 @@ async function sendData() { // async 키워드 확인!
         btn.innerText = "제출하기";
     });
 }
+    /* --- [최종 해결본] 이 함수 하나만 남기고 나머지는 다 지우세요 --- */
+function startTimer() {
+    const btn = document.getElementById('main-btn');
+    if (!btn) return;
+
+    // 즉시 버튼을 잠그고 텍스트 변경
+    btn.disabled = true; 
+    btn.innerText = "읽는 중";
+    btn.style.backgroundColor = "#ccc"; // 시각적으로도 잠긴 것을 표시
+
+    setTimeout(() => {
+        // 2초(2000ms) 후에 다시 버튼을 살림
+        if (!state.isLocked) {
+            btn.disabled = false;
+            btn.innerText = "다음";
+            btn.style.backgroundColor = ""; // 원래 색상(#5bc2e7)으로 복구
+        } else {
+            btn.innerText = "접속 제한됨";
+            btn.style.backgroundColor = "#ff4d4d";
+        }
+    }, 2000); // 여기서 2000이 2초를 의미합니다.
+}
 </script>
