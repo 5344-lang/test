@@ -86,17 +86,20 @@
         .scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
         .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
 
-        /* --- [추가] PC 대화면 전용 가독성 강화 (1024px 이상) --- */
+/* --- [수정] PC 대화면 전용 가독성 강화 (1024px 이상) --- */
 @media (min-width: 1024px) {
     /* 1. 전체 기본 글자 크기 증가 */
     body { font-size: 18px; }
 
-    /* 2. 비네트 대사창 글자 크기 및 위치 조정 */
+    /* 2. 비네트 대사창: 글자 확대 및 하단 버튼과의 간격(약 20px 이상) 확보 */
+    .vn-text-box { 
+        padding-bottom: 120px !important; /* 버튼 높이(약 100px) + 여백 20px */
+    }
     .vn-text-box p { 
-        font-size: 20px; /* 대사 크기 대폭 확대 */
+        font-size: 20px; 
         line-height: 1.8; 
-        max-width: 900px; /* 글줄이 너무 길어지지 않게 제한 */
-        margin: 0 auto;   /* 중앙 정렬 */
+        max-width: 900px; 
+        margin: 0 auto; 
     }
     .speaker { font-size: 22px; }
 
@@ -109,10 +112,23 @@
     .scale-number { font-size: 20px; padding: 20px 0; }
     .scale-labels span { font-size: 15px; }
 
-    /* 5. 하단 버튼 크기 및 텍스트 확대 */
-    .footer-btn { font-size: 20px; padding: 25px 0; }
+    /* 5. 하단 버튼 확대 및 높이 조정 */
+    .footer-btn { 
+        font-size: 20px; 
+        padding: 25px 0; /* 버튼 자체를 시원하게 키움 */
+    }
     
-    /* 6. 동의서 스크롤 박스 글자 확대 */
+    /* 6. 설문 본문 전체 하단 여백 (버튼에 가려지지 않게) */
+    .content { 
+        padding-bottom: 130px !important; 
+    }
+
+    /* 7. 동의 항목 하단 여백 추가 (버튼과 달라붙는 느낌 제거) */
+    .consent-options {
+        margin-bottom: 40px; 
+    }
+
+    /* 8. 동의서 스크롤 박스 글자 확대 */
     #consent-scroll-box { font-size: 16px; line-height: 1.8; }
 }
     </style>
