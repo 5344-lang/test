@@ -6,55 +6,37 @@
     <title>상담 온라인 실험</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 디자인 시스템 --- */
+        /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
         :root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
         html, body { height: 100%; margin: 0; padding: 0; touch-action: pan-y; overscroll-behavior-x: none; }
         body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
-
         .app-container { background-color: var(--card-bg); width: 100%; height: 100%; max-width: none; display: flex; flex-direction: column; position: relative; }
         header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
         .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 100px 24px; box-sizing: border-box; }
-
-        /* 비네트 모드 (이미지 꽉 채움) */
         .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
         #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
         #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; position: absolute; left: 0; top: 0; display: block; }
-
-        @media (max-width: 600px) {
-            #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); }
-        }
-
-        /* 설문 상단 이미지 고정 (가독성 확보) */
+        @media (max-width: 600px) { #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); } }
         .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
         .sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
-
-        /* 대화창 */
         .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
         .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
         .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
         .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
         .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
         .speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
-
-        /* 하단 버튼 */
         .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
         #prev-btn { flex: 3; background-color: #a0a0a0; }
         #main-btn { flex: 7; background-color: var(--primary-color); }
         .footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; }
         .footer-btn:disabled { background-color: #ccc !important; }
-
-        #consent-scroll-box { height: 50vh; max-height: 800px; min-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; font-size: 13px; line-height: 1.6; border-radius: 8px; margin-bottom: 15px; background: #fff; }
-
         .counselor-fade-in { animation: fadeInFromBlack 4s ease-in-out forwards; }
         @keyframes fadeInFromBlack { 0% { filter: brightness(0); } 100% { filter: brightness(1); } }
-
         .hidden { display: none !important; }
         h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
         .form-group { margin-bottom: 25px; }
         .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important; color: #333; -webkit-appearance: none; appearance: none; }
-
-        /* 척도 스타일 */
         .scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
         .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; }
         .scale-option:last-child { border-right: none; }
@@ -62,8 +44,6 @@
         .scale-number { display: block; padding: 15px 0; font-size: 16px; }
         .scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
         .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
-
-        /* PC 대화면 (1024px 이상) 가독성 보강 */
         @media (min-width: 1024px) {
             body { font-size: 18px; }
             .vn-text-box { padding-bottom: 120px !important; } 
@@ -268,180 +248,6 @@
 <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyTV5GbGjqAqse3Hqtis1P_JeS95ja110m1QDipbZOGO3Q2xDTxrTG-ed88nWDSfnh/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
-
-    let state = { 
-        step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], 
-        vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false 
-    };
-
-    // 1. [해결] 초기화: UI를 먼저 띄우고 비동기는 배경에서 돌림
-    window.onload = function() {
-        state.startTime = Date.now(); 
-
-        // 뒤로가기 트랩
-        window.history.pushState(null, null, window.location.href);
-        window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
-
-        // ID 생성 및 설문 초기화
-        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('survey_user_id', state.userId);
-        renderDES(); renderSEQ(); renderCRF();
-
-        // 현재 단계 복구 (로딩 즉시 UI 표시)
-        const savedStepId = localStorage.getItem('current_step_id');
-        if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
-            showStep(savedStepId);
-        } else {
-            showStep('step-consent');
-        }
-
-        // 서버 통신은 배경에서 '조용히' 실행 (UI를 방해하지 않음)
-        fetch('https://api64.ipify.org?format=json').then(r => r.json()).then(d => localStorage.setItem('user_ip', d.ip)).catch(() => {});
-        if (!savedStepId || savedStepId === 'step-consent') {
-            fetch(GOOGLE_SCRIPT_URL).then(r => r.text()).then(cond => { if (cond && cond.length < 20) state.condition = cond.trim(); }).catch(() => {});
-        }
-
-        // 입력창 설정
-        document.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
-            if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
-        });
-    };
-/* --- [추가] 빠졌던 함수 1: 입력창 색상 업데이트 --- */
-    function updateInputColor(event) {
-        const el = event.target;
-        if (el.value && el.value.trim() !== "") el.classList.add('selected');
-        else el.classList.remove('selected');
-    }
-
-    /* --- [추가] 빠졌던 함수 2: 초기 방문 기록 --- */
-    function recordInitialVisit(userIP) {
-        if (localStorage.getItem('initial_visit_recorded')) return;
-        const initialData = { method: 'initial', id: state.userId, ip: userIP, condition: state.condition };
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(initialData) })
-        .then(() => localStorage.setItem('initial_visit_recorded', 'true'));
-    }
-    // 2. [해결] 단계 전환: 변수와 화면 강제 동기화
-    function showStep(id) {
-        state.step = id.replace('step-', ''); // 내부 변수 즉시 업데이트
-        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-
-        localStorage.setItem('current_step_id', id);
-        const area = document.getElementById('content-area');
-        area.classList.toggle('full-screen-mode', id === 'step-vignette');
-        area.scrollTop = 0;
-
-        const mainBtn = document.getElementById('main-btn');
-        if (id !== 'step-vignette') {
-            mainBtn.disabled = false;
-            mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음";
-            mainBtn.style.backgroundColor = "";
-        }
-        document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
-    }
-
-    // 3. [해결] 다음 버튼 로직 (반응성 강화)
-    function handleNext(event) {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-        const btn = document.getElementById('main-btn');
-        if (btn.disabled) return;
-
-        if (state.step === 'consent') {
-            const c = document.querySelector('input[name="consent_choice"]:checked');
-            if (!c) return alert('동의 여부를 선택해 주세요.');
-            if (c.value === 'disagree') return alert('동의가 필요합니다.');
-            showStep('step-screener');
-        } 
-        else if (state.step === 'screener') {
-            if (!validateScreener()) return;
-            checkEligibility(); // 즉시 비네트로 이동
-        } 
-        else if (state.step === 'vignette') {
-            if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); }
-            else { showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
-        }
-        else if (state.step === 'des-intro') { showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'des') { if (!validateScale(8, 'des')) return; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
-        else if (state.step === 'seq-intro') { showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
-        else if (state.step === 'crf-intro') { showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
-        else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; showStep('step-check'); }
-        else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목 선택 필요'); showStep('step-religion-move'); }
-        else if (state.step === 'religion-move') { if (!document.getElementById('religion').value) return alert('종교 선택 필요'); showStep('step-debrief'); }
-        else if (state.step === 'debrief') { sendData(); }
-    }
-
-    // 4. 이전 버튼 로직 복구
-    function handlePrev(event) {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-        const prevMap = { 'screener':'step-consent', 'des-intro':'step-vignette', 'des':'step-des-intro', 'seq-intro':'step-des', 'seq':'step-seq-intro', 'crf-intro':'step-seq', 'crf':'step-crf-intro', 'check':'step-crf', 'religion-move':'step-check', 'debrief':'step-religion-move' };
-        if (state.step === 'vignette') {
-            if (state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); }
-            else showStep('step-screener');
-        } else if (prevMap[state.step]) {
-            showStep(prevMap[state.step]);
-            if (prevMap[state.step] === 'step-vignette') renderVignette();
-        }
-    }
-
-    // 5. 자격 확인: 즉시 화면 이동
-    function checkEligibility() {
-        const age = parseInt(document.getElementById('age').value);
-        const res = document.getElementById('residence').value;
-        const orient = document.getElementById('orientation').value;
-        const bSex = document.getElementById('birth_sex').value;
-        const cGen = document.getElementById('current_gender').value;
-
-        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen && res === 'korea') {
-            showStep('step-vignette');
-            renderVignette();
-            // 배경에서 데이터 전송
-            const data = { id:state.userId, ip:localStorage.getItem('user_ip')||"WAITING", condition:state.condition, age, residence:res, orientation:orient, birth_sex:bSex, current_gender:cGen };
-            fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-        } else {
-            alert("참여 대상자가 아닙니다."); window.location.href = "about:blank";
-        }
-    }
-    // [기타 함수들: 데이터 렌더링]
-    function renderVignette() {
-        const idx = state.vignetteIndex; const current = vignettes[idx]; const imgEl = document.getElementById('stimulus-img'); const textBox = document.querySelector('.vn-text-box'); const btn = document.getElementById('main-btn'); const bottomBar = document.querySelector('.bottom-bar');
-        const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-
-        const updateUI = () => {
-            textBox.style.opacity = '1'; bottomBar.style.display = 'flex';
-            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-            textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default'));
-            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-            startTimer();
-        };
-
-        if (idx === 5 && !state.animationPlayed) {
-            state.animationPlayed = true; textBox.style.opacity = '0'; bottomBar.style.display = 'none';
-            imgEl.className = 'counselor-fade-in'; imgEl.src = nextImgSrc;
-            setTimeout(updateUI, 8000);
-        } else {
-            imgEl.className = ''; imgEl.src = nextImgSrc; updateUI();
-        }
-    }
-
-    function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-    function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group"><div class="scale-labels" style="margin-bottom: 8px; font-weight:bold;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-    function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-    
-    function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
-    function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
-    function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
-    function showModal(type) { const m = document.getElementById('guide-modal'); document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; m.style.display = 'flex'; }
-    function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
-    function startImagePreload() { Object.values(imgFiles).forEach(src => { const img = new Image(); img.src = src; }); }
-    function handleExit() { if(confirm("중단하시겠습니까?")) window.close(); }
-
-    async function sendData() {
-        const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "제출 중";
-        const results = { id: state.userId, condition: state.condition, age: document.getElementById('age').value, residence: document.getElementById('residence').value, religion: document.getElementById('religion').value, phone: document.getElementById('reward-phone').value, des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','), seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','), crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',') };
-        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) }).then(() => { localStorage.setItem('survey_finished', 'true'); localStorage.removeItem('current_step_id'); showStep('step-complete'); });
-    }
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
         { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.<br>사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
@@ -473,7 +279,138 @@
     const seqPairs = [{L:"힘들었다", R:"쉬웠다"}, {L:"가치있었다", R:"가치없었다"}, {L:"피상적이었다", R:"깊이있었다"}, {L:"마음 편했다", R:"긴장되었다"}, {L:"언짢았다", R:"즐거웠다"}, {L:"가득찼다", R:"비었다"}, {L:"약했다", R:"강했다"}, {L:"특별했다", R:"보통이었다"}, {L:"거칠었다", R:"매끄러웠다"}, {L:"편안했다", R:"불편했다"}];
     const crfQuestions = ["경험이 많다", "믿음직스럽다", "사교적이다", "노련하다", "우호적이다", "전문적이다", "진실하다", "온화하다", "정직하다", "호감이 간다", "준비가 되어있다", "신뢰할 수 있다."];
 function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
+let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false };
 
+    /* --- [2] 핵심 로직 (순서 조정 완료) --- */
+    window.onload = function() {
+        state.startTime = Date.now();
+        window.history.pushState(null, null, window.location.href);
+        window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
+
+        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
+        
+        renderDES(); renderSEQ(); renderCRF();
+
+        const savedStepId = localStorage.getItem('current_step_id');
+        if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
+            showStep(savedStepId);
+        } else {
+            showStep('step-consent');
+        }
+
+        // 서버 통신 배경 작업
+        getIP().then(ip => { localStorage.setItem('user_ip', ip); recordInitialVisit(ip); });
+        fetch(GOOGLE_SCRIPT_URL).then(r => r.text()).then(cond => { if (cond && cond.length < 20) state.condition = cond.trim(); });
+
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+            if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
+        });
+    };
+
+    /* --- [3] IP 수집 및 자격 확인 (지능형 대기 통합) --- */
+    async function getIP() {
+        try { const r = await fetch('https://api64.ipify.org?format=json'); const d = await r.json(); return d.ip; } 
+        catch (e) { return "UNKNOWN"; }
+    }
+
+    async function checkEligibility() {
+        const age = parseInt(document.getElementById('age').value);
+        const res = document.getElementById('residence').value;
+        const orient = document.getElementById('orientation').value;
+        const bSex = document.getElementById('birth_sex').value;
+        const cGen = document.getElementById('current_gender').value;
+
+        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen && res === 'korea') {
+            showStep('step-vignette');
+            renderVignette();
+            
+            (async () => {
+                let userIP = localStorage.getItem('user_ip');
+                if (!userIP || userIP === "WAITING") userIP = await getIP();
+                const data = { id:state.userId, ip:userIP, condition:state.condition, age, residence:res, orientation:orient, birth_sex:bSex, current_gender:cGen };
+                fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+            })();
+        } else {
+            alert("참여 대상자가 아닙니다."); window.location.href = "about:blank";
+        }
+    }
+
+    /* --- [4] UI 제어 함수들 --- */
+    function showStep(id) {
+        state.step = id.replace('step-', '');
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        localStorage.setItem('current_step_id', id);
+        const area = document.getElementById('content-area');
+        area.classList.toggle('full-screen-mode', id === 'step-vignette');
+        area.scrollTop = 0;
+        const mainBtn = document.getElementById('main-btn');
+        if (id !== 'step-vignette') { mainBtn.disabled = false; mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음"; }
+        document.getElementById('prev-btn').style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+    }
+
+    function handleNext(event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+        if (state.step === 'consent') {
+            const c = document.querySelector('input[name="consent_choice"]:checked');
+            if (!c) return alert('동의 여부를 선택해 주세요.');
+            showStep('step-screener');
+        } else if (state.step === 'screener') {
+            if (!validateScreener()) return;
+            checkEligibility();
+        } else if (state.step === 'vignette') {
+            if (state.vignetteIndex < vignettes.length - 1) { state.vignetteIndex++; renderVignette(); }
+            else { showStep('step-des-intro'); document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; showModal('des'); }
+        } else if (state.step === 'des-intro') { showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'des') { if (!validateScale(8, 'des')) return; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
+        else if (state.step === 'seq-intro') { showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
+        else if (state.step === 'crf-intro') { showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; showStep('step-check'); }
+        else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('항목 선택'); showStep('step-religion-move'); }
+        else if (state.step === 'religion-move') { if (!document.getElementById('religion').value) return alert('종교 선택'); showStep('step-debrief'); }
+        else if (state.step === 'debrief') { sendData(); }
+    }
+
+    function handlePrev(event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+        const prevMap = { 'screener':'step-consent', 'des-intro':'step-vignette', 'des':'step-des-intro', 'seq-intro':'step-des', 'seq':'step-seq-intro', 'crf-intro':'step-seq', 'crf':'step-crf-intro', 'check':'step-crf', 'religion-move':'step-check', 'debrief':'step-religion-move' };
+        if (state.step === 'vignette') {
+            if (state.vignetteIndex > 0) { state.vignetteIndex--; renderVignette(); }
+            else showStep('step-screener');
+        } else if (prevMap[state.step]) {
+            showStep(prevMap[state.step]);
+            if (prevMap[state.step] === 'step-vignette') renderVignette();
+        }
+    }
+
+    /* --- [5] 보조 함수들 --- */
+    function renderVignette() {
+        const idx = state.vignetteIndex; const current = vignettes[idx]; const imgEl = document.getElementById('stimulus-img'); const textBox = document.querySelector('.vn-text-box'); const btn = document.getElementById('main-btn'); const bottomBar = document.querySelector('.bottom-bar');
+        const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+        const updateUI = () => { textBox.style.opacity = '1'; bottomBar.style.display = 'flex'; document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`; textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default')); document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`; startTimer(); };
+        if (idx === 5 && !state.animationPlayed) { state.animationPlayed = true; textBox.style.opacity = '0'; bottomBar.style.display = 'none'; imgEl.className = 'counselor-fade-in'; imgEl.src = nextImgSrc; setTimeout(updateUI, 8000); }
+        else { imgEl.className = ''; imgEl.src = nextImgSrc; updateUI(); }
+    }
+    function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+    function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group"><div class="scale-labels" style="margin-bottom: 8px; font-weight:bold;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+    function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+    function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
+    function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
+    function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
+    function showModal(type) { const m = document.getElementById('guide-modal'); document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; m.style.display = 'flex'; }
+    function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
+    function startImagePreload() { Object.values(imgFiles).forEach(src => { const img = new Image(); img.src = src; }); }
+    function recordInitialVisit(ip) { if (localStorage.getItem('v_recorded')) return; fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ method: 'initial', id: state.userId, ip: ip, condition: state.condition }) }).then(() => localStorage.setItem('v_recorded', 'true')); }
+    function handleExit() { if(confirm("중단하시겠습니까?")) window.close(); }
+    async function sendData() {
+        const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "제출 중";
+        const timeSpent = Math.floor((Date.now() - state.startTime) / 1000);
+        const results = { id:state.userId, ip:localStorage.getItem('user_ip')||"UNKNOWN", condition:state.condition, age:document.getElementById('age').value, residence:document.getElementById('residence').value, religion:document.getElementById('religion').value, phone:document.getElementById('reward-phone').value, duration:timeSpent, des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','), seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','), crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',') };
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) }).then(() => { localStorage.setItem('survey_finished', 'true'); localStorage.removeItem('current_step_id'); showStep('step-complete'); });
+    }
 </script>
-    </body>
+</body>
 </html>
