@@ -807,56 +807,50 @@ function renderVignette() {
 
     const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
 
-    // [중요] 배경색(스피커) 스타일을 정하는 내부 도우미 로직
-    const applyColorStyle = (speaker) => {
+    // [도우미] 배경색 및 텍스트 업데이트 로직
+    const updateContent = () => {
+        textBox.style.opacity = '1';
+        document.getElementById('vignette-text').innerHTML = 
+            `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+        
+        // 배경색 적용 (상담자: 파랑, 나: 초록, 대기실: 검정)
         textBox.classList.remove('speaker-counselor', 'speaker-me', 'speaker-default');
-        if (speaker === "상담자") {
-            textBox.classList.add('speaker-counselor'); // 파란색
-        } else if (speaker === "나") {
-            textBox.classList.add('speaker-me');        // 초록색
-        } else {
-            textBox.classList.add('speaker-default');   // 검정색
-        }
+        if (current.speaker === "상담자") textBox.classList.add('speaker-counselor');
+        else if (current.speaker === "나") textBox.classList.add('speaker-me');
+        else textBox.classList.add('speaker-default');
+
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
     };
 
     if (idx === 5) {
-        // --- [1. 상담 시작 단계: 10초 강제 대기] ---
+        // --- [상담 시작: 10초 강제 대기 구간] ---
         textBox.style.opacity = '0'; 
         btn.disabled = true; // 버튼 잠금
         btn.innerText = "곧 상담이 시작됩니다";
         imgEl.src = nextImgSrc;
 
         setTimeout(() => {
-            // 10초 후: 대사 보이고 색깔 입히고 버튼 살리기
-            textBox.style.opacity = '1';
-            document.getElementById('vignette-text').innerHTML = 
-                `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+            updateContent(); // 10초 후 내용 표시
             
-            applyColorStyle(current.speaker); // 색상 적용
-
             if (!state.isLocked) {
-                btn.disabled = false; // 버튼 부활!
+                btn.disabled = false; // 버튼 잠금 해제
                 btn.innerText = "다음";
+            } else {
+                btn.innerText = "접속 제한됨";
             }
-            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
         }, 10000); 
 
     } else {
-        // --- [2. 일반 슬라이드 단계: 즉시 로드 + 2초 타이머] ---
+        // --- [일반 슬라이드: 2초 딜레이 구간] ---
         imgEl.src = nextImgSrc;
-        textBox.style.opacity = '1';
-        document.getElementById('vignette-text').innerHTML = 
-            `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-        
-        applyColorStyle(current.speaker); // 색상 적용
+        updateContent(); // 즉시 내용 표시 및 배경색 적용
 
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-        
-        // 버튼을 2초간 잠갔다 푸는 startTimer 실행
+        // [핵심] 여기서 2초 타이머를 다시 깨워줍니다!
         startTimer(); 
     }
 }
 
+    
     function updateInputColor(event) {
     const el = event.target;
     // 값이 비어있지 않으면 'selected' 클래스 추가, 비어있으면 제거
