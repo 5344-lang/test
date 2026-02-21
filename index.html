@@ -314,7 +314,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyTV5GbGjqAqse3Hqtis1P_JeS95ja110m1QDipbZOGO3Q2xDTxrTG-ed88nWDSfnh/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzu4xuQTDn9_o22-hXgKwuLsnnCBfDqo_t4sKqlvGogL94kcST3oJMg0bTYspQMoktt/exec";
     const imgFiles = { 'waiting': 'waiting.png', 'cross': 'cross.png', 'buddha': 'buddha.png', 'none': 'none.png' };
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
@@ -476,27 +476,44 @@ async function getIP() {
     return "FINAL_FAIL"; // 모든 시도가 실패할 경우
 }
 
-    async function checkEligibility() {
-        const age = parseInt(document.getElementById('age').value);
-        const res = document.getElementById('residence').value;
-        const orient = document.getElementById('orientation').value;
-        const bSex = document.getElementById('birth_sex').value;
-        const cGen = document.getElementById('current_gender').value;
+/* --- [수정] checkEligibility 함수 --- */
+async function checkEligibility() {
+    const age = parseInt(document.getElementById('age').value);
+    const res = document.getElementById('residence').value;
+    const orient = document.getElementById('orientation').value;
+    const bSex = document.getElementById('birth_sex').value;
+    const cGen = document.getElementById('current_gender').value;
 
-        if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && bSex === cGen && res === 'korea') {
-            showStep('step-vignette');
-            renderVignette();
+    // 조건 확인 (19세 이상, LGB, 한국 거주 등)
+    if (age >= 19 && orient !== 'hetero' && orient !== 'dontknow' && res === 'korea') {
+        showStep('step-vignette');
+        renderVignette();
+        
+        // 데이터 전송 (이미 ID가 생성되어 있으므로 반드시 포함)
+        (async () => {
+            let userIP = localStorage.getItem('user_ip');
+            if (!userIP || userIP === "UNKNOWN") userIP = await getIP();
             
-            (async () => {
-                let userIP = localStorage.getItem('user_ip');
-                if (!userIP || userIP === "WAITING") userIP = await getIP();
-                const data = { id:state.userId, ip:userIP, condition:state.condition, age, residence:res, orientation:orient, birth_sex:bSex, current_gender:cGen };
-                fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            })();
-        } else {
-            alert("참여 대상자가 아닙니다."); window.location.href = "about:blank";
-        }
+            const data = { 
+                method: 'eligibility', // 데이터 성격 명시
+                id: state.userId,      // [중요] 반드시 state.userId 사용
+                ip: userIP, 
+                condition: state.condition, 
+                age: age, 
+                residence: res, 
+                orientation: orient, 
+                birth_sex: bSex, 
+                current_gender: cGen 
+            };
+            
+            // 데이터가 확실히 덮어씌워지도록 전송
+            fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+        })();
+    } else {
+        alert("참여 대상자가 아닙니다.");
+        window.location.href = "about:blank";
     }
+}
 
 /* --- [4] UI 제어 함수들 --- */
 function showStep(id) {
@@ -679,9 +696,37 @@ function handleNext(event) {
         updateUI();
     }
 }
-    function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+ // 5점 척도 (DES) 레이블 추가 버전
+function renderDES() { 
+    document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
+        <div class="scale-group">
+            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
+            <div class="scale-options">
+                ${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
+            </div>
+            <div class="scale-labels" style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; padding: 0 5px;">
+                <span>전혀 그렇지 않다</span>
+                <span>보통이다</span>
+                <span>매우 그렇다</span>
+            </div>
+        </div>`).join(''); 
+}
 function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
-    function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+  // 7점 척도 (CRF) 레이블 추가 버전
+function renderCRF() { 
+    document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
+        <div class="scale-group">
+            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:10px;">${q}</span>
+            <div class="scale-options">
+                ${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
+            </div>
+            <div class="scale-labels" style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; padding: 0 5px;">
+                <span>전혀 그렇지 않다</span>
+                <span>보통이다</span>
+                <span>매우 그렇다</span>
+            </div>
+        </div>`).join(''); 
+}
     function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
     function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
