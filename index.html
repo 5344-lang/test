@@ -367,58 +367,75 @@ function startImagePreload() {
 }
     /* --- [2] 핵심 로직 (순서 조정 완료) --- */
 window.onload = function() {
-    // [추가] 중복 참여 체크 로직
+    // 1. 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
         alert("이미 본 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
-        showStep('step-complete'); // 완료 페이지로 강제 이동
-        return; // 아래의 나머지 로직(ID 생성 등)이 실행되지 않도록 즉시 종료
+        showStep('step-complete');
+        return;
     }
 
     state.startTime = Date.now();
 
-    // 뒤로가기 방지 및 기본 설정
+    // 2. 뒤로가기 방지 및 ID 설정
     window.history.pushState(null, null, window.location.href);
     window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
     state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('survey_user_id', state.userId);
+    
     renderDES(); renderSEQ(); renderCRF();
 
-    // 1. 단계 복구 로직 (기존 유지)
+    // 3. [핵심] 기존에 할당된 조건이 있는지 확인 (새로고침 시 조건 유지용)
+    const savedCondition = localStorage.getItem('assigned_condition');
+    if (savedCondition) {
+        state.condition = savedCondition; // 이미 정해진 게 있다면 그걸 사용
+        console.log("기존 조건 로드됨:", state.condition);
+    } else {
+        // 아직 정해진 게 없다면 초기값(랜덤)을 저장해둠
+        localStorage.setItem('assigned_condition', state.condition);
+    }
+
+    // 4. 현재 단계 복구
     const savedStepId = localStorage.getItem('current_step_id');
-    if (savedStepId && savedStepId !== 'step-complete' && localStorage.getItem('survey_finished') !== 'true') {
+    if (savedStepId && savedStepId !== 'step-complete') {
         showStep(savedStepId);
     } else {
         showStep('step-consent');
     }
 
-    /* --- [핵심] 33% 균형 할당 동기화 로직 --- */
-    
-    // 1단계: IP를 먼저 가져옵니다.
+    /* --- [핵심] 33% 균형 할당 및 동기화 로직 보강 --- */
     getIP().then(ip => {
         localStorage.setItem('user_ip', ip);
         
-        // 2단계: IP를 성공적으로 가져오면, 서버(GAS)에 "어떤 조건이 부족한가요?"라고 물어봅니다.
+        // 서버에 인원 균형을 물어봅니다.
         return fetch(GOOGLE_SCRIPT_URL);
     })
     .then(response => response.text())
     .then(assignedCondition => {
-        // 3단계: 서버가 알려준 "인원이 가장 적은 조건"을 state에 저장합니다.
-        if (assignedCondition && assignedCondition.length < 20) {
-            state.condition = assignedCondition.trim();
-            console.log("서버가 할당한 균형 조건:", state.condition);
-            
-            // 4단계: 서버 조건이 확정된 "이 시점"에서만 초기 방문을 기록합니다.
-            // 그래야 시트의 Condition(D열) 개수가 정확히 카운트되어 다음 사람에게 영향을 줍니다.
-            recordInitialVisit(localStorage.getItem('user_ip'));
+        const serverCond = assignedCondition.trim();
+        
+        // [조건 변경 금지 규칙]
+        // 1. 서버 응답이 유효하고 (20자 이내 텍스트)
+        // 2. 아직 실험 장면(vignette)에 진입하기 전(consent 또는 screener 단계)일 때만 업데이트
+        if (serverCond && serverCond.length < 20) {
+            const currentStep = state.step;
+            if (currentStep === 'consent' || currentStep === 'screener') {
+                state.condition = serverCond;
+                localStorage.setItem('assigned_condition', serverCond); // 서버 조건으로 최종 잠금
+                console.log("서버에 의해 균형 조건 확정:", state.condition);
+            } else {
+                console.log("이미 실험이 시작되어 서버 응답을 무시합니다. 유지된 조건:", state.condition);
+            }
         }
+        
+        // 조건이 확정된 후 초기 방문 기록
+        recordInitialVisit(localStorage.getItem('user_ip'));
     })
     .catch(e => {
-        console.warn("서버 할당 실패, 로컬 랜덤 유지:", state.condition);
-        // 서버가 죽었을 경우를 대비해 초기 방문 기록은 남깁니다.
+        console.warn("서버 통신 실패, 현재 조건 유지:", state.condition);
         recordInitialVisit(localStorage.getItem('user_ip'));
     });
 
-    // 입력창 설정 (기존 유지)
+    // 입력창 설정 유지
     document.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
         if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
