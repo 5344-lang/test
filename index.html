@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담 온라인 실험 v1.5</title>
+    <title>상담 온라인 실험 v1.51</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
     /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
@@ -562,13 +562,17 @@ async function checkEligibility() {
     }
 }
 
-/* --- 다음 버튼 클릭 시 실행되는 유효성 검사 --- */
+/* --- 다음 버튼 클릭 시 실행되는 유효성 검사 (통합 및 수정본) --- */
 function validateScreener() {
-    const age = document.getElementById('age').value;
-    if (!age) { 
+    const ageInput = document.getElementById('age').value;
+    
+    // 1. 나이 입력 확인
+    if (!ageInput || ageInput.trim() === "") { 
         alert('나이를 숫자로 입력해 주세요.'); 
         return false; 
     }
+    
+    // 2. 나머지 선택 항목 확인
     const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
     for (let f of fields) { 
         if (!document.getElementById(f).value) { 
