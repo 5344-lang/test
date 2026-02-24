@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담 온라인 실험 v1.32</title>
+    <title>상담 온라인 실험 v1.33</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
     /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
@@ -827,21 +827,26 @@ function renderCRF() {
         </div>`).join(''); 
 }
 function validateScreener() {
+    // 나이 빈칸 체크
     const ageInput = document.getElementById('age');
-    const ageVal = ageInput.value.trim();
-    const age = parseInt(ageVal);
-
-    if (ageVal === "") {
+    if (ageInput.value.trim() === "") {
         alert('나이를 입력해 주세요.');
         ageInput.focus();
         return false;
     }
 
-    if (isNaN(age) || age < 19) {
-        alert('참여 가능 연령을 확인해 주세요. (만 19세 이상)');
-        return false;
+    // 나머지 선택 항목 빈칸 체크
+    const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
+    for (let f of fields) {
+        if (!document.getElementById(f).value) {
+            alert('모든 항목을 선택해 주세요.');
+            return false;
+        }
     }
+    return true; // 모두 입력됨
+}
 
+    // 나머지 항목 체크
     const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
     for (let f of fields) {
         if (!document.getElementById(f).value) {
