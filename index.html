@@ -393,185 +393,112 @@ const guideMessages = {
     
 
 let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false };
-/* --- 이미지 프리로딩 함수 수정 --- */
-function startImagePreload() {
-    console.log("실험 자산 프리로딩 시작...");
-    
-    // imgFiles 객체 안에 있는 실제 URL 값들만 추출하여 배열로 만듭니다.
-    const imagesToPreload = Object.values(imgFiles);
-    
-    imagesToPreload.forEach(url => {
-        if (url) {
-            const img = new Image();
-            img.src = url; 
-            // 실제 URL을 src에 할당해야 브라우저 캐시에 저장됩니다.
-            img.onload = () => console.log(`성공: ${url.split('/').pop()}`);
-            img.onerror = () => console.error(`실패: ${url}`);
-        }
-    });
-}
-    /* --- [2] 핵심 로직 (순서 조정 완료) --- */
-window.onload = function() {
-    // 1. 중복 참여 체크
-    if (localStorage.getItem('survey_finished') === 'true') {
-        alert("이미 본 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
-        showStep('step-complete');
-        return;
-    }
 
-    state.startTime = Date.now();
-
-    // 2. 뒤로가기 방지 및 ID 설정
-    window.history.pushState(null, null, window.location.href);
-    window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
-    state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('survey_user_id', state.userId);
-    
-    renderDES(); renderSEQ(); renderCRF();
-
-    // 3. [핵심] 기존에 할당된 조건이 있는지 확인 (새로고침 시 조건 유지용)
-    const savedCondition = localStorage.getItem('assigned_condition');
-    if (savedCondition) {
-        state.condition = savedCondition; // 이미 정해진 게 있다면 그걸 사용
-        console.log("기존 조건 로드됨:", state.condition);
-    } else {
-        // 아직 정해진 게 없다면 초기값(랜덤)을 저장해둠
-        localStorage.setItem('assigned_condition', state.condition);
-    }
-
-    // 4. 현재 단계 복구
-    const savedStepId = localStorage.getItem('current_step_id');
-    if (savedStepId && savedStepId !== 'step-complete') {
-        showStep(savedStepId);
-    } else {
-        showStep('step-consent');
-    }
-
-    /* --- [핵심] 33% 균형 할당 및 동기화 로직 보강 --- */
-    getIP().then(ip => {
-        localStorage.setItem('user_ip', ip);
-        
-        // 서버에 인원 균형을 물어봅니다.
-        return fetch(GOOGLE_SCRIPT_URL);
-    })
-    .then(response => response.text())
-    .then(assignedCondition => {
-        const serverCond = assignedCondition.trim();
-        
-        // [조건 변경 금지 규칙]
-        // 1. 서버 응답이 유효하고 (20자 이내 텍스트)
-        // 2. 아직 실험 장면(vignette)에 진입하기 전(consent 또는 screener 단계)일 때만 업데이트
-        if (serverCond && serverCond.length < 20) {
-            const currentStep = state.step;
-            if (currentStep === 'consent' || currentStep === 'screener') {
-                state.condition = serverCond;
-                localStorage.setItem('assigned_condition', serverCond); // 서버 조건으로 최종 잠금
-                console.log("서버에 의해 균형 조건 확정:", state.condition);
-            } else {
-                console.log("이미 실험이 시작되어 서버 응답을 무시합니다. 유지된 조건:", state.condition);
+    /* --- 이미지 프리로딩 --- */
+    function startImagePreload() {
+        console.log("실험 자산 프리로딩 시작...");
+        Object.values(imgFiles).forEach(url => {
+            if (url) {
+                const img = new Image();
+                img.src = url;
+                img.onload = () => console.log(`로드 성공: ${url.split('/').pop()}`);
+                img.onerror = () => console.error(`로드 실패: ${url}`);
             }
+        });
+    }
+
+    /* --- 실행 로직 --- */
+    window.onload = function() {
+        if (localStorage.getItem('survey_finished') === 'true') {
+            alert("이미 본 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
+            showStep('step-complete');
+            return;
         }
+
+        state.startTime = Date.now();
+        window.history.pushState(null, null, window.location.href);
+        window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
+        state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('survey_user_id', state.userId);
         
-        // 조건이 확정된 후 초기 방문 기록
-        recordInitialVisit(localStorage.getItem('user_ip'));
-    })
-    .catch(e => {
-        console.warn("서버 통신 실패, 현재 조건 유지:", state.condition);
-        recordInitialVisit(localStorage.getItem('user_ip'));
-    });
+        renderDES(); renderSEQ(); renderCRF();
 
-    // 입력창 설정 유지
-    document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
-        if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
-    });
-};
+        const savedCondition = localStorage.getItem('assigned_condition');
+        if (savedCondition) state.condition = savedCondition;
+        else localStorage.setItem('assigned_condition', state.condition);
 
-  /* --- [수정] 4중 백업 IP 수집 함수 --- */
-async function getIP() {
-    // 하나가 막히면 다음으로 넘어가는 예비 명단입니다.
-    const providers = [
-        'https://api64.ipify.org?format=json',
-        'https://ipv4.icanhazip.com',
-        'https://checkip.amazonaws.com',
-        'https://api.ip.sb/ip'
-    ];
+        const savedStepId = localStorage.getItem('current_step_id');
+        if (savedStepId && savedStepId !== 'step-complete') showStep(savedStepId);
+        else showStep('step-consent');
 
-    for (const url of providers) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5초 안에 응답 없으면 다음으로
-            
-            const response = await fetch(url, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            // 데이터 형태(JSON 또는 일반 텍스트)에 따라 다르게 처리
-            const data = await (url.includes('json') ? response.json() : response.text());
-            let ip = (typeof data === 'object' ? data.ip : data).trim();
-            
-            if (ip && ip.length > 0) {
-                localStorage.setItem('user_ip', ip);
-                return ip;
+        getIP().then(ip => {
+            localStorage.setItem('user_ip', ip);
+            return fetch(GOOGLE_SCRIPT_URL);
+        })
+        .then(response => response.text())
+        .then(assignedCondition => {
+            const serverCond = assignedCondition.trim();
+            if (serverCond && serverCond.length < 20) {
+                if (state.step === 'consent' || state.step === 'screener') {
+                    state.condition = serverCond;
+                    localStorage.setItem('assigned_condition', serverCond);
+                }
             }
-        } catch (e) {
-            console.warn(`IP 제공자 차단됨: ${url}`);
-            continue; // 에러 나면 다음 제공자 시도
+            recordInitialVisit(localStorage.getItem('user_ip'));
+        })
+        .catch(e => {
+            recordInitialVisit(localStorage.getItem('user_ip'));
+        });
+
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+            if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
+        });
+    };
+
+    async function getIP() {
+        const providers = ['https://api64.ipify.org?format=json', 'https://ipv4.icanhazip.com', 'https://checkip.amazonaws.com'];
+        for (const url of providers) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                const data = await (url.includes('json') ? response.json() : response.text());
+                let ip = (typeof data === 'object' ? data.ip : data).trim();
+                if (ip) return ip;
+            } catch (e) { continue; }
+        }
+        return "UNKNOWN";
+    }
+
+    /* --- 자격 확인 및 종료 로직 --- */
+    async function checkEligibility() {
+        const age = parseInt(document.getElementById('age').value);
+        const res = document.getElementById('residence').value;
+        const orient = document.getElementById('orientation').value;
+        const bSex = document.getElementById('birth_sex').value;
+        const cGen = document.getElementById('current_gender').value;
+
+        const isEligible = (age >= 19) && (res === 'korea') && (orient !== 'hetero' && orient !== 'dontknow');
+
+        if (isEligible) {
+            showStep('step-vignette');
+            renderVignette();
+            (async () => {
+                let userIP = localStorage.getItem('user_ip') || "UNKNOWN";
+                const data = { id: state.userId, ip: userIP, condition: state.condition, age: age, residence: res, orientation: orient, birth_sex: bSex, current_gender: cGen };
+                fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+            })();
+        } else {
+            alert("죄송합니다. 귀하는 참여 대상 조건에 부합하지 않아 설문을 종료합니다. 감사합니다.");
+            window.location.replace("about:blank");
         }
     }
-    return "FINAL_FAIL"; // 모든 시도가 실패할 경우
-}
 
-/* --- [수정] checkEligibility 함수 --- */
-/* --- [수정] 자격 확인 함수: 모든 입력 후 '다음' 클릭 시 판정 --- */
-async function checkEligibility() {
-    const age = parseInt(document.getElementById('age').value);
-    const res = document.getElementById('residence').value;
-    const orient = document.getElementById('orientation').value;
-    const bSex = document.getElementById('birth_sex').value;
-    const cGen = document.getElementById('current_gender').value;
-
-    // 1. 모든 항목이 입력되었는지 먼저 확인 (validateScreener에서 이미 걸러내지만 안전장치로 유지)
-    if (isNaN(age) || !res || !orient || !bSex || !cGen) {
-        alert("모든 항목을 입력하거나 선택해 주세요.");
-        return;
-    }
-
-    // 2. 자격 요건 통합 판정 (나이, 지역, 성적지향)
-    // 조건: 19세 이상 AND 한국 거주 AND (이성애자 아님 AND 모름 아님)
-    if (age >= 19 && res === 'korea' && orient !== 'hetero' && orient !== 'dontknow') {
-        
-        // 자격 통과 시 실험 시작
-        showStep('step-vignette');
-        renderVignette();
-        
-        // 데이터 서버 전송 (비동기)
-        (async () => {
-            let userIP = localStorage.getItem('user_ip') || "UNKNOWN";
-            const data = { 
-                id: state.userId, 
-                ip: userIP, 
-                condition: state.condition, 
-                age: age, 
-                residence: res, 
-                orientation: orient, 
-                birth_sex: bSex, 
-                current_gender: cGen 
-            };
-            fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-        })();
-
-    } else {
-        // 자격 미달 시 안내 문구 통합 (나이 미달 혹은 대상자 아님)
-        let message = "죄송합니다. 귀하는 참여 대상 조건에 부합하지 않아 설문을 종료합니다. 참여해 주셔서 감사합니다.";
-        alert(message);
-        window.location.href = "about:blank"; // 페이지 종료
-    }
-}
-
-function validateScreener() {
+    function validateScreener() {
         const ageInput = document.getElementById('age');
-        const ageVal = ageInput.value.trim();
-        if (ageVal === "") {
+        if (ageInput.value.trim() === "") {
             alert('나이를 입력해 주세요.');
             ageInput.focus();
             return false;
@@ -585,151 +512,85 @@ function validateScreener() {
         }
         return true;
     }
-/* --- [4] UI 제어 함수들 --- */
-function showStep(id) {
-    // 1. 상태 변수 업데이트 및 화면 전환
-    state.step = id.replace('step-', '');
-    document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    localStorage.setItem('current_step_id', id);
 
-    const area = document.getElementById('content-area');
-    const bottomBar = document.querySelector('.bottom-bar');
-    const mainBtn = document.getElementById('main-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const counterEl = document.getElementById('page-counter');
+    function showStep(id) {
+        state.step = id.replace('step-', '');
+        document.querySelectorAll('.content > div').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(id);
+        if(target) target.classList.remove('hidden');
+        localStorage.setItem('current_step_id', id);
 
-    // 2. 비네트 모드(전체화면) 설정 및 스크롤 초기화
-    area.classList.toggle('full-screen-mode', id === 'step-vignette');
-    area.scrollTop = 0;
+        const area = document.getElementById('content-area');
+        const bottomBar = document.querySelector('.bottom-bar');
+        const mainBtn = document.getElementById('main-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const counterEl = document.getElementById('page-counter');
 
-    // 3. [추가] 페이지 카운터(우측 상단) 제어 로직
-    if (counterEl) {
-        // [비네트 단계] 1/22 표시 및 어두운 배경 모드
-        if (state.step === 'vignette') {
-            counterEl.classList.remove('hidden');
-            counterEl.classList.remove('light-mode-counter'); 
-            // innerText는 renderVignette 함수가 실시간으로 업데이트함
+        area.classList.toggle('full-screen-mode', id === 'step-vignette');
+        area.scrollTop = 0;
+
+        if (counterEl) {
+            if (state.step === 'vignette') {
+                counterEl.classList.remove('hidden', 'light-mode-counter');
+            } else if (['des', 'seq', 'crf'].includes(state.step)) {
+                counterEl.classList.remove('hidden');
+                counterEl.classList.add('light-mode-counter');
+                const stepMap = { 'des': '설문 1/3', 'seq': '설문 2/3', 'crf': '설문 3/3' };
+                counterEl.innerText = stepMap[state.step];
+            } else {
+                counterEl.classList.add('hidden');
+            }
+        }
+
+        if (id === 'step-complete') {
+            if (bottomBar) bottomBar.style.display = 'none';
+        } else {
+            if (bottomBar) bottomBar.style.display = 'flex';
+            if (id !== 'step-vignette') { 
+                mainBtn.disabled = false; 
+                mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음"; 
+            }
+            if (prevBtn) prevBtn.style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
+        }
+    }
+
+    function handleNext(event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+        const btn = document.getElementById('main-btn');
+        if (btn.disabled) return;
+
+        if (state.step === 'consent') {
+            const consentEl = document.querySelector('input[name="consent_choice"]:checked');
+            if (!consentEl) return alert('연구 참여 동의 여부를 선택해 주세요.');
+            if (consentEl.value === 'disagree') return alert('연구 설명 및 동의서 내용에 동의하셔야 참여가 가능합니다.');
+            showStep('step-screener');
+            startImagePreload();
         } 
-        // [설문지 단계] 진행률 표시 및 밝은 배경 모드 (글자색 반전)
-        else if (['des', 'seq', 'crf'].includes(state.step)) {
-            counterEl.classList.remove('hidden');
-            counterEl.classList.add('light-mode-counter');
-            const stepMap = { 'des': '설문 1/3', 'seq': '설문 2/3', 'crf': '설문 3/3' };
-            counterEl.innerText = stepMap[state.step];
+        else if (state.step === 'screener') {
+            if (!validateScreener()) return;
+            checkEligibility();
+        } 
+        else if (state.step === 'vignette') {
+            if (state.vignetteIndex < vignettes.length - 1) { 
+                state.vignetteIndex++; renderVignette(); 
+            } else { 
+                localStorage.removeItem('current_vignette_idx');
+                showStep('step-des-intro'); 
+                document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; 
+                showModal('des'); 
+            }
         }
-        // [기타 페이지] 카운터 숨김
-        else {
-            counterEl.classList.add('hidden');
-        }
+        else if (state.step === 'des-intro') { showStep('step-des'); document.getElementById('des-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'des') { if (!validateScale(8, 'des')) return; showStep('step-seq-intro'); document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; showModal('seq'); }
+        else if (state.step === 'seq-intro') { showStep('step-seq'); document.getElementById('seq-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'seq') { if (!validateScale(10, 'seq')) return; showStep('step-crf-intro'); document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; showModal('crf'); }
+        else if (state.step === 'crf-intro') { showStep('step-crf'); document.getElementById('crf-ref-img').src = imgFiles[state.condition]; }
+        else if (state.step === 'crf') { if (!validateScale(12, 'crf')) return; showStep('step-check'); }
+        else if (state.step === 'check') { if (!document.querySelector('input[name="check_opt"]:checked')) return alert('질문에 대한 항목을 선택해 주세요.'); showStep('step-religion-move'); }
+        else if (state.step === 'religion-move') { if (!document.getElementById('religion').value) return alert('귀하의 종교를 선택해 주세요.'); showStep('step-debrief'); }
+        else if (state.step === 'debrief') { sendData(); }
     }
 
-    // 4. 하단 바 및 버튼 제어
-    if (id === 'step-complete') {
-        if (bottomBar) bottomBar.style.display = 'none'; // 제출 완료 시 바 숨김
-    } else {
-        if (bottomBar) bottomBar.style.display = 'flex';
-
-        // 다음/제출 버튼 텍스트 설정
-        if (id !== 'step-vignette') { 
-            mainBtn.disabled = false; 
-            mainBtn.innerText = (id === 'step-debrief') ? "제출하기" : "다음"; 
-        }
-
-        // 1페이지(consent)에서 이전 버튼 숨기기
-        if (prevBtn) {
-            prevBtn.style.visibility = (id === 'step-consent') ? 'hidden' : 'visible';
-        }
-    }
-}
-
-function handleNext(event) {
-    // 1. 이벤트 중복 발생 및 기본 동작 방지
-    if (event) { 
-        event.preventDefault(); 
-        event.stopPropagation(); 
-    }
-    
-    const btn = document.getElementById('main-btn');
-    // 읽는 중(타이머)이거나 제출 중일 때는 클릭 무시
-    if (btn.disabled) return;
-
-    console.log("현재 단계 진행:", state.step); // 디버깅 로그
-
-    // 2. 단계별 조건 분기
-    // [단계 1] 연구 참여 동의
-    if (state.step === 'consent') {
-        const consentEl = document.querySelector('input[name="consent_choice"]:checked');
-        if (!consentEl) return alert('연구 참여 동의 여부를 선택해 주세요.');
-        if (consentEl.value === 'disagree') return alert('연구 설명 및 동의서 내용에 동의하셔야 참여가 가능합니다.');
-        
-        showStep('step-screener');
-        startImagePreload(); // 인적사항 적는 동안 이미지 미리 로딩
-    } 
-    // [단계 2] 인구통계학적 질문 (자격 확인)
-    else if (state.step === 'screener') {
-        if (!validateScreener()) return;
-        checkEligibility(); // 이 함수 안에서 showStep('step-vignette')이 실행됩니다.
-    } 
-    // [단계 3] 비네트 (실험 장면)
-    else if (state.step === 'vignette') {
-        if (state.vignetteIndex < vignettes.length - 1) { 
-            state.vignetteIndex++; 
-            renderVignette(); 
-        } else { 
-            // 비네트가 끝나면 저장된 인덱스 삭제 후 다음 설문 안내로
-            localStorage.removeItem('current_vignette_idx');
-            showStep('step-des-intro'); 
-            document.getElementById('des-intro-ref-img').src = imgFiles[state.condition]; 
-            showModal('des'); 
-        }
-    }
-    // [단계 4] DES 안내 -> 질문지
-    else if (state.step === 'des-intro') { 
-        showStep('step-des'); 
-        document.getElementById('des-ref-img').src = imgFiles[state.condition]; 
-    }
-    else if (state.step === 'des') { 
-        if (!validateScale(8, 'des')) return; 
-        showStep('step-seq-intro'); 
-        document.getElementById('seq-intro-ref-img').src = imgFiles[state.condition]; 
-        showModal('seq'); 
-    }
-    // [단계 5] SEQ 안내 -> 질문지
-    else if (state.step === 'seq-intro') { 
-        showStep('step-seq'); 
-        document.getElementById('seq-ref-img').src = imgFiles[state.condition]; 
-    }
-    else if (state.step === 'seq') { 
-        if (!validateScale(10, 'seq')) return; 
-        showStep('step-crf-intro'); 
-        document.getElementById('crf-intro-ref-img').src = imgFiles[state.condition]; 
-        showModal('crf'); 
-    }
-    // [단계 6] CRF 안내 -> 질문지
-    else if (state.step === 'crf-intro') { 
-        showStep('step-crf'); 
-        document.getElementById('crf-ref-img').src = imgFiles[state.condition]; 
-    }
-    else if (state.step === 'crf') { 
-        if (!validateScale(12, 'crf')) return; 
-        showStep('step-check'); 
-    }
-    // [단계 7] 조작 점검 질문
-    else if (state.step === 'check') { 
-        if (!document.querySelector('input[name="check_opt"]:checked')) return alert('질문에 대한 항목을 선택해 주세요.');
-        showStep('step-religion-move'); 
-    }
-    // [단계 8] 종교 질문
-    else if (state.step === 'religion-move') { 
-        if (!document.getElementById('religion').value) return alert('귀하의 종교를 선택해 주세요.');
-        showStep('step-debrief'); 
-    }
-    // [단계 9] 사후 설명 및 최종 제출
-    else if (state.step === 'debrief') { 
-        sendData(); // 서버 전송 및 완료 화면 이동
-    }
-}
     function handlePrev(event) {
         if (event) { event.preventDefault(); event.stopPropagation(); }
         const prevMap = { 'screener':'step-consent', 'des-intro':'step-vignette', 'des':'step-des-intro', 'seq-intro':'step-des', 'seq':'step-seq-intro', 'crf-intro':'step-seq', 'crf':'step-crf-intro', 'check':'step-crf', 'religion-move':'step-check', 'debrief':'step-religion-move' };
@@ -742,135 +603,63 @@ function handleNext(event) {
         }
     }
 
-    /* --- [5] 보조 함수들 --- */
-  function renderVignette() {
-    const idx = state.vignetteIndex;
-    localStorage.setItem('current_vignette_idx', idx);
-    const current = vignettes[idx];
-    const imgEl = document.getElementById('stimulus-img');
-    const textBox = document.querySelector('.vn-text-box');
-    const bottomBar = document.querySelector('.bottom-bar');
-    
-    const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-    
-    const updateUI = () => {
-        textBox.style.opacity = '1';
-        bottomBar.style.display = 'flex';
-        document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-        textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default'));
-        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-        startTimer();
-    };
+    function renderVignette() {
+        const idx = state.vignetteIndex;
+        localStorage.setItem('current_vignette_idx', idx);
+        const current = vignettes[idx];
+        const imgEl = document.getElementById('stimulus-img');
+        const textBox = document.querySelector('.vn-text-box');
+        const bottomBar = document.querySelector('.bottom-bar');
+        const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+        
+        const updateUI = () => {
+            textBox.style.opacity = '1';
+            bottomBar.style.display = 'flex';
+            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+            textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default'));
+            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+            startTimer();
+        };
 
-    // [핵심 수정] 6페이지(상담자 등장) 애니메이션 로직
-    if (idx === 5 && !state.animationPlayed) {
-        state.animationPlayed = true;
-        textBox.style.opacity = '0';
-        bottomBar.style.display = 'none';
-
-        // 1. 현재 대기실 이미지를 2초 동안 어둡게 만듬
-        imgEl.className = 'fade-out-to-black';
-
-        // 2. 2초 뒤에 이미지를 상담실로 바꾸고 7초 동안 밝게 만듬
-        setTimeout(() => {
+        if (idx === 5 && !state.animationPlayed) {
+            state.animationPlayed = true;
+            textBox.style.opacity = '0';
+            bottomBar.style.display = 'none';
+            imgEl.className = 'fade-out-to-black';
+            setTimeout(() => { imgEl.src = nextImgSrc; imgEl.className = 'counselor-fade-in'; }, 2000);
+            setTimeout(updateUI, 9000);
+        } else {
+            imgEl.className = '';
             imgEl.src = nextImgSrc;
-            imgEl.className = 'counselor-fade-in';
-        }, 2000); // 암전 효과 시간
-
-        // 3. 총 9초 뒤에 대화창 띄움
-        setTimeout(updateUI, 9000);
-    } 
-    else {
-        imgEl.className = '';
-        imgEl.src = nextImgSrc;
-        updateUI();
+            updateUI();
+        }
     }
-}
-// 5점 척도 (DES) 수정
-function renderDES() { 
-    document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `
-        <div class="scale-group">
-            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span>
-            <div class="scale-options">
-                ${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
-            </div>
-            <div class="scale-labels">
-                <span>전혀 그렇지 않다</span>
-                <span>보통이다</span>
-                <span>매우 그렇다</span>
-            </div>
-        </div>`).join(''); 
-}
-function renderSEQ() { 
-    document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `
-        <div class="scale-group" style="margin-bottom: 35px;">
-            <div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;">
-                <span>${p.L}</span><span>${p.R}</span>
-            </div>
-            <div class="scale-options">
-                ${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
-            </div>
-        </div>`).join(''); 
-}
-// 7점 척도 (CRF) 수정
-function renderCRF() { 
-    document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `
-        <div class="scale-group">
-            <span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span>
-            <div class="scale-options">
-                ${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}
-            </div>
-            <div class="scale-labels">
-                <span>전혀 그렇지 않다</span>
-                <span>보통이다</span>
-                <span>매우 그렇다</span>
-            </div>
-        </div>`).join(''); 
-}
+
+    function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div></div>`).join(''); }
+    function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
+    function renderCRF() { document.getElementById('crf-container').innerHTML = crfQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="crf_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div></div>`).join(''); }
 
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
     function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
-    function showModal(type) { const m = document.getElementById('guide-modal'); document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; m.style.display = 'flex'; }
+    function showModal(type) { document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; document.getElementById('guide-modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
     function recordInitialVisit(ip) { if (localStorage.getItem('v_recorded')) return; fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ method: 'initial', id: state.userId, ip: ip, condition: state.condition }) }).then(() => localStorage.setItem('v_recorded', 'true')); }
     function handleExit() { if(confirm("중단하시겠습니까?")) window.close(); }
-   async function sendData() {
-    const btn = document.getElementById('main-btn');
-    btn.disabled = true;
-    btn.innerText = "제출 중";
 
-    // [추가] 조작점검 답안 수집
-    const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
-    let checkAns = checkOptEl ? checkOptEl.value : "미응답";
-    if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
-
-    const timeSpent = Math.floor((Date.now() - state.startTime) / 1000);
-    const results = { 
-        id: state.userId, 
-        ip: localStorage.getItem('user_ip') || "UNKNOWN", 
-        condition: state.condition, 
-        age: document.getElementById('age').value, 
-        residence: document.getElementById('residence').value, 
-        orientation: document.getElementById('orientation').value, 
-        birth_sex: document.getElementById('birth_sex').value, 
-        current_gender: document.getElementById('current_gender').value, 
-        religion: document.getElementById('religion').value, 
-        check_answer: checkAns, // [중요] 이 줄이 있어야 시트에 들어갑니다!
-        phone: document.getElementById('reward-phone').value, 
-        duration: timeSpent, 
-        des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','), 
-        seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','), 
-        crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',') 
-    };
-
-    fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) })
-    .then(() => { 
-        localStorage.setItem('survey_finished', 'true'); 
-        localStorage.removeItem('current_step_id'); 
-        localStorage.removeItem('current_vignette_idx');
-        showStep('step-complete'); 
-    });
-}
+    async function sendData() {
+        const btn = document.getElementById('main-btn');
+        btn.disabled = true; btn.innerText = "제출 중";
+        const checkOptEl = document.querySelector('input[name="check_opt"]:checked');
+        let checkAns = checkOptEl ? checkOptEl.value : "미응답";
+        if (checkAns === 'etc') checkAns = "기타: " + document.getElementById('check-etc-input').value;
+        const results = { 
+            id: state.userId, ip: localStorage.getItem('user_ip') || "UNKNOWN", condition: state.condition, age: document.getElementById('age').value, residence: document.getElementById('residence').value, orientation: document.getElementById('orientation').value, birth_sex: document.getElementById('birth_sex').value, current_gender: document.getElementById('current_gender').value, religion: document.getElementById('religion').value, check_answer: checkAns, phone: document.getElementById('reward-phone').value, duration: Math.floor((Date.now() - state.startTime) / 1000), 
+            des_scores: Array.from({length:8}, (_,i) => document.querySelector(`input[name="des_q${i}"]:checked`).value).join(','), 
+            seq_scores: Array.from({length:10}, (_,i) => document.querySelector(`input[name="seq_q${i}"]:checked`).value).join(','), 
+            crf_scores: Array.from({length:12}, (_,i) => document.querySelector(`input[name="crf_q${i}"]:checked`).value).join(',') 
+        };
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(results) }).then(() => { localStorage.setItem('survey_finished', 'true'); showStep('step-complete'); });
+    }
 </script>
 </body>
 </html>
