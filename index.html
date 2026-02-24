@@ -53,7 +53,7 @@
     100% { filter: brightness(0); }
 }
 
-/* 상담실이 8초 동안 밝아지는 효과 (기존 코드 유지) */
+/* 상담실이 7초 동안 밝아지는 효과 (기존 코드 유지) */
 .counselor-fade-in {
     animation: fadeInFromBlack 7s ease-in-out forwards;
 }
@@ -357,8 +357,8 @@ const imgFiles = {
 };
    /* --- 비네트 대본 (수정 불가) --- */
    const vignettes = [
-        { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.<br>사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다.", img: 'waiting' },
-        { speaker: "", text: "잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.", img: 'waiting' },
+        { speaker: "", text: "당신은 최근 동성 애인과의 관계로 힘든 시기를 보냈습니다.", img: 'waiting' },
+        { speaker: "", text: "사소한 말다툼에도 이별과 재결합이 끊임없이 반복되었습니다.<br>당신은 수면 부족과 우울, 외로움에 시달리고 있습니다. 잠을 제대로 못자고 아침에 지각하는 경우가 잦아지며 일상 생활에서도 어려움이 이어졌습니다.", img: 'waiting' },
         { speaker: "", text: "결국 전문가의 도움을 받기로 결심하고 집 근처 상담센터를 찾았습니다.<br>대기실 벽에 걸린 상담자의 이력과 자격증을 보니 마음이 놓입니다.", img: 'waiting' },
         { speaker: "", text: "당신은 직원의 안내에 따라 상담 경험과 방문 목적을 묻는 간단한 질문지를 작성했습니다.", img: 'waiting' },
         { speaker: "", text: "당신은 기대와 긴장이 뒤섞인 마음으로 상담을 기다립니다.<br>이제 직원의 안내에 따라 상담실 문을 열고 들어갑니다.", img: 'waiting' },
@@ -737,14 +737,14 @@ function handleNext(event) {
         // 1. 현재 대기실 이미지를 2초 동안 어둡게 만듬
         imgEl.className = 'fade-out-to-black';
 
-        // 2. 2초 뒤에 이미지를 상담실로 바꾸고 8초 동안 밝게 만듬
+        // 2. 2초 뒤에 이미지를 상담실로 바꾸고 7초 동안 밝게 만듬
         setTimeout(() => {
             imgEl.src = nextImgSrc;
             imgEl.className = 'counselor-fade-in';
         }, 2000); // 암전 효과 시간
 
-        // 3. 총 10초(2+8) 뒤에 대화창 띄움
-        setTimeout(updateUI, 10000);
+        // 3. 총 9초 뒤에 대화창 띄움
+        setTimeout(updateUI, 9000);
     } 
     else {
         imgEl.className = '';
