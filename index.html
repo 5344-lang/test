@@ -568,7 +568,6 @@ async function checkEligibility() {
     }
 }
 
-/* --- 다음 버튼 클릭 시 실행되는 유효성 검사 --- */
 function validateScreener() {
         const ageInput = document.getElementById('age');
         const ageVal = ageInput.value.trim();
@@ -828,36 +827,7 @@ function renderCRF() {
             </div>
         </div>`).join(''); 
 }
-function validateScreener() {
-    // 나이 빈칸 체크
-    const ageInput = document.getElementById('age');
-    if (ageInput.value.trim() === "") {
-        alert('나이를 입력해 주세요.');
-        ageInput.focus();
-        return false;
-    }
 
-    // 나머지 선택 항목 빈칸 체크
-    const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
-    for (let f of fields) {
-        if (!document.getElementById(f).value) {
-            alert('모든 항목을 선택해 주세요.');
-            return false;
-        }
-    }
-    return true; // 모두 입력됨
-}
-
-    // 나머지 항목 체크
-    const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
-    for (let f of fields) {
-        if (!document.getElementById(f).value) {
-            alert('모든 항목을 선택해 주세요.');
-            return false;
-        }
-    }
-    return true;
-}
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
     function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
     function showModal(type) { const m = document.getElementById('guide-modal'); document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; m.style.display = 'flex'; }
