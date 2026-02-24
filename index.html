@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담 온라인 실험 v2</title>
+    <title>상담 온라인 실험 v1.1/title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
@@ -62,27 +62,89 @@
     0% { filter: brightness(0); }
     100% { filter: brightness(1); }
 }
-        .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
-        #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
-        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; position: absolute; left: 0; top: 0; display: block; }
-        @media (max-width: 600px) { #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); } }
-        .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
-        .sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
-        .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
-        .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
-        .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        .speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
-        .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
-        #prev-btn { flex: 3; background-color: #a0a0a0; }
-        #main-btn { flex: 7; background-color: var(--primary-color); }
-        .footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; }
-        .footer-btn:disabled { background-color: #ccc !important; }
-        .counselor-fade-in { animation: fadeInFromBlack 4s ease-in-out forwards; }
-        @keyframes fadeInFromBlack { 0% { filter: brightness(0); } 100% { filter: brightness(1); } }
-        .hidden { display: none !important; }
-        h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+     /* 전체 레이아웃 최적화 */
+.content.full-screen-mode { 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    height: 100vh; /* 브라우저 하위 호환용 */
+    height: 100dvh; /* 실제 모바일 가시 화면에 맞춤 */
+    width: 100%; 
+    overflow: hidden; 
+    position: relative;
+}
+
+/* 배경 컨테이너 */
+#step-vignette, #image-container-vig { 
+    width: 100%; 
+    height: 100dvh; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    background-color: #000; 
+}
+
+/* 중앙 이미지 설정 */
+#stimulus-img { 
+    width: 100% !important; 
+    height: 100dvh !important; 
+    object-fit: contain !important; 
+    object-position: center !important; 
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    display: block; 
+}
+
+/* 모바일 전용 이미지 대응 (미디어 쿼리) */
+@media (max-width: 600px) { 
+    #stimulus-img { 
+        width: 140% !important; 
+        height: 100dvh !important; /* 모바일 높이 변화에 대응 */
+        object-fit: cover !important; 
+        object-position: 65% center !important; 
+        left: 50%; 
+        transform: translateX(-50%); 
+    } 
+}
+
+/* 텍스트 박스 위치 조정 */
+.vn-text-box { 
+    position: absolute; 
+    bottom: 0; /* 바닥에 고정 */
+    left: 0; 
+    width: 100%; 
+    /* 하단 버튼 바(약 60px) 위로 텍스트가 올라오도록 padding 조정 */
+    padding: 30px 30px calc(30px + 60px) 30px; 
+    box-sizing: border-box; 
+    z-index: 10; 
+    transition: opacity 0.5s; 
+    word-break: keep-all; 
+}
+
+/* 하단 버튼 바 - 모바일에서 가장 중요한 부분 */
+.bottom-bar { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    display: flex; 
+    background: white; 
+    border-top: 1px solid #eee; 
+    z-index: 300; 
+    height: 60px; /* 고정 높이를 주어 dvh와 연동 시 안정감 확보 */
+}
+
+/* 나머지 스타일 유지 */
+.vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
+.vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
+.vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
+.vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+.speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
+
+#prev-btn { flex: 3; background-color: #a0a0a0; }
+#main-btn { flex: 7; background-color: var(--primary-color); }
+.footer-btn { border: none; padding: 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; line-height: 60px; }
+.footer-btn:disabled { background-color: #ccc !important; }
         /* SEQ 전용 상단 단어 스타일 (질문 수준으로 키움) */
 .seq-header {
     display: flex;
@@ -349,7 +411,7 @@
 
 <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2YC2DFsvIRWE86Me4Ekl6aT6h0C0xbR-fAkb3bfpZ4ldAiqb1IgIW4SZSnVt7CTis/exec";
-   const imgFiles = { 
+const imgFiles = { 
     'waiting': 'https://cdn.jsdelivr.net/gh/5344-lang/test/waiting.png', 
     'cross': 'https://cdn.jsdelivr.net/gh/5344-lang/test/cross.png', 
     'buddha': 'https://cdn.jsdelivr.net/gh/5344-lang/test/buddha.png', 
@@ -391,9 +453,20 @@ const guideMessages = {
         'crf': { title: '상담자 평가', body: '상담자를 어떻게 보셨는지 표시해 주십시오.' }
     };
     
-   
+    function preloadImages() { imgFiles.waiting && ['waiting.png', 'cross.png', 'buddha.png', 'none.png'].forEach(src => { const img = new Image(); img.src = src; }); }
 let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor(Math.random()*3)], vignetteIndex: 0, userId: null, startTime: null, animationPlayed: false };
-
+function startImagePreload() {
+    console.log("실험 자산 프리로딩 시작...");
+    const imagesToPreload = Object.values(imgFiles);
+    
+    imagesToPreload.forEach(src => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => console.log(`로드 완료: ${src}`);
+        img.onerror = () => console.error(`로드 실패: ${src}`);
+    });
+}
+    /* --- [2] 핵심 로직 (순서 조정 완료) --- */
 window.onload = function() {
     // 1. 중복 참여 체크
     if (localStorage.getItem('survey_finished') === 'true') {
@@ -402,16 +475,9 @@ window.onload = function() {
         return;
     }
 
-    // 2. 새로고침 시 강제 초기화 (진행 단계만 삭제)
-    localStorage.removeItem('current_step_id');
-    localStorage.removeItem('current_vignette_idx');
-    
-    // 3. 이미지 선제 로딩 (로딩 지연 해결)
-    forcePreload(); 
-
     state.startTime = Date.now();
 
-    // 4. 뒤로가기 방지 및 ID 설정
+    // 2. 뒤로가기 방지 및 ID 설정
     window.history.pushState(null, null, window.location.href);
     window.onpopstate = function() { window.history.pushState(null, null, window.location.href); };
     state.userId = localStorage.getItem('survey_user_id') || 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -419,30 +485,50 @@ window.onload = function() {
     
     renderDES(); renderSEQ(); renderCRF();
 
-    // 5. 무작위 조건 고정 (새로고침해도 '십자가/불상' 종류는 안 바뀌게 함)
+    // 3. [핵심] 기존에 할당된 조건이 있는지 확인 (새로고침 시 조건 유지용)
     const savedCondition = localStorage.getItem('assigned_condition');
     if (savedCondition) {
-        state.condition = savedCondition;
+        state.condition = savedCondition; // 이미 정해진 게 있다면 그걸 사용
+        console.log("기존 조건 로드됨:", state.condition);
     } else {
+        // 아직 정해진 게 없다면 초기값(랜덤)을 저장해둠
         localStorage.setItem('assigned_condition', state.condition);
     }
 
-    // 6. 무조건 첫 화면(동의서) 표시
-    showStep('step-consent');
+    // 4. 현재 단계 복구
+    const savedStepId = localStorage.getItem('current_step_id');
+    if (savedStepId && savedStepId !== 'step-complete') {
+        showStep(savedStepId);
+    } else {
+        showStep('step-consent');
+    }
 
-    // 7. IP 수집 및 서버 데이터 동기화
+    /* --- [핵심] 33% 균형 할당 및 동기화 로직 보강 --- */
     getIP().then(ip => {
         localStorage.setItem('user_ip', ip);
+        
+        // 서버에 인원 균형을 물어봅니다.
         return fetch(GOOGLE_SCRIPT_URL);
     })
     .then(response => response.text())
     .then(assignedCondition => {
         const serverCond = assignedCondition.trim();
-        // 아직 실험(비네트) 시작 전인 동의서 단계일 때만 서버가 정해주는 조건으로 최종 잠금
-        if (serverCond && serverCond.length < 20 && state.step === 'consent') {
-            state.condition = serverCond;
-            localStorage.setItem('assigned_condition', serverCond);
+        
+        // [조건 변경 금지 규칙]
+        // 1. 서버 응답이 유효하고 (20자 이내 텍스트)
+        // 2. 아직 실험 장면(vignette)에 진입하기 전(consent 또는 screener 단계)일 때만 업데이트
+        if (serverCond && serverCond.length < 20) {
+            const currentStep = state.step;
+            if (currentStep === 'consent' || currentStep === 'screener') {
+                state.condition = serverCond;
+                localStorage.setItem('assigned_condition', serverCond); // 서버 조건으로 최종 잠금
+                console.log("서버에 의해 균형 조건 확정:", state.condition);
+            } else {
+                console.log("이미 실험이 시작되어 서버 응답을 무시합니다. 유지된 조건:", state.condition);
+            }
         }
+        
+        // 조건이 확정된 후 초기 방문 기록
         recordInitialVisit(localStorage.getItem('user_ip'));
     })
     .catch(e => {
@@ -450,20 +536,47 @@ window.onload = function() {
         recordInitialVisit(localStorage.getItem('user_ip'));
     });
 
-    // 입력창 설정
+    // 입력창 설정 유지
     document.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
         if (el.tagName === 'SELECT') el.addEventListener('change', () => { setTimeout(() => el.blur(), 100); });
     });
 };
 
-// [함수 추가 확인] 스크립트 하단에 이게 있는지 확인하세요
-function forcePreload() {
-    Object.values(imgFiles).forEach(src => {
-        const img = new Image();
-        img.src = src; 
-    });
+  /* --- [수정] 4중 백업 IP 수집 함수 --- */
+async function getIP() {
+    // 하나가 막히면 다음으로 넘어가는 예비 명단입니다.
+    const providers = [
+        'https://api64.ipify.org?format=json',
+        'https://ipv4.icanhazip.com',
+        'https://checkip.amazonaws.com',
+        'https://api.ip.sb/ip'
+    ];
+
+    for (const url of providers) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5초 안에 응답 없으면 다음으로
+            
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            // 데이터 형태(JSON 또는 일반 텍스트)에 따라 다르게 처리
+            const data = await (url.includes('json') ? response.json() : response.text());
+            let ip = (typeof data === 'object' ? data.ip : data).trim();
+            
+            if (ip && ip.length > 0) {
+                localStorage.setItem('user_ip', ip);
+                return ip;
+            }
+        } catch (e) {
+            console.warn(`IP 제공자 차단됨: ${url}`);
+            continue; // 에러 나면 다음 제공자 시도
+        }
+    }
+    return "FINAL_FAIL"; // 모든 시도가 실패할 경우
 }
+
 /* --- [수정] checkEligibility 함수 --- */
 async function checkEligibility() {
     const age = parseInt(document.getElementById('age').value);
@@ -579,6 +692,7 @@ function handleNext(event) {
         if (consentEl.value === 'disagree') return alert('연구 설명 및 동의서 내용에 동의하셔야 참여가 가능합니다.');
         
         showStep('step-screener');
+        startImagePreload(); // 인적사항 적는 동안 이미지 미리 로딩
     } 
     // [단계 2] 인구통계학적 질문 (자격 확인)
     else if (state.step === 'screener') {
@@ -741,11 +855,12 @@ function renderCRF() {
             </div>
         </div>`).join(''); 
 }
-    function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('만 19세 미만은 해당 실험에 참여할 수 없습니다.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
+    function validateScreener() { const age = parseInt(document.getElementById('age').value); if (isNaN(age) || age < 19) { alert('나이를 확인해주세요.'); return false; } const fields = ['residence', 'orientation', 'birth_sex', 'current_gender']; for (let f of fields) { if (!document.getElementById(f).value) { alert('모든 항목을 선택해 주세요.'); return false; } } return true; }
     function validateScale(count, prefix) { for(let i=0; i<count; i++) { if(!document.querySelector(`input[name="${prefix}_q${i}"]:checked`)) { alert(`${i+1}번 문항에 응답해 주세요.`); return false; } } return true; }
     function startTimer() { const btn = document.getElementById('main-btn'); btn.disabled = true; btn.innerText = "읽는 중"; setTimeout(() => { btn.disabled = false; btn.innerText = "다음"; }, 1500); }
     function showModal(type) { const m = document.getElementById('guide-modal'); document.getElementById('modal-title').innerText = guideMessages[type].title; document.getElementById('modal-body').innerText = guideMessages[type].body; m.style.display = 'flex'; }
     function closeModal() { document.getElementById('guide-modal').style.display = 'none'; }
+    function startImagePreload() { Object.values(imgFiles).forEach(src => { const img = new Image(); img.src = src; }); }
     function recordInitialVisit(ip) { if (localStorage.getItem('v_recorded')) return; fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ method: 'initial', id: state.userId, ip: ip, condition: state.condition }) }).then(() => localStorage.setItem('v_recorded', 'true')); }
     function handleExit() { if(confirm("중단하시겠습니까?")) window.close(); }
    async function sendData() {
