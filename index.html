@@ -570,20 +570,22 @@ async function checkEligibility() {
 
 /* --- 다음 버튼 클릭 시 실행되는 유효성 검사 --- */
 function validateScreener() {
-    const ageVal = document.getElementById('age').value;
-    if (!ageVal) { 
-        alert('나이를 숫자로 입력해 주세요.'); 
-        return false; 
+        const ageInput = document.getElementById('age');
+        const ageVal = ageInput.value.trim();
+        if (ageVal === "") {
+            alert('나이를 입력해 주세요.');
+            ageInput.focus();
+            return false;
+        }
+        const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
+        for (let f of fields) {
+            if (!document.getElementById(f).value) {
+                alert('모든 항목을 선택해 주세요.');
+                return false;
+            }
+        }
+        return true;
     }
-    const fields = ['residence', 'orientation', 'birth_sex', 'current_gender'];
-    for (let f of fields) { 
-        if (!document.getElementById(f).value) { 
-            alert('모든 항목을 선택해 주세요.'); 
-            return false; 
-        } 
-    }
-    return true; 
-}
 /* --- [4] UI 제어 함수들 --- */
 function showStep(id) {
     // 1. 상태 변수 업데이트 및 화면 전환
