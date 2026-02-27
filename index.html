@@ -480,7 +480,13 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
         const bSex = document.getElementById('birth_sex').value;
         const cGen = document.getElementById('current_gender').value;
 
-        const isEligible = (age >= 19) && (res === 'korea') && (orient !== 'hetero' && orient !== 'dontknow');
+const isCisgender = (bSex === cGen);
+    
+    // 최종 자격 확인
+    const isEligible = (age >= 19) && 
+                       (res === 'korea') && 
+                       (orient !== 'hetero' && orient !== 'dontknow') && 
+                       isCisgender;
 
         if (isEligible) {
             showStep('step-vignette');
