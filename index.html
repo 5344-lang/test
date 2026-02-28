@@ -3,180 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담실 환경 및 상담 경험에 관한 사용자 연구 v2</title>
+    <title>.상담실 환경 및 상담 경험에 관한 사용자 연구</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-    /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
-        :root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
-        html, body { height: 100%; margin: 0; padding: 0; touch-action: pan-y; overscroll-behavior-x: none; }
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
-        .app-container { background-color: var(--card-bg); width: 100%; height: 100%; max-width: none; display: flex; flex-direction: column; position: relative; }
-        header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
-        .close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
-        .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 100px 24px; box-sizing: border-box; }
-        /* --- [추가] 동의서 및 사후 설명 스크롤 박스 --- */
+<style>
+/* --- 1. 기본 디자인 시스템 (유지) --- */
+:root { --primary-color: #5bc2e7; --header-bg: #343a40; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-main: #333333; }
+html, body { height: 100%; margin: 0; padding: 0; touch-action: pan-y; overscroll-behavior-x: none; }
+body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; overflow: hidden; color: var(--text-main); }
+.app-container { background-color: var(--card-bg); width: 100%; height: 100%; max-width: none; display: flex; flex-direction: column; position: relative; }
+header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; flex-shrink: 0; z-index: 200; }
+.close-btn { cursor: pointer; font-size: 14px; color: #ccc; }
+.content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; padding: 0 24px 100px 24px; box-sizing: border-box; }
+
+/* --- 2. 스크롤 박스 및 텍스트 설정 (유지) --- */
 #consent-scroll-box, #debrief-scroll-box {
-    height: 50vh;           /* 화면 높이의 절반 차지 */
-    max-height: 800px;      /* 너무 커지지 않게 제한 */
-    min-height: 180px;      /* 최소 높이 확보 */
-    overflow-y: auto;       /* 내용이 길어지면 스크롤 생성 */
-    border: 1px solid #ddd; /* 테두리 */
-    padding: 15px;
-    font-size: 14px;
-    line-height: 1.7;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    background: #fff;       /* 배경은 깔끔한 흰색 */
-    word-break: keep-all;   /* 단어 단위 줄바꿈으로 가독성 향상 */
+    height: 50vh; max-height: 800px; min-height: 180px; overflow-y: auto;
+    border: 1px solid #ddd; padding: 15px; font-size: 14px; line-height: 1.7;
+    border-radius: 8px; margin-bottom: 15px; background: #fff; word-break: keep-all;
+}
+@media (max-height: 700px) { #consent-scroll-box, #debrief-scroll-box { height: 35vh; } }
+@media (min-width: 1024px) { #consent-scroll-box, #debrief-scroll-box { font-size: 16px; } }
+
+/* --- 3. 이미지 연출 및 패닝 시스템 (수정 및 충돌 해결) --- */
+.content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
+#step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
+
+/* 기본 이미지 설정 (패닝을 위해 !important 제거) */
+#stimulus-img { 
+    width: 100%; height: 100%; object-fit: contain; object-position: center; 
+    position: absolute; left: 0; top: 0; display: block; 
 }
 
-/* 모바일 화면 높이가 낮을 경우 박스 크기 자동 조정 */
-@media (max-height: 700px) {
-    #consent-scroll-box, #debrief-scroll-box { 
-        height: 35vh; 
-    }
+/* [충돌 해결] 모바일 구도 고정: 패닝 중(.counselor-panning)이 아닐 때만 작동 */
+@media (max-width: 600px) { 
+    #stimulus-img:not(.counselor-panning) { 
+        width: 140% !important; height: 100% !important; 
+        object-fit: cover !important; object-position: 65% center !important; 
+        left: 50%; transform: translateX(-50%); 
+    } 
 }
 
-/* PC 대화면에서 글자 크기 보강 */
-@media (min-width: 1024px) {
-    #consent-scroll-box, #debrief-scroll-box {
-        font-size: 16px;
-    }
-}
-        /* 대기실이 2초 동안 어두워지는 효과 */
-.fade-out-to-black {
-    animation: fadeToBlack 2s ease-in-out forwards;
-}
-
-@keyframes fadeToBlack {
-    0% { filter: brightness(1); }
-    100% { filter: brightness(0); }
-}
-
-
-        
-/* [최종 수치] 오른쪽(100%)에서 중앙(50%)으로 스르륵 이동 */
+/* 패닝 애니메이션 (기존 수치 유지하며 충돌 회피 추가) */
 #stimulus-img.counselor-panning {
-    width: 140% !important;   /* 이동 레일 확보를 위해 140% 설정 */
+    width: 160% !important; /* 패닝 공간 확보를 위해 살짝 키움 */
     max-width: none !important;
     height: 100% !important;
-    object-fit: cover !important; 
+    object-fit: cover !important;
+    left: 0 !important; /* 모바일에서의 left 50% 무효화 */
+    transform: none !important; /* 모바일에서의 translateX 무효화 */
     animation: smoothPanningRightToLeft 7s ease-in-out forwards;
     will-change: object-position; 
 }
 
 @keyframes smoothPanningRightToLeft {
-    0% { 
-        /* 1. 사진의 오른쪽 끝(상징물 위치)에서 시작 */
-        object-position: 70% center; 
-        filter: brightness(0); 
-    }
-    30% {
-        /* 이동하며 서서히 밝아짐 (상징물 선명하게 노출) */
-        filter: brightness(1); 
-    }
-    100% { 
-        /* 2. 최종값: 기존 사용자님이 쓰던 정중앙 구도(50%)로 안착 */
-        object-position: 50% center; 
-        filter: brightness(1); 
-    }
+    0% { object-position: 85% center; filter: brightness(0); } /* 오른쪽 상징물 시작 */
+    30% { filter: brightness(1); }
+    100% { object-position: 50% center; filter: brightness(1); } /* 중앙 안착 */
 }
 
+.fade-out-to-black { animation: fadeToBlack 2s ease-in-out forwards; }
+@keyframes fadeToBlack { 0% { filter: brightness(1); } 100% { filter: brightness(0); } }
 
-        
-        .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
-        #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
-        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center; position: absolute; left: 0; top: 0; display: block; }
-        @media (max-width: 600px) { #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); } }
-        .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
-        .sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
-        .vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
-        .vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
-        .vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
-        .vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        .speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
-        .bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
-        #prev-btn { flex: 3; background-color: #a0a0a0; }
-        #main-btn { flex: 7; background-color: var(--primary-color); }
-        .footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; border-radius: 0; }
-        .footer-btn:disabled { background-color: #ccc !important; }
-        .counselor-fade-in { animation: fadeInFromBlack 4s ease-in-out forwards; }
-        @keyframes fadeInFromBlack { 0% { filter: brightness(0); } 100% { filter: brightness(1); } }
-        .hidden { display: none !important; }
-        h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
-        /* SEQ 전용 상단 단어 스타일 (질문 수준으로 키움) */
-.seq-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    font-size: 18px;    /* 다른 질문지(DES) 수준의 크기 */
-    font-weight: 700;   /* 볼드 처리 */
-    color: #222;        /* 진한 색상 */
-    padding: 0 5px;
+/* --- 4. 설문지 UI 및 말풍선 스타일 (유지) --- */
+.sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
+.sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
+
+.vn-text-box { position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 30px 85px 30px; box-sizing: border-box; z-index: 10; transition: opacity 0.5s; word-break: keep-all; }
+.vn-text-box.speaker-counselor { background: linear-gradient(to top, rgba(0, 50, 100, 0.9) 5%, rgba(0, 50, 100, 0.6) 70%, transparent 100%); }
+.vn-text-box.speaker-me { background: linear-gradient(to top, rgba(0, 80, 40, 0.9) 5%, rgba(0, 80, 40, 0.6) 70%, transparent 100%); }
+.vn-text-box.speaker-default { background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.6) 70%, transparent 100%); }
+.vn-text-box p { font-size: 16px; line-height: 1.6; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+.speaker { font-weight: 700; color: #ffffff; display: block; margin-bottom: 5px; font-size: 17px; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; background: white; border-top: 1px solid #eee; z-index: 300; }
+.footer-btn { border: none; padding: 20px 0; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; flex: 1; }
+#prev-btn { flex: 3; background-color: #a0a0a0; }
+#main-btn { flex: 7; background-color: var(--primary-color); }
+.footer-btn:disabled { background-color: #ccc !important; }
+
+.hidden { display: none !important; }
+h2 { font-size: 18px; margin: 20px 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+
+/* SEQ/DES 설문 폼 스타일 (유지) */
+.seq-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; padding: 0 5px; }
+@media (min-width: 1024px) { .seq-header { font-size: 22px; margin-bottom: 18px; } }
+
+.form-label { display: block; margin-bottom: 3px; font-weight: 500; }
+.form-group { margin-bottom: 25px; }
+.form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important; color: #333; -webkit-appearance: none; }
+
+.scale-group { margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+.scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
+.scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; display: flex; flex-direction: column; margin: 0; }
+.scale-option:last-child { border-right: none; }
+.scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.scale-number { display: block; padding: 15px 0; font-size: 16px; flex: 1; }
+.scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
+.scale-labels { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-top: 5px; padding: 0 5px; }
+
+/* --- 5. 페이지 카운터 (유지) --- */
+#page-counter {
+    position: absolute; top: 70px; right: 20px; z-index: 500;
+    background: rgba(0, 0, 0, 0.5); color: white; padding: 5px 12px;
+    border-radius: 20px; font-size: 13px; font-weight: bold; pointer-events: none;
 }
+.light-mode-counter { background: rgba(200, 200, 200, 0.2) !important; color: #333 !important; }
 
-/* PC 대화면에서는 더 크게 보이도록 조정 */
+/* --- 6. 대화면 보강 (유지) --- */
 @media (min-width: 1024px) {
-    .seq-header {
-        font-size: 22px; 
-        margin-bottom: 18px;
-    }
+    body { font-size: 18px; }
+    .vn-text-box { padding-bottom: 120px !important; } 
+    .vn-text-box p { font-size: 20px; line-height: 1.8; max-width: 900px; margin: 0 auto; }
+    h2 { font-size: 24px; }
+    .footer-btn { font-size: 20px; padding: 25px 0; }
+    .content { padding-bottom: 130px !important; }
 }
-        .form-label {display: block; margin-bottom: 3px; font-weight: 500;}
-        .form-group { margin-bottom: 25px; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; background-color: #ffffff !important; color: #333; -webkit-appearance: none; appearance: none; }
-        .scale-options { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin: 15px 0 8px 0; }
-        .scale-option { flex: 1; position: relative; border-right: 1px solid #ccc; background: #fff; text-align: center; cursor: pointer; display: flex; flex-direction: column; margin: 0;}
-        .scale-option:last-child { border-right: none; }
-        .scale-option input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-        .scale-number { display: block; padding: 15px 0; font-size: 16px; flex: 1;}
-        .scale-option:has(input:checked) { background-color: var(--primary-color); color: #fff; }
-/* 문항 사이의 여백을 50px로 대폭 늘림 */
-.scale-group { 
-    margin-bottom: 18px; 
-    padding-bottom: 10px;
-    border-bottom: 1px solid #f0f0f0; /* 문항 구분을 위한 미세한 선 (선택 사항) */
-}
-
-/* 숫자 아래 레이블(전혀 그렇지 않다 등) 스타일 */
-.scale-labels { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 13px; /* 글자 크기 살짝 키움 */
-    color: #666; 
-    margin-top: 5px; /* 숫자 버튼과의 간격 */
-    padding: 0 5px; 
-}
-        @media (min-width: 1024px) {
-            body { font-size: 18px; }
-            .vn-text-box { padding-bottom: 120px !important; } 
-            .vn-text-box p { font-size: 20px; line-height: 1.8; max-width: 900px; margin: 0 auto; }
-            h2 { font-size: 24px; }
-            .footer-btn { font-size: 20px; padding: 25px 0; }
-            .content { padding-bottom: 130px !important; }
-        
-        }
-        #page-counter {
-    position: absolute;
-    top: 70px;         /* 헤더 아래 적절한 위치 */
-    right: 20px;
-    z-index: 500;      /* 이미지나 버튼보다 위에 오도록 높은 숫자 부여 */
-    background: rgba(0, 0, 0, 0.5); /* 반투명 검정 배경으로 가독성 확보 */
-    color: white;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    pointer-events: none; /* 클릭 방해 금지 */
-}
-
-/* 설문지 단계(흰 배경)에서는 글자 색상을 검정색 계열로 변경 (선택 사항) */
-.light-mode-counter {
-    background: rgba(200, 200, 200, 0.2) !important;
-    color: #333 !important;
-}
-    </style>
+</style>
 </head>
 <body>
 
@@ -649,25 +591,28 @@ function renderVignette() {
         startTimer();
     };
 
-    if (idx === 5 && !state.animationPlayed) {
-        state.animationPlayed = true;
-        textBox.style.opacity = '0';
-        bottomBar.style.display = 'none';
+if (idx === 5 && !state.animationPlayed) {
+    state.animationPlayed = true;
+    textBox.style.opacity = '0';
+    bottomBar.style.display = 'none';
+    
+    // 1. 먼저 검정색으로 페이드 아웃
+    imgEl.className = 'fade-out-to-black'; 
+    
+    setTimeout(() => { 
+        // 2. 이미지 소스 교체 및 클래스 초기화
+        imgEl.src = nextImgSrc;
+        imgEl.className = ''; 
         
-        imgEl.className = 'fade-out-to-black'; 
-        
-        setTimeout(() => { 
-            imgEl.src = nextImgSrc;
-            imgEl.className = ''; 
-            void imgEl.offsetWidth; 
-            
-            // 미세 지연 후 패닝 클래스 주입
-            setTimeout(() => {
-                imgEl.className = 'counselor-panning'; 
-            }, 20); 
-        }, 2000); 
-        
-        setTimeout(updateUI, 9000); 
+        // 3. 브라우저가 다음 프레임에서 애니메이션을 시작하도록 보장
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                imgEl.classList.add('counselor-panning');
+            });
+        });
+    }, 2000); 
+    
+    setTimeout(updateUI, 9000); // 애니메이션 7초 + 대기 2초 후 텍스트 표시
     } else {
         imgEl.className = '';
         imgEl.src = nextImgSrc;
