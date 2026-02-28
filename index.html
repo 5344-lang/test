@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담실 환경 및 상담 경험에 관한 사용자 연구 v2</title>
+    <title>상담실 환경 및 상담 경험에 관한 사용자 연구</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
     /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
@@ -53,46 +53,18 @@
     100% { filter: brightness(0); }
 }
 
-
-        
-/* [최종 수정] 패닝 애니메이션 클래스 */
-#stimulus-img.counselor-panning {
-    /* 1. 공간 확보: 화면보다 이미지를 훨씬 크게 만듭니다 (중요) */
-    width: 250% !important; 
-    max-width: none !important;
-    height: 100% !important;
-    
-    /* 2. 채우기 방식: contain(맞춤)이 아니라 cover(채움)여야 움직일 여백이 생깁니다 */
-    object-fit: cover !important; 
-
-    /* 3. 애니메이션: 7초 동안 부드럽게(ease-in-out) 실행 */
-    animation: smoothPanning 7s ease-in-out forwards;
-    
-    /* 부드러운 하드웨어 가속 */
-    will-change: object-position, filter;
+/* 상담실이 7초 동안 밝아지는 효과 (기존 코드 유지) */
+.counselor-fade-in {
+    animation: fadeInFromBlack 7s ease-in-out forwards;
 }
 
-@keyframes smoothPanning {
-    0% { 
-        /* 사진의 맨 왼쪽(0%)에서 시작 */
-        object-position: 0% center; 
-        filter: brightness(0); 
-    }
-    30% {
-        /* 이동하는 중에 서서히 밝아짐 (상징물 노출) */
-        filter: brightness(1); 
-    }
-    100% { 
-        /* 상담자가 있는 지점(대략 65~70%)에서 멈춤 */
-        object-position: 70% center; 
-        filter: brightness(1); 
-    }
+@keyframes fadeInFromBlack {
+    0% { filter: brightness(0); }
+    100% { filter: brightness(1); }
 }
-
-        
         .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
         #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
-        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center; position: absolute; left: 0; top: 0; display: block; }
+        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; position: absolute; left: 0; top: 0; display: block; }
         @media (max-width: 600px) { #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); } }
         .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
         .sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
@@ -655,32 +627,18 @@ const isCisgender = (bSex === cGen);
             startTimer();
         };
 
-/* --- renderVignette 함수 내 해당 블록 전체 교체 --- */
-if (idx === 5 && !state.animationPlayed) {
-    state.animationPlayed = true;
-    textBox.style.opacity = '0';
-    bottomBar.style.display = 'none';
-    
-    // 1. 암흑으로 페이드 아웃
-    imgEl.className = 'fade-out-to-black';
-    
-    setTimeout(() => { 
-        imgEl.src = nextImgSrc;
-        imgEl.className = ''; // 초기화
-        void imgEl.offsetWidth; // 리플로우 강제
-        
-        // 2. 0.02초 뒤에 패닝 클래스 주입하여 브라우저가 이동을 인식하게 함
-        setTimeout(() => {
-            imgEl.className = 'counselor-panning'; 
-        }, 20); 
-    }, 2000); 
-    
-    setTimeout(updateUI, 9000); 
-} else {
-    imgEl.className = '';
-    imgEl.src = nextImgSrc;
-    updateUI();
-}
+        if (idx === 5 && !state.animationPlayed) {
+            state.animationPlayed = true;
+            textBox.style.opacity = '0';
+            bottomBar.style.display = 'none';
+            imgEl.className = 'fade-out-to-black';
+            setTimeout(() => { imgEl.src = nextImgSrc; imgEl.className = 'counselor-fade-in'; }, 2000);
+            setTimeout(updateUI, 9000);
+        } else {
+            imgEl.className = '';
+            imgEl.src = nextImgSrc;
+            updateUI();
+        }
     }
 
     function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div></div>`).join(''); }
