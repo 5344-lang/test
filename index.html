@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상담실 환경 및 상담 경험에 관한 사용자 연구</title>
+    <title>상담실 환경 및 상담 경험에 관한 사용자 연구 v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
     /* --- 디자인 시스템 (사용자 요청 디자인 유지) --- */
@@ -53,18 +53,40 @@
     100% { filter: brightness(0); }
 }
 
-/* 상담실이 7초 동안 밝아지는 효과 (기존 코드 유지) */
-.counselor-fade-in {
-    animation: fadeInFromBlack 7s ease-in-out forwards;
+
+        
+/* [최종 수치] 오른쪽(100%)에서 중앙(50%)으로 스르륵 이동 */
+#stimulus-img.counselor-panning {
+    width: 140% !important;   /* 이동 레일 확보를 위해 140% 설정 */
+    max-width: none !important;
+    height: 100% !important;
+    object-fit: cover !important; 
+    animation: smoothPanningRightToLeft 7s ease-in-out forwards;
+    will-change: object-position; 
 }
 
-@keyframes fadeInFromBlack {
-    0% { filter: brightness(0); }
-    100% { filter: brightness(1); }
+@keyframes smoothPanningRightToLeft {
+    0% { 
+        /* 1. 사진의 오른쪽 끝(상징물 위치)에서 시작 */
+        object-position: 70% center; 
+        filter: brightness(0); 
+    }
+    30% {
+        /* 이동하며 서서히 밝아짐 (상징물 선명하게 노출) */
+        filter: brightness(1); 
+    }
+    100% { 
+        /* 2. 최종값: 기존 사용자님이 쓰던 정중앙 구도(50%)로 안착 */
+        object-position: 50% center; 
+        filter: brightness(1); 
+    }
 }
+
+
+        
         .content.full-screen-mode { padding: 0 !important; margin: 0 !important; height: 100vh; width: 100%; overflow: hidden; }
         #step-vignette, #image-container-vig { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: #000; }
-        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; position: absolute; left: 0; top: 0; display: block; }
+        #stimulus-img { width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center; position: absolute; left: 0; top: 0; display: block; }
         @media (max-width: 600px) { #stimulus-img { width: 140% !important; height: 100% !important; object-fit: cover !important; object-position: 65% center !important; left: 50%; transform: translateX(-50%); } }
         .sticky-top-box { position: sticky; top: 0; z-index: 100; background-color: var(--card-bg); padding: 10px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; }
         .sticky-top-box img { width: 100%; max-width: 100%; height: auto; max-height: 25vh; object-fit: contain; display: block; margin: 0 auto; }
@@ -609,37 +631,49 @@ const isCisgender = (bSex === cGen);
         }
     }
 
-    function renderVignette() {
-        const idx = state.vignetteIndex;
-        localStorage.setItem('current_vignette_idx', idx);
-        const current = vignettes[idx];
-        const imgEl = document.getElementById('stimulus-img');
-        const textBox = document.querySelector('.vn-text-box');
-        const bottomBar = document.querySelector('.bottom-bar');
-        const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
-        
-        const updateUI = () => {
-            textBox.style.opacity = '1';
-            bottomBar.style.display = 'flex';
-            document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
-            textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default'));
-            document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
-            startTimer();
-        };
+function renderVignette() {
+    const idx = state.vignetteIndex;
+    localStorage.setItem('current_vignette_idx', idx);
+    const current = vignettes[idx];
+    const imgEl = document.getElementById('stimulus-img');
+    const textBox = document.querySelector('.vn-text-box');
+    const bottomBar = document.querySelector('.bottom-bar');
+    const nextImgSrc = (current.img === 'waiting') ? imgFiles['waiting'] : imgFiles[state.condition];
+    
+    const updateUI = () => {
+        textBox.style.opacity = '1';
+        bottomBar.style.display = 'flex';
+        document.getElementById('vignette-text').innerHTML = `${current.speaker ? '<span class="speaker">'+current.speaker+'</span>' : ''}${current.text}`;
+        textBox.className = 'vn-text-box ' + (current.speaker === "상담자" ? 'speaker-counselor' : (current.speaker === "나" ? 'speaker-me' : 'speaker-default'));
+        document.getElementById('page-counter').innerText = `${idx + 1} / ${vignettes.length}`;
+        startTimer();
+    };
 
-        if (idx === 5 && !state.animationPlayed) {
-            state.animationPlayed = true;
-            textBox.style.opacity = '0';
-            bottomBar.style.display = 'none';
-            imgEl.className = 'fade-out-to-black';
-            setTimeout(() => { imgEl.src = nextImgSrc; imgEl.className = 'counselor-fade-in'; }, 2000);
-            setTimeout(updateUI, 9000);
-        } else {
-            imgEl.className = '';
+    if (idx === 5 && !state.animationPlayed) {
+        state.animationPlayed = true;
+        textBox.style.opacity = '0';
+        bottomBar.style.display = 'none';
+        
+        imgEl.className = 'fade-out-to-black'; 
+        
+        setTimeout(() => { 
             imgEl.src = nextImgSrc;
-            updateUI();
-        }
+            imgEl.className = ''; 
+            void imgEl.offsetWidth; 
+            
+            // 미세 지연 후 패닝 클래스 주입
+            setTimeout(() => {
+                imgEl.className = 'counselor-panning'; 
+            }, 20); 
+        }, 2000); 
+        
+        setTimeout(updateUI, 9000); 
+    } else {
+        imgEl.className = '';
+        imgEl.src = nextImgSrc;
+        updateUI();
     }
+}
 
     function renderDES() { document.getElementById('des-container').innerHTML = desQuestions.map((q, i) => `<div class="scale-group"><span class="scale-question" style="font-weight:bold; display:block; margin-bottom:15px; font-size:17px;">${q}</span><div class="scale-options">${[1,2,3,4,5].map(v => `<label class="scale-option"><input type="radio" name="des_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div><div class="scale-labels"><span>전혀 그렇지 않다</span><span>보통이다</span><span>매우 그렇다</span></div></div>`).join(''); }
     function renderSEQ() { document.getElementById('seq-container').innerHTML = seqPairs.map((p, i) => `<div class="scale-group" style="margin-bottom: 35px;"><div class="scale-labels" style="margin-bottom: 12px; font-size: 18px; font-weight: 700; color: #222; display: flex; justify-content: space-between;"><span>${p.L}</span><span>${p.R}</span></div><div class="scale-options">${[1,2,3,4,5,6,7].map(v => `<label class="scale-option"><input type="radio" name="seq_q${i}" value="${v}"><span class="scale-number">${v}</span></label>`).join('')}</div></div>`).join(''); }
