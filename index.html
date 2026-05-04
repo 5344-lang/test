@@ -486,6 +486,7 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
     }
 
     /* --- 실행 로직 --- */
+    /* --- 실행 로직 --- */
     window.onload = function() {
         if (localStorage.getItem('survey_finished') === 'true') {
             alert("이미 본 연구에 참여하셨습니다. 중복 참여는 불가능합니다.");
@@ -506,8 +507,22 @@ let state = { step: 'consent', condition: ['cross', 'buddha', 'none'][Math.floor
         else localStorage.setItem('assigned_condition', state.condition);
 
         const savedStepId = localStorage.getItem('current_step_id');
-        if (savedStepId && savedStepId !== 'step-complete') showStep(savedStepId);
-        else showStep('step-consent');
+        if (savedStepId && savedStepId !== 'step-complete') {
+            showStep(savedStepId);
+            // [수정됨] 새로고침 시 검은화면 버그 수정: 비네트 상태 복구 및 재렌더링
+            if (savedStepId === 'step-vignette') {
+                const savedIdx = localStorage.getItem('current_vignette_idx');
+                if (savedIdx !== null) state.vignetteIndex = parseInt(savedIdx, 10);
+                
+                // 애니메이션 중 새로고침 시 타이머 꼬임 방지를 위해 즉시 이미지 렌더링
+                if (state.vignetteIndex >= 5) state.animationPlayed = true; 
+                
+                renderVignette();
+            }
+        }
+        else {
+            showStep('step-consent');
+        }
 
         getIP().then(ip => {
             localStorage.setItem('user_ip', ip);
